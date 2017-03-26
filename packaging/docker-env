@@ -1,0 +1,37 @@
+
+docker_ubuntu_xenial() {
+   cat <<EOF
+FROM ubuntu:xenial
+
+ENV DIST ubuntu
+ENV RELEASE xenial
+
+RUN apt-get -q update && \\
+    DEBIAN_FRONTEND="noninteractive" apt-get -q install -y \\
+    -o Dpkg::Options::="--force-confnew"  --no-install-recommends \\
+    git build-essential debhelper lintian fakeroot equivs devscripts \\
+    git-buildpackage libdistro-info-perl && \\
+    apt-get -q clean -y && rm -rf /var/lib/apt/lists/* &&  \\
+    rm -f /var/cache/apt/*.bin 
+EOF
+}
+
+docker_common() {
+   echo ""
+   echo "ENV USER $USER"
+   echo "ENV TARBALL ${TMPDIR}/${PROJ_NAME}_${VERSION}.orig.tar.gz"
+
+   cat <<EOF
+RUN useradd -M -d /home/${USER} -s /bin/bash ${USER} &&  \\
+    cd /usr/src && \\
+    git clone http://github.com/folio-org/folio-tools 
+
+USER $USER
+
+ENV FOLIO_TOOLS /usr/src/folio-tools
+COPY $TARBALL /usr/src/${TARBALL}
+
+ENTRYPOINT ["/usr/src/folio-tools/packaging/build-entry.sh"]
+CMD ['']
+EOF
+}
