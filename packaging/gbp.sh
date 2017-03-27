@@ -133,7 +133,7 @@ gbp dch $DCH_OPTS
 # prepare deb build
 mkdir -p ${DEB_BUILD_DIR}
 cp $UPSTREAM_SRC ${DEB_BUILD_DIR}/
-sudo mk_build_deps -i debian/control
+sudo mk-build-deps -i debian/control
 
 # build debian package
 gbp buildpackage $BUILDPACKAGE_OPTS $DEBPKG_OPTS
