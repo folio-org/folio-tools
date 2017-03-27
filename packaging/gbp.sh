@@ -130,11 +130,15 @@ fi
 gbp dch $DCH_OPTS
 
 
-# prepare deb build
+# prepare deb build. remove old deb-src if exists
+if [ -d $DEB_BUILD_DIR ]; then
+   rm -rf $DEB_BUILD_DIR
+fi
+
 mkdir -p ${DEB_BUILD_DIR}
 cp $UPSTREAM_SRC ${DEB_BUILD_DIR}/
 sudo apt-get update
-sudo mk-build-deps -i debian/control
+DEBIAN_FRONTEND=noninteractive sudo mk-build-deps -i -t 'apt-get -y' debian/control 
 
 # build debian package
 gbp buildpackage $BUILDPACKAGE_OPTS $DEBPKG_OPTS
