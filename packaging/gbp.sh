@@ -8,21 +8,75 @@
 # Maintainer:  John Malconian <malc@indexdata.com>
 #
 
-#OPTIONS:
-#--snapshot
-#--release
-# --verbose
-# /path/to/upstream/tarfile.
-
 set -e
 
-if [ verbose == "verbose" ]; then
-  set -x
-fi 
+BUILD_DIR="deb-src"
 
-# Get upstream version via string manipulation on upstream tarball.
-UPSTREAM_VER="${UPSTREAM_SRC/%.orig.tar.gz/}"
-UPSTREAM_VER="$(awk -F '_' '{print $2}' <<< $UPSTREAM_VER)"
+usage() {
+   cat << EOF
+Usage: $0 [OPTIONS] /path/to/upstream/source_tar.gz 
+Options: 
+      -r  specifies a tagged release
+      -s  specifies a snapshot release
+      -h  usage 
+      -v  verbose mode
+EOF 
+
+exit 1
+
+}
+
+while getopts ":vhsr" opt; do
+   case ${opt} in
+      v)
+         set -x 
+        ;;
+      r)
+         RELEASE=true
+         ;;
+      s)
+         SNAPSHOT=true
+         ;;
+      h) 
+         usage
+         ;;
+      \?)
+         echo "Invalid option."
+         usage
+         ;;
+   esac
+done
+
+shift $((OPTIND -1))
+
+if [ $# -ne 1 ]; then
+  echo "Specify /path/to/upstream/source_tar.gz"
+  echo ""
+  usage
+fi
+
+UPSTREAM_SRC=$1
+
+if [ -f $UPSTREAM_SRC ]; then
+   # Get upstream version via string manipulation on upstream tarball.
+   UPSTREAM_VER="${UPSTREAM_SRC/%.orig.tar.gz/}"
+   UPSTREAM_VER="$(awk -F '_' '{print $2}' <<< $UPSTREAM_VER)"
+else
+   echo "Upstream source tarball, ${UPSTREAM_SRC},  not found." 
+   exit 1
+fi
+
+if [ "$RELEASE" = true ] && [ "$SNAPSHOT" = true ]
+  echo "Either '-r' OR '-s' can be specified.  Not both"
+  exit 1
+fi
+
+if [ "$RELEASE" = false ] && [ "$SNAPSHOT" = false ]
+  echo "Need to specify either '-r' or '-s'"
+  exit 1
+fi
+
+mkdir -p $BUILD_DIR
 
 # set some default opts for git-import-orig
 IMPORT_ORIG_OPTS="--no-interactive \
@@ -44,11 +98,11 @@ DCH_OPTS="--spawn-editor=never \
 
 # Additional git-dch options depending on whether this is a tagged release or
 # snapshot build
-if [ release ]; then
+if [ "$RELEASE" = true ]; then
    DCH_OPTS+="  --commit --release"
 fi
 
-if [ snapshot ]; then
+if [ "$SNAPSHOT" = true ]; then
    DCH_OPTS+=" --commit --snapshot --distribution=UNRELEASED --auto"
 fi
 
@@ -66,7 +120,6 @@ fi
 if ! grep "(${UPSTREAM_VER}-" debian/changelog > /dev/null; then
    DCH_OPTS+=" -N ${UPSTREAM_VERSION}-1"
 fi  
-
 
 
 gbp dch $DCH_OPTS

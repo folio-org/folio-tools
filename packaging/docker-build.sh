@@ -25,12 +25,12 @@ usage() {
     cat <<EOF
 Usage: $0 [OPTIONS] name-of-folio-project
 Options:
-        [-r git-release-tag] (optional)
-        [-p linux-distro:releasecodename ] (required)
-        [-v] verbose mode (optional)
-        [-h] help/usage (optional)
+       -r git-release-tag (optional)
+       -p linux-distro:releasecodename  (required)
+       -v verbose mode (optional
+       -h help/usage (optional)
 EOF
-    exit $1
+    exit 1
 }
 
 guess_version() {
@@ -51,6 +51,7 @@ while getopts "vhr:p:" opt; do
    case ${opt} in
       v)
          set -x 
+         GBP_OPTS="-v"
         ;;
       r)
          GIT_TAG=$OPTARG
@@ -89,13 +90,14 @@ if [ -z ${PLATFORM:-} ]; then
   usage
 fi
 
+PLATFORM_OK=false
 for p in $PLATFORMS_ALL; do
   if [ $p == $PLATFORM ]; then
-     PLATFORM_OK=1
+     PLATFORM_OK=true
   fi
 done
 
-if [ $PLATFORM_OK -eq 0 ]; then
+if [ "$PLATFORM_OK" = false  ]; then
   echo "Platform specified: $PLATFORM is currently unsupported"
   exit 1
 fi
@@ -110,6 +112,7 @@ if [ -n "${GIT_TAG:-}" ]; then
    if git tag | grep $GIT_TAG > /dev/null; then 
       echo "Release tag $GIT_TAG exists."  
       echo "Upstream distribution will be tagged v${VERSION}."
+      GBP_OPTS+=" -r"
       VERSION=${GIT_TAG/#v/}
       echo "Creating source tarball from git" 
       git archive -o ${TMPDIR}/${PROJ_NAME}_${VERSION}.orig.tar.gz \
@@ -130,6 +133,7 @@ else
       echo "Current snapshot version of project in master is $VERSION" 
       git archive -o ${TMPDIR}/${PROJ_NAME}_${VERSION}.orig.tar.gz \
                   --prefix=okapi_${VERSION}/ refs/heads/master
+      GBP_OPTS+=" -s"
    else
       echo "Unable to detect current version of project."
       exit 1
@@ -150,7 +154,8 @@ docker_common >> ${TMPDIR}/Dockerfile
 
 cd ${TMPDIR}
 echo "Building Docker image"
-docker build -t folio-build-package .
+sudo docker build -t folio-build-package .
+sudo docker run -it --rm -v "$PWD":/home/${USER} folio-build-package $GBP_OPTS /usr/src/${TMPDIR}/${PROJ_NAME}_${VERSION}.orig.tar.gz
 
 #rm -rf ${TMPDIR}
 
