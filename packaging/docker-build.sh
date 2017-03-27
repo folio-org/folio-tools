@@ -12,6 +12,7 @@
 
 set -e
 
+BASEDIR=`pwd`
 D0=`dirname $0`
 TOOLS=`cd $D0; pwd`
 TMPDIR=$(mktemp -d)
@@ -155,8 +156,12 @@ docker_common >> ${TMPDIR}/Dockerfile
 cd ${TMPDIR}
 echo "Building Docker image"
 sudo docker build -t folio-build-package .
-sudo docker run -it --rm -v "$PWD":/home/${USER} folio-build-package $GBP_OPTS /usr/src/${TMPDIR}/${PROJ_NAME}_${VERSION}.orig.tar.gz
 
-#rm -rf ${TMPDIR}
+# run docker
+cd ${BASEDIR}
+sudo docker run -it --rm -v "${HOME}":/home/${USER} folio-build-package $GBP_OPTS /usr/src/${PROJ_NAME}_${VERSION}.orig.tar.gz
+
+rm -rf ${TMPDIR}
+sudo docker rmi folio-build-package
 
 exit $?

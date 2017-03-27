@@ -10,7 +10,7 @@ RUN apt-get -q update && \\
     DEBIAN_FRONTEND="noninteractive" apt-get -q install -y \\
     -o Dpkg::Options::="--force-confnew"  --no-install-recommends \\
     git wget build-essential debhelper lintian fakeroot equivs devscripts \\
-    git-buildpackage libdistro-info-perl && \\
+    git-buildpackage libdistro-info-perl ca-certificates sudo && \\
     apt-get -q clean -y && rm -rf /var/lib/apt/lists/* &&  \\
     rm -f /var/cache/apt/*.bin 
 EOF
@@ -19,20 +19,24 @@ EOF
 docker_common() {
    echo ""
    echo "ENV USER $USER"
-   echo "ENV TARBALL ${TMPDIR}/${PROJ_NAME}_${VERSION}.orig.tar.gz"
+   echo ""
+   TARBALL="${PROJ_NAME}_${VERSION}.orig.tar.gz"
+
+   # get uid of use on host system
+   USER_UID=`id -u`
 
    cat <<EOF
-RUN useradd -M -d /home/${USER} -s /bin/bash ${USER} &&  \\
-    cd /usr/src
-#    cd /usr/src && \\
-#    git clone https://github.com/folio-org/folio-tools
+RUN useradd -u $USER_UID -m -d /home/${USER} -s /bin/bash ${USER} &&  \\
+    echo "$USER ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/${USER} && \\
+    cd /usr/src && \\
+    git clone https://github.com/folio-org/folio-tools 
+
 
 USER $USER
+COPY $TARBALL /usr/src/$TARBALL
+WORKDIR $BASEDIR
 
-ENV FOLIO_TOOLS /usr/src/folio-tools
-COPY $TARBALL /usr/src/${TARBALL}
-
-ENTRYPOINT ["/usr/src/folio-tools/packaging/build-entry.sh"]
+ENTRYPOINT ["/usr/src/folio-tools/packaging/gbp.sh"]
 CMD ['']
 EOF
 }
