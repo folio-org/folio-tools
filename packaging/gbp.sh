@@ -1,4 +1,4 @@
-#!/bin/bash 
+#!/bin/bash
 
 #
 # This script builds debian packages using git-buildpackage
@@ -10,20 +10,19 @@
 
 set -e
 
-BUILD_DIR="deb-src"
+BUILD_DIR="./deb-src"
 
 usage() {
-   cat << EOF
+   cat <<EOF
 Usage: $0 [OPTIONS] /path/to/upstream/source_tar.gz 
 Options: 
       -r  specifies a tagged release
       -s  specifies a snapshot release
       -h  usage 
       -v  verbose mode
-EOF 
+EOF
 
 exit 1
-
 }
 
 while getopts ":vhsr" opt; do
@@ -66,12 +65,12 @@ else
    exit 1
 fi
 
-if [ "$RELEASE" = true ] && [ "$SNAPSHOT" = true ]
+if [ "$RELEASE" = true ] && [ "$SNAPSHOT" = true ]; then
   echo "Either '-r' OR '-s' can be specified.  Not both"
   exit 1
 fi
 
-if [ "$RELEASE" = false ] && [ "$SNAPSHOT" = false ]
+if [ "$RELEASE" = false ] && [ "$SNAPSHOT" = false ]; then
   echo "Need to specify either '-r' or '-s'"
   exit 1
 fi
