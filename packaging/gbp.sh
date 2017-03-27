@@ -58,7 +58,8 @@ UPSTREAM_SRC=$1
 
 if [ -f $UPSTREAM_SRC ]; then
    # Get upstream version via string manipulation on upstream tarball.
-   UPSTREAM_VER="${UPSTREAM_SRC/%.orig.tar.gz/}"
+   TARBALL=`basename $UPSTREAM_SRC`
+   UPSTREAM_VER="${TARBALL/%.orig.tar.gz/}"
    UPSTREAM_VER="$(awk -F '_' '{print $2}' <<< $UPSTREAM_VER)"
 else
    echo "Upstream source tarball, ${UPSTREAM_SRC},  not found." 
@@ -75,12 +76,12 @@ if [ "$RELEASE" = false ] && [ "$SNAPSHOT" = false ]; then
   exit 1
 fi
 
-pwd
-mkdir -p $DEB_BUILD_DIR
 
 # set some default opts for git-import-orig
 IMPORT_ORIG_OPTS="--no-interactive \
-                  --upstream-version=${UPSTREAM_VER}"
+                  --no-symlink-orig \
+                  --upstream-version=${UPSTREAM_VER} \
+                  --verbose"
 
 # set some default opts for git-buildpackage
 BUILDPACKAGE_OPTS="--git-ignore-new \
@@ -94,6 +95,7 @@ DEBPKG_OPTS="-b"
 
 # set some default opts for git-dch
 DCH_OPTS="--spawn-editor=never \
+          --verbose \
           --force-distribution"
 
 # Additional git-dch options depending on whether this is a tagged release or
@@ -108,21 +110,30 @@ fi
 
 
 # import and merge upstream source tarball
-if [ -f "deb-src/${UPSTREAM_SRC}" ]; then
-   echo "Import and merging from deb-src/${UPSTREAM_SRC}"
-   gbp import-orig $IMPORT_ORIG_OPTS  deb-src/${UPSTREAM_SRC}
+if [ -f "$UPSTREAM_SRC" ]; then
+   echo "Import and merging from $UPSTREAM_SRC"
+   gbp import-orig $IMPORT_ORIG_OPTS $UPSTREAM_SRC
 else
-   echo "Unable to find source tarball: deb-src/${UPSTREAM_SRC}"
+   echo "Unable to find source tarball: $UPSTREAM_SRC"
    exit 1
 fi
 
+
+
 # update debian changelog
+echo "$UPSTREAM_VER"
 if ! grep "(${UPSTREAM_VER}-" debian/changelog > /dev/null; then
-   DCH_OPTS+=" -N ${UPSTREAM_VERSION}-1"
+   DCH_OPTS+=" -N ${UPSTREAM_VER}-1"
 fi  
 
-
+# update debian/changelog
 gbp dch $DCH_OPTS
+
+
+# prepare deb build
+mkdir -p ${DEB_BUILD_DIR}
+cp $UPSTREAM_SRC ${DEB_BUILD_DIR}/
+sudo mk_build_deps -i debian/control
 
 # build debian package
 gbp buildpackage $BUILDPACKAGE_OPTS $DEBPKG_OPTS
