@@ -10,7 +10,7 @@
 
 set -e
 
-BUILD_DIR="./deb-src"
+DEB_BUILD_DIR="./deb-src"
 
 usage() {
    cat <<EOF
@@ -75,7 +75,8 @@ if [ "$RELEASE" = false ] && [ "$SNAPSHOT" = false ]; then
   exit 1
 fi
 
-mkdir -p $BUILD_DIR
+pwd
+mkdir -p $DEB_BUILD_DIR
 
 # set some default opts for git-import-orig
 IMPORT_ORIG_OPTS="--no-interactive \
