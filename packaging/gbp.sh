@@ -133,6 +133,7 @@ gbp dch $DCH_OPTS
 # prepare deb build
 mkdir -p ${DEB_BUILD_DIR}
 cp $UPSTREAM_SRC ${DEB_BUILD_DIR}/
+sudo apt-get update
 sudo mk-build-deps -i debian/control
 
 # build debian package
