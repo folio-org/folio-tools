@@ -155,13 +155,13 @@ docker_common >> ${TMPDIR}/Dockerfile
 
 cd ${TMPDIR}
 echo "Building Docker image"
-sudo docker build -t folio-build-package .
+docker build -t folio-build-package .
 
 # run docker
 cd ${BASEDIR}
-sudo docker run -it --rm -v "${HOME}":/home/${USER} folio-build-package $GBP_OPTS /usr/src/${PROJ_NAME}_${VERSION}.orig.tar.gz
+docker run -i --rm -v "${HOME}":/home/${USER} folio-build-package $GBP_OPTS /usr/src/${PROJ_NAME}_${VERSION}.orig.tar.gz
 
 rm -rf ${TMPDIR}
-sudo docker rmi folio-build-package
+docker rmi folio-build-package
 
 exit $?
