@@ -1,9 +1,9 @@
 #!/bin/bash 
 
 #
-# This script builds debian packages for okapi using git-buildpackage
-# tools.  It could probably be easily adapted to build pachages for
-# any upstream source.
+# This script builds debian packages for folio projects using 
+# Docker and git-buildpackage tools.  
+#
 #
 # Maintainer:  John Malconian <malc@indexdata.com>
 #

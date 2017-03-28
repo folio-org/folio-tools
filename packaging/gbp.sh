@@ -80,8 +80,7 @@ fi
 # set some default opts for git-import-orig
 IMPORT_ORIG_OPTS="--no-interactive \
                   --no-symlink-orig \
-                  --upstream-version=${UPSTREAM_VER} \
-                  --verbose"
+                  --upstream-version=${UPSTREAM_VER}"
 
 # set some default opts for git-buildpackage
 BUILDPACKAGE_OPTS="--git-ignore-new \
@@ -95,7 +94,6 @@ DEBPKG_OPTS="-b"
 
 # set some default opts for git-dch
 DCH_OPTS="--spawn-editor=never \
-          --verbose \
           --force-distribution"
 
 # Additional git-dch options depending on whether this is a tagged release or
