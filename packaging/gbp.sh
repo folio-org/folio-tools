@@ -106,6 +106,11 @@ if [ "$SNAPSHOT" = true ]; then
    DCH_OPTS+=" --commit --snapshot --distribution=UNRELEASED --auto"
 fi
 
+#  remove old deb-src if exists. Otherwise git-import-org will
+#  complain about untracked git files. 
+if [ -d $DEB_BUILD_DIR ]; then
+   rm -rf $DEB_BUILD_DIR
+fi
 
 # import and merge upstream source tarball
 if [ -f "$UPSTREAM_SRC" ]; then
@@ -128,11 +133,7 @@ fi
 gbp dch $DCH_OPTS
 
 
-# prepare deb build. remove old deb-src if exists
-if [ -d $DEB_BUILD_DIR ]; then
-   rm -rf $DEB_BUILD_DIR
-fi
-
+# prepare deb build. 
 mkdir -p ${DEB_BUILD_DIR}
 cp $UPSTREAM_SRC ${DEB_BUILD_DIR}/
 sudo apt-get update
