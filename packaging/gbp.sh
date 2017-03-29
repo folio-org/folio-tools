@@ -90,7 +90,7 @@ BUILDPACKAGE_OPTS="--git-ignore-new \
                    --git-tarball-dir=./deb-src"
 
 # options passed to debian build command via git-buildpackage
-DEBPKG_OPTS="-b -uc -us" 
+DEBPKG_OPTS="-uc -us -b" 
 
 # set some default opts for git-dch
 DCH_OPTS="--spawn-editor=never \
