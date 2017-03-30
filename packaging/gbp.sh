@@ -112,6 +112,14 @@ if [ -d $DEB_BUILD_DIR ]; then
    rm -rf $DEB_BUILD_DIR
 fi
 
+# Clean up any previous build files
+rm -f build-stamp
+rm -f debian/files
+rm -f debian/okapi.debhelper.log
+rm -f debian/okapi.substvars
+rm -rf debian/okapi/
+rm -f install-stamp
+
 # import and merge upstream source tarball
 if [ -f "$UPSTREAM_SRC" ]; then
    echo "Import and merging from $UPSTREAM_SRC"
@@ -120,8 +128,6 @@ else
    echo "Unable to find source tarball: $UPSTREAM_SRC"
    exit 1
 fi
-
-
 
 # update debian changelog
 echo "$UPSTREAM_VER"
