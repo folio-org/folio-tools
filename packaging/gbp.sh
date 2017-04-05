@@ -103,7 +103,7 @@ if [ "$RELEASE" = true ]; then
 fi
 
 if [ "$SNAPSHOT" = true ]; then
-   DCH_OPTS+=" --commit --snapshot --distribution=UNRELEASED --auto"
+   DCH_OPTS+=" --commit --snapshot --distribution=testing --auto"
 fi
 
 #  remove old deb-src if exists. Otherwise git-import-org will
