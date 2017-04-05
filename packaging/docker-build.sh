@@ -9,7 +9,6 @@
 #
 
 
-
 set -e
 
 BASEDIR=`pwd`
@@ -153,12 +152,12 @@ RELEASE=$(awk -F':' '{print $2}' <<< $PLATFORM)
 
 echo "Preparing Docker files..."
 #docker_${DISTRO}_${RELEASE}  > ${TMPDIR}/Dockerfile
-#docker pull folioci/debian-base-build:${RELEASE}
+docker pull folioci/debian-base-build:${RELEASE}
 docker_common >> ${TMPDIR}/Dockerfile
 
 cd ${TMPDIR}
 echo "Building Docker image"
-docker build -t folio-build-package .
+docker build --no-cache -t folio-build-package .
 
 # run docker
 cd ${BASEDIR}
