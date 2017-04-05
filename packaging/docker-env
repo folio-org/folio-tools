@@ -1,10 +1,12 @@
 
 docker_ubuntu_xenial() {
    cat <<EOF
-FROM ubuntu:xenial
+echo FROM ubuntu:xenial
 
 ENV DIST ubuntu
 ENV RELEASE xenial
+
+cat <<EOF
 
 RUN apt-get -q update && \\
     DEBIAN_FRONTEND="noninteractive" apt-get -q install -y \\
@@ -17,12 +19,13 @@ EOF
 }
 
 docker_common() {
+   echo "FROM folioci/debian-base-build:${RELEASE}"
    echo ""
    echo "ENV USER $USER"
    echo ""
    TARBALL="${PROJ_NAME}_${VERSION}.orig.tar.gz"
 
-   # get uid of use on host system
+   # get uid of us on host system
    USER_UID=`id -u`
 
    cat <<EOF

@@ -109,28 +109,30 @@ git clone --recursive $PROJ_URL
 cd ${TMPDIR}/${PROJ_NAME}
 
 if [ -n "${GIT_TAG:-}" ]; then
-   echo "Searching for existing git tag: $GIT_TAG..."
-   if git tag | grep $GIT_TAG > /dev/null; then 
-      echo "Release tag $GIT_TAG exists."  
-      echo "Upstream distribution will be tagged v${VERSION}."
+   echo "Verify that specified tag is an actual release..."
+   STATUS=$(curl -I -s -o /dev/null -w "%{http_code}\n" ${PROJ_URL}/releases/tag/${GIT_TAG})
+   if [ "$STATUS" != "200" ]; then
+      echo "Release tag: $GIT_TAG does not exist"
+      exit 1
+   else
+      echo "Found upstream release tag, $GIT_TAG"
       GBP_OPTS+=" -r"
       VERSION=${GIT_TAG/#v/}
       echo "Creating source tarball from git" 
       git archive -o ${TMPDIR}/${PROJ_NAME}_${VERSION}.orig.tar.gz \
                   --prefix=${PROJ_NAME}_${VERSION}/ v${VERSION}
-   else
-      echo "No git tag exists for this version."  
-      exit 1
    fi
 
 else
-   echo "Upstream distribution will be current master branch."
+   echo "Upstream distribution will be tip of master branch."
 
    # see if we can get current snapshot version
    echo "Guessing current version in master branch..."
    guess_version
 
    if [ -n "$VERSION" ] ; then 
+      DATE=`date +%Y%m%d%H%M%S` 
+      VERSION="${VERSION}-SNAPSHOT${DATE}"
       echo "Current snapshot version of project in master is $VERSION" 
       git archive -o ${TMPDIR}/${PROJ_NAME}_${VERSION}.orig.tar.gz \
                   --prefix=okapi_${VERSION}/ refs/heads/master
@@ -150,7 +152,8 @@ DISTRO=$(awk -F':' '{print $1}' <<< $PLATFORM)
 RELEASE=$(awk -F':' '{print $2}' <<< $PLATFORM)
 
 echo "Preparing Docker files..."
-docker_${DISTRO}_${RELEASE}  > ${TMPDIR}/Dockerfile
+#docker_${DISTRO}_${RELEASE}  > ${TMPDIR}/Dockerfile
+#docker pull folioci/debian-base-build:${RELEASE}
 docker_common >> ${TMPDIR}/Dockerfile
 
 cd ${TMPDIR}
