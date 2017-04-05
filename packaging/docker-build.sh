@@ -131,7 +131,7 @@ else
 
    if [ -n "$VERSION" ] ; then 
       DATE=`date +%Y%m%d%H%M%S` 
-      VERSION="${VERSION}-SNAPSHOT${DATE}"
+      VERSION="${VERSION}+SNAPSHOT${DATE}"
       echo "Current snapshot version of project in master is $VERSION" 
       git archive -o ${TMPDIR}/${PROJ_NAME}_${VERSION}.orig.tar.gz \
                   --prefix=okapi_${VERSION}/ refs/heads/master
@@ -151,7 +151,6 @@ DISTRO=$(awk -F':' '{print $1}' <<< $PLATFORM)
 RELEASE=$(awk -F':' '{print $2}' <<< $PLATFORM)
 
 echo "Preparing Docker files..."
-#docker_${DISTRO}_${RELEASE}  > ${TMPDIR}/Dockerfile
 docker pull folioci/debian-base-build:${RELEASE}
 docker_common >> ${TMPDIR}/Dockerfile
 
