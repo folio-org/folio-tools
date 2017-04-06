@@ -11,6 +11,8 @@
 set -e
 
 DEB_BUILD_DIR="./deb-src"
+UPSTREAM_TAG_BASE="upstream/"
+DEBIAN_TAG_BASE="debian/"
 
 usage() {
    cat <<EOF
@@ -104,7 +106,7 @@ fi
 
 if [ "$SNAPSHOT" = true ]; then
    #DCH_OPTS+=" --commit --snapshot --distribution=UNRELEASED --auto"
-   DCH_OPTS+=" --commit --release --distribution=experimental"
+   DCH_OPTS+=" --commit --release --distribution=testing"
 fi
 
 #  remove old deb-src if exists. Otherwise git-import-org will
@@ -124,7 +126,13 @@ rm -f install-stamp
 # import and merge upstream source tarball
 if [ -f "$UPSTREAM_SRC" ]; then
    echo "Import and merging from $UPSTREAM_SRC"
-   gbp import-orig $IMPORT_ORIG_OPTS $UPSTREAM_SRC
+   # Test to see if we haven't already done a upstream source import. 
+   CHECK_TAG=$(git tag -l ${UPSTREAM_TAG_BASE}${UPSTREAM_VER}) 
+   if [ -n "$CHECK_TAG" ]; then
+      echo "Upstream has already been imported and tagged. Skipping merge."
+   else
+       gbp import-orig $IMPORT_ORIG_OPTS $UPSTREAM_SRC
+   fi
 else
    echo "Unable to find source tarball: $UPSTREAM_SRC"
    exit 1
