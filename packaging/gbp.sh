@@ -144,7 +144,15 @@ LAST_UPSTREAM_VER=$(awk -F '-' '{ print $1 }' <<<$LAST_TAG_VER)
 LAST_PKG_VER=$(awk -F '-' '{ print $2 }' <<<$LAST_TAG_VER)
 UNTAGGED_COMMITS=$(git log ${LAST_DEB_TAG}..HEAD --oneline)
 
+# get any existing tags associated with upstream version
 CHECK_DEBIAN_TAG=$(git tag -l | grep "${DEBIAN_TAG_BASE}${UPSTREAM_VER}-")
+DEB_TAGS=(${CHECK_DEBIAN_TAG// / })
+LENGTH=${#DEB_TAGS[@]}
+LAST_POSITION=$((LENGTH - 1))
+DEB_TAG=
+
+
+
 
 # If there debian tag already exists for this release
 if [ -n "$CHECK_DEBIAN_TAG" ]; then
@@ -157,15 +165,20 @@ if [ -n "$CHECK_DEBIAN_TAG" ]; then
          BUILDPACKAGE_OPTS+=" --git-tag --git-retag"
          # create tag so dch doesn't complain
          git tag ${DEBIAN_TAG_BASE}${UPSTREAM_VER}-${NEW_PKG_VER}
-      else
-         # no changelog update and no git tagging. Just build a package.
-         NO_DCH=true
-         # do checkout
-         echo "$CHECK_DEBIAN_TAG currently exists."
-         MY_BRANCH="tmp/${CHECK_DEBIAN_TAG}"
-         echo "Switching to new temporarory branch - $MY_BRANCH"
-         git checkout tags/${CHECK_DEBIAN_TAG} -b $MY_BRANCH
       fi
+
+   else
+      # no changelog update and no git tagging. Just build a package.
+      NO_DCH=true
+      # do checkout
+      DEB_TAGS=(${CHECK_DEBIAN_TAG// / })
+      LENGTH=${#DEB_TAGS[@]}
+      LAST_POSITION=$((LENGTH - 1))
+      BRANCH_TAG=${DEB_TAGS[${LAST_POSITION}]}
+      echo "$BRANCH_TAG currently exists."
+      MY_BRANCH="tmp/${BRANCH_TAG}"
+      echo "Switching to new temporarory branch - $MY_BRANCH"
+      git checkout tags/${BRANCH_TAG} -b $MY_BRANCH
    fi
 else
    # Do new release
