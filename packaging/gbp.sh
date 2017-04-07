@@ -145,7 +145,7 @@ LAST_PKG_VER=$(awk -F '-' '{ print $2 }' <<<$LAST_TAG_VER)
 UNTAGGED_COMMITS=$(git log ${LAST_DEB_TAG}..HEAD --oneline)
 
 # get any existing tags associated with upstream version
-CHECK_DEBIAN_TAG=$(git tag -l | grep "${DEBIAN_TAG_BASE}${UPSTREAM_VER}-")
+CHECK_DEBIAN_TAG="$(git tag -l | grep ${DEBIAN_TAG_BASE}${UPSTREAM_VER}-)"
 
 # If there debian tag already exists for this release
 if [ -n "$CHECK_DEBIAN_TAG" ]; then
