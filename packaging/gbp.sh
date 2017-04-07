@@ -150,15 +150,14 @@ CHECK_DEBIAN_TAG=$(git tag -l | grep ${DEBIAN_TAG_BASE}${UPSTREAM_VER}-) || true
 # If there debian tag already exists for this release
 if [ -n "$CHECK_DEBIAN_TAG" ]; then
    # if the upstream source version matches the last debian version tagged
-   if [ $UPSTREAM_VER == $LAST_UPSTREAM_VER ];  then
+   if [ $UPSTREAM_VER == $LAST_UPSTREAM_VER ] &&
+       [ -n "$UNTAGGED_COMMITS" ]; then
       # if the there are untagged commits, increment the debian package version
-      if [ -n "$UNTAGGED_COMMITS" ]; then
-         NEW_PKG_VER=$((LAST_PKG_VER + 1))
-         DCH_OPTS+=" -N ${UPSTREAM_VER}-${NEW_PKG_VER}"
-         BUILDPACKAGE_OPTS+=" --git-tag --git-retag"
-         # create tag so dch doesn't complain
-         git tag ${DEBIAN_TAG_BASE}${UPSTREAM_VER}-${NEW_PKG_VER}
-      fi
+      NEW_PKG_VER=$((LAST_PKG_VER + 1))
+      DCH_OPTS+=" -N ${UPSTREAM_VER}-${NEW_PKG_VER}"
+      BUILDPACKAGE_OPTS+=" --git-tag --git-retag"
+      # create tag so dch doesn't complain
+      git tag ${DEBIAN_TAG_BASE}${UPSTREAM_VER}-${NEW_PKG_VER}
    else
       # no changelog update and no git tagging. Just build a package.
       NO_DCH=true
