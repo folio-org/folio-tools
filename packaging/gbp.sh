@@ -175,6 +175,7 @@ if [ -n "$CHECK_DEBIAN_TAG" ]; then
 else
    # Do new release
    DCH_OPTS+=" -N ${UPSTREAM_VER}-1"
+   BUILDPACKAGE_OPTS+=" --git-tag"
 fi
 
 # update debian/changelog
