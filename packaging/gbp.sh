@@ -154,7 +154,9 @@ if [ -n "$CHECK_DEBIAN_TAG" ]; then
       if [ -n "$UNTAGGED_COMMITS" ]; then
          NEW_PKG_VER=$((LAST_PKG_VER + 1))
          DCH_OPTS+=" -N ${UPSTREAM_VER}-${NEW_PKG_VER}"
-         BUILDPACKAGE_OPTS+=" --git-tag"
+         BUILDPACKAGE_OPTS+=" --git-tag --git-retag"
+         # create tag so dch doesn't complain
+         git tag ${DEBIAN_TAG_BASE}${UPSTREAM_VER}-${NEW_PKG_VER}
       else
          # no changelog update and no git tagging. Just build a package.
          NO_DCH=true
