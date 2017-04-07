@@ -126,9 +126,8 @@ if [ -f "$UPSTREAM_SRC" ]; then
    echo "Import and merging from $UPSTREAM_SRC"
    # Test to see if we haven't already done a upstream source import. 
    CHECK_UPSTREAM_TAG=$(git tag -l ${UPSTREAM_TAG_BASE}${UPSTREAM_VER}) 
-   if [ -n "$CHECK_TAG" ]; then
+   if [ -n "$CHECK_UPSTREAM_TAG" ]; then
       echo "Upstream has already been imported and tagged. Skipping merge."
-      NO_IMPORT=true
    else
       gbp import-orig $IMPORT_ORIG_OPTS $UPSTREAM_SRC
    fi
