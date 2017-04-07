@@ -86,8 +86,6 @@ IMPORT_ORIG_OPTS="--no-interactive \
 
 # set some default opts for git-buildpackage
 BUILDPACKAGE_OPTS="--git-ignore-new \
-                   --git-tag \
-                   --git-retag \
                    --git-export-dir=./deb-src \
                    --git-tarball-dir=./deb-src"
 
@@ -127,26 +125,59 @@ rm -f install-stamp
 if [ -f "$UPSTREAM_SRC" ]; then
    echo "Import and merging from $UPSTREAM_SRC"
    # Test to see if we haven't already done a upstream source import. 
-   CHECK_TAG=$(git tag -l ${UPSTREAM_TAG_BASE}${UPSTREAM_VER}) 
+   CHECK_UPSTREAM_TAG=$(git tag -l ${UPSTREAM_TAG_BASE}${UPSTREAM_VER}) 
    if [ -n "$CHECK_TAG" ]; then
       echo "Upstream has already been imported and tagged. Skipping merge."
+      NO_IMPORT=true
    else
-       gbp import-orig $IMPORT_ORIG_OPTS $UPSTREAM_SRC
+      gbp import-orig $IMPORT_ORIG_OPTS $UPSTREAM_SRC
    fi
 else
    echo "Unable to find source tarball: $UPSTREAM_SRC"
    exit 1
 fi
 
-# update debian changelog
-echo "$UPSTREAM_VER"
-if ! grep "(${UPSTREAM_VER}-" debian/changelog > /dev/null; then
+# get the latest debian tag and determine if there are any commits
+# in the debian branch since last tag.
+LAST_DEB_TAG=$(git describe --tags --abbrev=0)
+LAST_TAG_VER=$(awk -F '/' '{ print $2 }' <<<$LAST_DEB_TAG)
+LAST_UPSTREAM_VER=$(awk -F '-' '{ print $1 }' <<<$LAST_TAG_VER)
+LAST_PKG_VER=$(awk -F '-' '{ print $2 }' <<<$LAST_TAG_VER)
+UNTAGGED_COMMITS=$(git log ${LAST_DEB_TAG}..HEAD --oneline)
+
+CHECK_DEBIAN_TAG=$(git tag -l | grep "${DEBIAN_TAG_BASE}${UPSTREAM_VER}-")
+
+# If there debian tag already exists for this release
+if [ -n "$CHECK_DEBIAN_TAG" ]; then
+   # if the upstream source version matches the last debian version tagged
+   if [ $UPSTREAM_VER == $LAST_UPSTREAM_VER ];  then
+      # if the there are untagged commits, increment the debian package version
+      if [ -n "$UNTAGGED_COMMITS" ]; then
+         NEW_PKG_VER=$((LATEST_PKG_VER + 1))
+         DCH_OPTS+=" -N ${UPSTREAM_VER}-${NEW_PKG_VER}"
+         BUILDPACKAGE_OPTS+=" --git-tag"
+      else
+         # no changelog update and no git tagging. Just build a package.
+         NO_DCH=true
+         # do checkout
+         echo "$CHECK_DEBIAN_TAG currently exists."
+         MY_BRANCH="tmp/${CHECK_DEBIAN_TAG}"
+         echo "Switching to new temporarory branch - $MY_BRANCH"
+         git checkout tags/${CHECK_DEBIAN_TAG} -b $MY_BRANCH
+      fi
+   fi
+else
+   # Do new release
    DCH_OPTS+=" -N ${UPSTREAM_VER}-1"
-fi  
+fi
 
 # update debian/changelog
-gbp dch $DCH_OPTS
-
+if [ "$NO_DCH" = true ]; then
+   echo "Skipping changelog updates."
+else
+   echo "$UPSTREAM_VER"
+   gbp dch $DCH_OPTS
+fi
 
 # prepare deb build. 
 mkdir -p ${DEB_BUILD_DIR}
@@ -156,5 +187,11 @@ DEBIAN_FRONTEND=noninteractive sudo mk-build-deps -i -t 'apt-get -y' debian/cont
 
 # build debian package
 gbp buildpackage $BUILDPACKAGE_OPTS $DEBPKG_OPTS
+
+# remove temporary branch if exists
+if [ "$MY_BRANCH" ]; then
+   git checkout debian-debian
+   git branch -D $MY_BRANCH
+fi
 
 exit $?

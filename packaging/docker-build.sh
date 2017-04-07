@@ -18,8 +18,8 @@ TMPDIR=$(mktemp -d)
 
 . ${TOOLS}/docker-env
 
+# update this array variable with additional platforms 
 PLATFORMS_ALL="ubuntu:xenial"
-
 
 usage() {
     cat <<EOF
