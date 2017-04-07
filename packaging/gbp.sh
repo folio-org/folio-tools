@@ -146,13 +146,6 @@ UNTAGGED_COMMITS=$(git log ${LAST_DEB_TAG}..HEAD --oneline)
 
 # get any existing tags associated with upstream version
 CHECK_DEBIAN_TAG=$(git tag -l | grep "${DEBIAN_TAG_BASE}${UPSTREAM_VER}-")
-DEB_TAGS=(${CHECK_DEBIAN_TAG// / })
-LENGTH=${#DEB_TAGS[@]}
-LAST_POSITION=$((LENGTH - 1))
-DEB_TAG=
-
-
-
 
 # If there debian tag already exists for this release
 if [ -n "$CHECK_DEBIAN_TAG" ]; then
@@ -166,7 +159,6 @@ if [ -n "$CHECK_DEBIAN_TAG" ]; then
          # create tag so dch doesn't complain
          git tag ${DEBIAN_TAG_BASE}${UPSTREAM_VER}-${NEW_PKG_VER}
       fi
-
    else
       # no changelog update and no git tagging. Just build a package.
       NO_DCH=true
