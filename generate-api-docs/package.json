@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "raml2html": "^3.x",
+    "raml-fleece": "dcrossleyau/raml-fleece"
+  }
+}
