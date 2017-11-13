@@ -1,0 +1,30 @@
+FROM jenkinsci/ssh-slave:latest
+
+RUN apt-get -q update && \
+    DEBIAN_FRONTEND="noninteractive" apt-get -q install -y \
+    -o Dpkg::Options::="--force-confnew"  --no-install-recommends \
+    wget vim-tiny unzip lsb-release && \
+    apt-get -q clean -y && rm -rf /var/lib/apt/lists/* && \
+    rm -f /var/cache/apt/*.bin && \
+    sed -i 's|session    required     pam_loginuid.so|session    optional     pam_loginuid.so|g' /etc/pam.d/sshd
+
+# Install Node
+ENV NODEJS_VERSION 6
+RUN wget -q --no-check-certificate --no-cookies \
+    https://deb.nodesource.com/setup_${NODEJS_VERSION}.x -O /tmp/node.sh  && \
+    chmod +x /tmp/node.sh && \
+    sh -c "/tmp/node.sh" && \
+    rm -f /tmp/node.sh
+
+RUN apt-get -q update && \
+    DEBIAN_FRONTEND="noninteractive" apt-get -q install -y \
+    -o Dpkg::Options::="--force-confnew"  --no-install-recommends \
+    nodejs && \
+    apt-get -q clean -y && rm -rf /var/lib/apt/lists/* && \
+    rm -f /var/cache/apt/*.bin && \
+    npm install -g raml2html@3.0.1 && \
+    npm install -g npm-snapshot && \
+    npm install -g yarn 
+
+# ${JENKINS_AGENT_HOME} is a VOLUME
+COPY gitconfig ${JENKINS_AGENT_HOME}/.gitconfig
