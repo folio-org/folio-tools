@@ -40,11 +40,10 @@ RUN wget -q --no-check-certificate --no-cookies \
 RUN apt-get -q update && \
     DEBIAN_FRONTEND="noninteractive" apt-get -q install -y \
     -o Dpkg::Options::="--force-confnew"  --no-install-recommends \
-    openjdk-8-jdk build-essential debhelper lintian fakeroot devscripts jq maven  \
+    openjdk-8-jdk build-essential debhelper lintian fakeroot devscripts jq maven python \
     python3-pip python3-setuptools python3-wheel python3-yaml python3-requests python3-sh nodejs && \
     apt-get -q clean -y && rm -rf /var/lib/apt/lists/* && \
     rm -f /var/cache/apt/*.bin && \
-    ln -sf  /usr/bin/python3 /usr/bin/python && \
     rm -f /tmp/node.sh && \
     npm install -g raml2html@3.0.1 && \
     npm install -g npm-snapshot && \
@@ -98,6 +97,8 @@ RUN groupadd -g ${gid} ${group} \
     && bash -c "echo '[user]' > ${JENKINS_AGENT_HOME}/.gitconfig" \
     && bash -c "echo '  email = ${user_email}' >> ${JENKINS_AGENT_HOME}/.gitconfig" \
     && bash -c "echo '  name  = ${user}' >> ${JENKINS_AGENT_HOME}/.gitconfig" \
+    && yarn config set registry https://repository.folio.org/repository/npm-ci-all \
+    && mv /usr/local/share/.yarnrc ${JENKINS_AGENT_HOME} \
     && chown -R ${user}.${group} ${JENKINS_AGENT_HOME}
 
 COPY setup-sshd /usr/local/bin/setup-sshd
