@@ -1,8 +1,8 @@
 
-This directory contains configuration files to build Docker images for opendjdk-8-jre based 
-FOLIO applications.  Most of the work contained in this directory is based on the good 
-folks at Fabric8 and reuses much of the work Fabric8 has done to properly support running
-Java applications in a Docker container and includes the following features:
+This directory contains configuration files to build Docker images for openjdk-8-jre-based 
+FOLIO applications.  Most of the work contained in this directory is based on the previous
+work by Fabric8 to properly support running Java applications in a Docker container. It
+includes the following features:
 
  * The Fabric8 Agent Bond - a "super agent" or wrapper that enables configurable Jolokia 
 and Prometheus remote JMX-based agents.  https://github.com/fabric8io/agent-bond
