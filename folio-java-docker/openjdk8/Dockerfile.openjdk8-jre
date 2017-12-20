@@ -39,4 +39,4 @@ RUN groupadd folio && \
 USER folio
 WORKDIR $JAVA_APP_DIR
 
-CMD [ "/usr/verticles/run-java.sh" ]
+ENTRYPOINT [ "./run-java.sh" ]
