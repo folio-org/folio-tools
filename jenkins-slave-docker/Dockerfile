@@ -15,7 +15,7 @@ RUN sed -i 's/#PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config && \
 #  Add utility packages to image
 RUN DEBIAN_FRONTEND="noninteractive" apt-get -q install -y \
     -o Dpkg::Options::="--force-confnew"  --no-install-recommends \
-    locales vim-tiny curl wget unzip lsb-release sudo git && \
+    locales tzdata vim-tiny curl wget unzip lsb-release sudo git && \
     apt-get -q autoremove && \
     apt-get -q clean -y && rm -rf /var/lib/apt/lists/* && \
     rm -f /var/cache/apt/*.bin && \
@@ -42,8 +42,8 @@ RUN apt-get -q update && \
     -o Dpkg::Options::="--force-confnew"  --no-install-recommends \
     openjdk-8-jdk build-essential debhelper lintian fakeroot devscripts jq maven python \
     python3-pip python3-setuptools python3-wheel python3-yaml python3-requests python3-sh nodejs && \
-    apt-get -q clean -y && rm -rf /var/lib/apt/lists/* && \
-    rm -f /var/cache/apt/*.bin && \
+    #apt-get -q clean -y && rm -rf /var/lib/apt/lists/* && \
+    #rm -f /var/cache/apt/*.bin && \
     rm -f /tmp/node.sh && \
     npm install -g raml2html@3.0.1 && \
     npm install -g npm-snapshot && \
@@ -65,6 +65,15 @@ RUN cd /tmp && \
     unzip /tmp/awscli-bundle.zip && \
     ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws && \
     rm -rf /tmp/awscli-bundle*
+
+ENV RUBY_VERSION 2.4.3
+RUN wget -q --no-check-certificate --no-cookies \
+    https://github.com/postmodern/ruby-install/archive/v0.6.1.tar.gz \
+    -O /tmp/ruby-install-0.6.1.tar.gz && \
+    cd /tmp && tar zxvf ruby-install-0.6.1.tar.gz && \
+    cd ruby-install-0.6.1 && make install && \
+    ruby-install --system ruby $RUBY_VERSION && \
+    rm -rf /tmp/ruby-install*
 
 # Install generate_api_docs from folio-org/folio-tools
 RUN cd /usr/local && \
