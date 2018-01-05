@@ -66,14 +66,21 @@ RUN cd /tmp && \
     ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws && \
     rm -rf /tmp/awscli-bundle*
 
-ENV RUBY_VERSION 2.4.3
-RUN wget -q --no-check-certificate --no-cookies \
-    https://github.com/postmodern/ruby-install/archive/v0.6.1.tar.gz \
-    -O /tmp/ruby-install-0.6.1.tar.gz && \
-    cd /tmp && tar zxvf ruby-install-0.6.1.tar.gz && \
-    cd ruby-install-0.6.1 && make install && \
-    ruby-install --system ruby $RUBY_VERSION && \
-    rm -rf /tmp/ruby-install*
+# ruby/rvm
+RUN apt-get -q update && \
+    DEBIAN_FRONTEND="noninteractive" apt-get -q install -y \
+    -o Dpkg::Options::="--force-confnew"  --no-install-recommends \
+    software-properties-common && \
+    apt-add-repository -y ppa:rael-gc/rvm && \
+    apt-get -q update && \
+    DEBIAN_FRONTEND="noninteractive" apt-get -q install -y \
+    -o Dpkg::Options::="--force-confnew"  --no-install-recommends \
+    rvm && \
+    bash -l -c 'source /usr/share/rvm/scripts/rvm && \
+    rvm install 2.4.2 && \
+    rvm install 2.4.3' && \
+    groupadd -g 1010 rvm
+    
 
 # Install generate_api_docs from folio-org/folio-tools
 RUN cd /usr/local && \
@@ -102,6 +109,7 @@ RUN groupadd -g ${gid} ${group} \
     && useradd -d "${JENKINS_AGENT_HOME}" -u "${uid}" -g "${gid}" -m -s /bin/bash "${user}" \
     && groupadd -g ${docker_gid} docker \
     && usermod -a -G docker ${docker_user} \
+    && usermod -a -G rvm ${user} \
     && bash -c "echo '${user} ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/folio" \
     && bash -c "echo '[user]' > ${JENKINS_AGENT_HOME}/.gitconfig" \
     && bash -c "echo '  email = ${user_email}' >> ${JENKINS_AGENT_HOME}/.gitconfig" \
