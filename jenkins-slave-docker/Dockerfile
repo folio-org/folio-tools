@@ -40,7 +40,7 @@ RUN wget -q --no-check-certificate --no-cookies \
 RUN apt-get -q update && \
     DEBIAN_FRONTEND="noninteractive" apt-get -q install -y \
     -o Dpkg::Options::="--force-confnew"  --no-install-recommends \
-    openjdk-8-jdk build-essential debhelper lintian fakeroot devscripts jq maven python \
+    openjdk-8-jdk build-essential debhelper lintian fakeroot devscripts jq maven python python-pip \
     python3-pip python3-setuptools python3-wheel python3-yaml python3-requests python3-sh nodejs && \
     #apt-get -q clean -y && rm -rf /var/lib/apt/lists/* && \
     #rm -f /var/cache/apt/*.bin && \
@@ -65,6 +65,19 @@ RUN cd /tmp && \
     unzip /tmp/awscli-bundle.zip && \
     ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws && \
     rm -rf /tmp/awscli-bundle*
+
+# Ansible
+RUN apt-get -q update && \
+    DEBIAN_FRONTEND="noninteractive" apt-get -q install -y \
+    -o Dpkg::Options::="--force-confnew"  --no-install-recommends \
+    software-properties-common && \
+    apt-add-repository -y ppa:ansible/ansible && \
+    apt-get -q update && \
+    DEBIAN_FRONTEND="noninteractive" apt-get -q install -y \
+    -o Dpkg::Options::="--force-confnew"  --no-install-recommends \
+    ansible && \
+    pip install boto
+   
 
 # ruby/rvm
 RUN apt-get -q update && \
