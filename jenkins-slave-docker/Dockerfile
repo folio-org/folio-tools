@@ -28,20 +28,27 @@ ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 
 # Install Nodejs
-ENV NODEJS_VERSION 6
+ENV NODEJS_VERSION 8
 RUN wget -q --no-check-certificate --no-cookies \
     https://deb.nodesource.com/setup_${NODEJS_VERSION}.x -O /tmp/node.sh  && \
     chmod +x /tmp/node.sh && \
     sh -c "/tmp/node.sh" && \
     rm -f /tmp/node.sh 
 
+# Install Postgres repo
+ENV POSTGRES_VERSION 9.6
+RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -cs`-pgdg main" >> /etc/apt/sources.list.d/pgdg.list && \
+    wget -q --no-check-certificate --no-cookies https://www.postgresql.org/media/keys/ACCC4CF8.asc -O - | sudo apt-key add -
+
 
 # Install  packages for our build environment
 RUN apt-get -q update && \
     DEBIAN_FRONTEND="noninteractive" apt-get -q install -y \
     -o Dpkg::Options::="--force-confnew"  --no-install-recommends \
-    openjdk-8-jdk build-essential debhelper lintian fakeroot devscripts jq maven python python-pip \
-    python3-pip python3-setuptools python3-wheel python3-yaml python3-requests python3-sh nodejs && \
+    openjdk-8-jdk build-essential debhelper lintian fakeroot devscripts jq maven python python-pip  \
+    python3-pip python3-setuptools python3-wheel python3-yaml python3-requests python3-sh nodejs \
+    postgresql-client postgresql-contrib xvfb libgtk2.0-0 libxtst6 libxss1 libgconf-2-4 libnss3 libnspr4 \
+    libasound2 && \
     #apt-get -q clean -y && rm -rf /var/lib/apt/lists/* && \
     #rm -f /var/cache/apt/*.bin && \
     rm -f /tmp/node.sh && \
