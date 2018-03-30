@@ -82,7 +82,7 @@ RUN apt-get -q update && \
     apt-get -q update && \
     DEBIAN_FRONTEND="noninteractive" apt-get -q install -y \
     -o Dpkg::Options::="--force-confnew"  --no-install-recommends \
-    ansible && \
+    ansible python-jmespath && \
     pip install boto
    
 
