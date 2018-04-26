@@ -37,25 +37,42 @@ RUN wget -q --no-check-certificate --no-cookies \
 
 # Install Postgres repo
 ENV POSTGRES_VERSION 10
-RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -cs`-pgdg main" >> /etc/apt/sources.list.d/pgdg.list && \
-    wget -q --no-check-certificate --no-cookies https://www.postgresql.org/media/keys/ACCC4CF8.asc -O - | sudo apt-key add -
+RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -cs`-pgdg main" \
+     > /etc/apt/sources.list.d/pgdg.list && \
+    wget -q --no-check-certificate --no-cookies -O - \
+    https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
 
+# Install google chrome repo
+RUN wget -q --no-check-certificate --no-cookies -O - \
+    https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - && \
+    echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" \
+    > /etc/apt/sources.list.d/google.list
 
-# Install  packages for our build environment
+# Install Ubuntuzilla/Firefox repo for firefox-esr
+RUN apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 2667CA5C && \ 
+    echo "deb http://downloads.sourceforge.net/project/ubuntuzilla/mozilla/apt all main" \
+    > /etc/apt/sources.list.d/ubuntuzilla.list 
+
+# Install  packages for our build environment. 
 RUN apt-get -q update && \
     DEBIAN_FRONTEND="noninteractive" apt-get -q install -y \
     -o Dpkg::Options::="--force-confnew"  --no-install-recommends \
     openjdk-8-jdk build-essential debhelper lintian fakeroot devscripts jq maven python python-pip  \
     python3-pip python3-setuptools python3-wheel python3-yaml python3-requests python3-sh nodejs \
-    postgresql-client-${POSTGRES_VERSION} xvfb libgtk2.0-0 libxtst6 libxss1 libgconf-2-4 libnss3 libnspr4 \
-    libasound2 && \
+    postgresql-client-${POSTGRES_VERSION} xvfb libgtk2.0-0 libxtst6 libxss1 libgconf-2-4 libnss3 \
+    libnspr4 libasound2 firefox firefox-esr-mozilla-build google-chrome-stable && \
     #apt-get -q clean -y && rm -rf /var/lib/apt/lists/* && \
     #rm -f /var/cache/apt/*.bin && \
     rm -f /tmp/node.sh && \
+    rm -f /etc/apt/sources.list.d/google.list && \
     npm install -g raml2html@3.0.1 && \
     npm install -g npm-snapshot && \
-    npm install -g http-server && \
-    npm install -g yarn && \
+    npm install -g http-server 
+
+RUN wget -O - https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
+    sh -c 'echo "deb https://dl.yarnpkg.com/debian/ stable main" \
+    >> /etc/apt/sources.list.d/yarn.list' && \
+    apt-get -q update && apt-get install -y yarn && \
     yarn config set registry https://repository.folio.org/repository/npm-ci-all && \
     yarn global add @folio/stripes-cli --prefix /usr/local
 
@@ -113,7 +130,9 @@ RUN cd /usr/local && \
     ln -s /usr/local/folio-tools/generate-api-docs/generate_api_docs.py \
     /usr/local/bin/generate_api_docs.py && \
     chmod +x /usr/local/folio-tools/generate-api-docs/generate_api_docs.py
-    
+
+# Install firefox dependencies so that we can install and run the latest versions of firefox. 
+
 
 # docker build '--build-arg' and their FOLIO CI defaults
 ARG user=jenkins
