@@ -67,7 +67,8 @@ RUN apt-get -q update && \
     rm -f /etc/apt/sources.list.d/google.list && \
     npm install -g raml2html@3.0.1 && \
     npm install -g npm-snapshot && \
-    npm install -g http-server 
+    npm install -g http-server && \
+    npm install -g karma-junit-reporter
 
 RUN wget -O - https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
     sh -c 'echo "deb https://dl.yarnpkg.com/debian/ stable main" \
@@ -130,8 +131,6 @@ RUN cd /usr/local && \
     ln -s /usr/local/folio-tools/generate-api-docs/generate_api_docs.py \
     /usr/local/bin/generate_api_docs.py && \
     chmod +x /usr/local/folio-tools/generate-api-docs/generate_api_docs.py
-
-# Install firefox dependencies so that we can install and run the latest versions of firefox. 
 
 
 # docker build '--build-arg' and their FOLIO CI defaults
