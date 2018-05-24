@@ -10,6 +10,7 @@ import os
 import shutil
 import tempfile
 import sys
+from time import sleep
 
 import requests
 import sh
@@ -21,6 +22,7 @@ if sys.version_info[0] < 3:
 REPO_HOME_URL = "https://github.com/folio-org"
 CONFIG_FILE = "https://raw.githubusercontent.com/folio-org/folio-org.github.io/master/_data/api.yml"
 CONFIG_FILE_LOCAL = "api.yml"
+DEV_WAIT_TIME = 60
 
 LOGLEVELS = {
     "debug": logging.DEBUG,
@@ -46,6 +48,8 @@ def main():
                         help='Be verbose. (Default: False) Deprecated: use --loglevel')
     parser.add_argument('-d', '--dev', action='store_true',
                         help='Development mode. Local config file. (Default: False)')
+    parser.add_argument('-t', '--test', action='store_true',
+                        help='Manual test mode. Wait for input tweaks. (Default: False)')
     args = parser.parse_args()
 
     loglevel = LOGLEVELS.get(args.loglevel.lower(), logging.NOTSET)
@@ -82,6 +86,15 @@ def main():
         repo_url = REPO_HOME_URL + "/" + args.repo
         sh.git.clone("--recursive", repo_url, input_dir)
         for docset in metadata[args.repo]:
+            if args.test is True:
+                print("Waiting for Ctrl-C or {0} seconds to enable tweaking of input ...".format(DEV_WAIT_TIME))
+                print("input_dir={0}".format(input_dir))
+                try:
+                    for i in range(0, DEV_WAIT_TIME):
+                        sleep(1)
+                    print("Proceeding")
+                except KeyboardInterrupt:
+                    print("Proceeding")
             output_dir = output_home_dir + "/" + args.repo
             if docset['label'] is not None:
                 output_dir += "/" + docset['label']
