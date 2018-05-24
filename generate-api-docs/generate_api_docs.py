@@ -6,6 +6,7 @@ Generate API docs from RAML using raml2html and raml-fleece
 
 import argparse
 import fnmatch
+import glob
 import logging
 import os
 import shutil
@@ -125,12 +126,19 @@ def main():
                 configured_raml_files.append(filename)
             found_raml_files = []
             raml_files = []
-            excludes = set(['raml-util', 'rtypes', 'traits', 'node_modules'])
-            for root, dirs, files in os.walk(ramls_dir, topdown=True):
-                dirs[:] = [d for d in dirs if d not in excludes]
-                for filename in fnmatch.filter(files, '*.raml'):
-                    raml_file = os.path.relpath(os.path.join(root, filename), ramls_dir)
+            if docset['label'] == "shared":
+                # If this is the top-level of the shared space, then do not descend
+                pattern = os.path.join(ramls_dir, "*.raml")
+                for filename in glob.glob(pattern):
+                    raml_file = os.path.relpath(filename, ramls_dir)
                     found_raml_files.append(raml_file)
+            else:
+                excludes = set(['raml-util', 'rtypes', 'traits', 'node_modules'])
+                for root, dirs, files in os.walk(ramls_dir, topdown=True):
+                    dirs[:] = [d for d in dirs if d not in excludes]
+                    for filename in fnmatch.filter(files, '*.raml'):
+                        raml_file = os.path.relpath(os.path.join(root, filename), ramls_dir)
+                        found_raml_files.append(raml_file)
             for filename in configured_raml_files:
                 if filename not in found_raml_files:
                     logger.warning("Configured file not found: {0}".format(filename))
