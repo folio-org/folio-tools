@@ -149,30 +149,26 @@ def main():
                 output_fn = raml_name + ".html"
                 output_1_file = os.path.join(output_dir, output_fn)
                 output_2_file = os.path.join(output_2_dir, output_fn)
-                if os.path.exists(input_file):
-                    cmd_name = "raml2html"
-                    cmd = sh.Command(os.path.join(sys.path[0], "node_modules", ".bin", cmd_name))
-                    logger.info("Doing {0} with {1} into {2}".format(cmd_name, raml_file, output_1_file))
-                    #sh.raml2html("-i", input_file, "-o", output_file)
-                    try:
-                        cmd(i=input_file, o=output_1_file)
-                    except sh.ErrorReturnCode_1 as err:
-                        logger.error("{0}: {1}".format(cmd_name, err))
+                cmd_name = "raml2html"
+                cmd = sh.Command(os.path.join(sys.path[0], "node_modules", ".bin", cmd_name))
+                logger.info("Doing {0} with {1} into {2}".format(cmd_name, raml_file, output_1_file))
+                #sh.raml2html("-i", input_file, "-o", output_file)
+                try:
+                    cmd(i=input_file, o=output_1_file)
+                except sh.ErrorReturnCode_1 as err:
+                    logger.error("{0}: {1}".format(cmd_name, err))
 
-                    cmd_name = "raml-fleece"
-                    cmd = sh.Command(os.path.join(sys.path[0], "node_modules", ".bin", cmd_name))
-                    template_parameters_pn = os.path.join(sys.path[0], "resources", "raml-fleece", "parameters.handlebars")
-                    #cmd = sh.Command(cmd_name)
-                    logger.info("Doing {0} with {1} into {2}".format(cmd_name, raml_file, output_2_file))
-                    try:
-                        cmd(input_file,
-                            template_parameters=template_parameters_pn,
-                            _out=output_2_file)
-                    except sh.ErrorReturnCode_1 as err:
-                        logger.error("{0}: {1}".format(cmd_name, err))
-                else:
-                    logger.warning("Missing input file: {0}/{1}/{2}.raml".format(args.repo, docset['directory'], raml_file))
-                    logger.warning("Configuration needs to be updated (FOLIO-903).")
+                cmd_name = "raml-fleece"
+                cmd = sh.Command(os.path.join(sys.path[0], "node_modules", ".bin", cmd_name))
+                template_parameters_pn = os.path.join(sys.path[0], "resources", "raml-fleece", "parameters.handlebars")
+                #cmd = sh.Command(cmd_name)
+                logger.info("Doing {0} with {1} into {2}".format(cmd_name, raml_file, output_2_file))
+                try:
+                    cmd(input_file,
+                        template_parameters=template_parameters_pn,
+                        _out=output_2_file)
+                except sh.ErrorReturnCode_1 as err:
+                    logger.error("{0}: {1}".format(cmd_name, err))
 
 if __name__ == '__main__':
     main()
