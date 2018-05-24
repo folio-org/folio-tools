@@ -86,27 +86,22 @@ def main():
         logger.info("Doing git clone recursive for '{0}'".format(args.repo))
         repo_url = REPO_HOME_URL + "/" + args.repo
         sh.git.clone("--recursive", repo_url, input_dir)
+        if args.test is True:
+            print("Waiting for Ctrl-C or {0} seconds, to enable tweaking of input ...".format(DEV_WAIT_TIME))
+            print("input_dir={0}".format(input_dir))
+            try:
+                for i in range(0, DEV_WAIT_TIME):
+                    sleep(1)
+                print("Proceeding")
+            except KeyboardInterrupt:
+                print("Proceeding")
+        # Gather metadata for all raml files in this repo
         for docset in metadata[args.repo]:
+            logger.info("Investigating {0}/{1}".format(args.repo, docset['directory']))
             ramls_dir = os.path.join(input_dir, docset['directory'])
             if not os.path.exists(ramls_dir):
-                logger.critical("Directory not found: {0}/{1}".format(args.repo, docset['directory']))
+                logger.critical("The 'ramls' directory not found: {0}/{1}".format(args.repo, docset['directory']))
                 sys.exit(1)
-            if args.test is True:
-                print("Waiting for Ctrl-C or {0} seconds to enable tweaking of input ...".format(DEV_WAIT_TIME))
-                print("ramls_dir={0}".format(ramls_dir))
-                try:
-                    for i in range(0, DEV_WAIT_TIME):
-                        sleep(1)
-                    print("Proceeding")
-                except KeyboardInterrupt:
-                    print("Proceeding")
-            output_dir = output_home_dir + "/" + args.repo
-            if docset['label'] is not None:
-                output_dir += "/" + docset['label']
-            output_2_dir = output_dir + "/2"
-            os.makedirs(output_dir, exist_ok=True)
-            os.makedirs(output_2_dir, exist_ok=True)
-            logger.info("Processing RAML for {0}/{1}".format(args.repo, docset['directory']))
             if docset['ramlutil'] is not None:
                 ramlutil_dir = "{0}/{1}".format(input_dir, docset['ramlutil'])
                 if os.path.exists(ramlutil_dir):
@@ -115,8 +110,15 @@ def main():
                     dest_file = "{0}/traits/auth.raml".format(ramlutil_dir)
                     shutil.copyfile(src_file, dest_file)
                 else:
-                    logger.critical("Directory not found: {0}/{1}".format(args.repo, docset['ramlutil']))
+                    logger.critical("The 'raml-util' directory not found: {0}/{1}".format(args.repo, docset['ramlutil']))
                     sys.exit(1)
+            output_dir = output_home_dir + "/" + args.repo
+            if docset['label'] is not None:
+                output_dir += "/" + docset['label']
+            logger.debug("Output directory: {0}".format(output_dir))
+            output_2_dir = output_dir + "/2"
+            os.makedirs(output_dir, exist_ok=True)
+            os.makedirs(output_2_dir, exist_ok=True)
             configured_raml_files = []
             for raml_file in docset['files']:
                 filename = "{0}.raml".format(raml_file)
@@ -131,7 +133,7 @@ def main():
                     found_raml_files.append(raml_file)
             for filename in configured_raml_files:
                 if filename not in found_raml_files:
-                    logger.warning("Old configuration: {0}".format(filename))
+                    logger.warning("Configured file not found: {0}".format(filename))
                 else:
                     raml_files.append(filename)
             for filename in found_raml_files:
