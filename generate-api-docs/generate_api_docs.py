@@ -5,6 +5,7 @@ Generate API docs from RAML using raml2html and raml-fleece
 """
 
 import argparse
+import fnmatch
 import logging
 import os
 import shutil
@@ -116,14 +117,40 @@ def main():
                 else:
                     logger.critical("Directory not found: {0}/{1}".format(args.repo, docset['ramlutil']))
                     sys.exit(1)
+            configured_raml_files = []
             for raml_file in docset['files']:
-                input_file = "{0}/{1}/{2}.raml".format(input_dir, docset['directory'], raml_file)
-                output_1_file = "{0}/{1}.html".format(output_dir, raml_file)
-                output_2_file = "{0}/{1}.html".format(output_2_dir, raml_file)
+                filename = "{0}.raml".format(raml_file)
+                configured_raml_files.append(filename)
+            found_raml_files = []
+            raml_files = []
+            excludes = set(['raml-util', 'rtypes', 'traits', 'node_modules'])
+            for root, dirs, files in os.walk(ramls_dir, topdown=True):
+                dirs[:] = [d for d in dirs if d not in excludes]
+                for filename in fnmatch.filter(files, '*.raml'):
+                    raml_file = os.path.relpath(os.path.join(root, filename), ramls_dir)
+                    found_raml_files.append(raml_file)
+            for filename in configured_raml_files:
+                if filename not in found_raml_files:
+                    logger.warning("Old configuration: {0}".format(filename))
+                else:
+                    raml_files.append(filename)
+            for filename in found_raml_files:
+                if filename not in configured_raml_files:
+                    raml_files.append(filename)
+            print("configured_raml_files:", configured_raml_files)
+            print("found_raml_files:", found_raml_files)
+            print("raml_files:", raml_files)
+            # sys.exit(0)
+            for raml_file in raml_files:
+                raml_name = raml_file[:-5]
+                input_file = os.path.join(ramls_dir, raml_file)
+                output_fn = raml_name + ".html"
+                output_1_file = os.path.join(output_dir, output_fn)
+                output_2_file = os.path.join(output_2_dir, output_fn)
                 if os.path.exists(input_file):
                     cmd_name = "raml2html"
                     cmd = sh.Command(os.path.join(sys.path[0], "node_modules", ".bin", cmd_name))
-                    logger.info("Doing {0} with {1}.raml into {2}".format(cmd_name, raml_file, output_1_file))
+                    logger.info("Doing {0} with {1} into {2}".format(cmd_name, raml_file, output_1_file))
                     #sh.raml2html("-i", input_file, "-o", output_file)
                     try:
                         cmd(i=input_file, o=output_1_file)
@@ -134,7 +161,7 @@ def main():
                     cmd = sh.Command(os.path.join(sys.path[0], "node_modules", ".bin", cmd_name))
                     template_parameters_pn = os.path.join(sys.path[0], "resources", "raml-fleece", "parameters.handlebars")
                     #cmd = sh.Command(cmd_name)
-                    logger.info("Doing {0} with {1}.raml into {2}".format(cmd_name, raml_file, output_2_file))
+                    logger.info("Doing {0} with {1} into {2}".format(cmd_name, raml_file, output_2_file))
                     try:
                         cmd(input_file,
                             template_parameters=template_parameters_pn,
