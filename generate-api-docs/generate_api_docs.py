@@ -86,9 +86,13 @@ def main():
         repo_url = REPO_HOME_URL + "/" + args.repo
         sh.git.clone("--recursive", repo_url, input_dir)
         for docset in metadata[args.repo]:
+            ramls_dir = os.path.join(input_dir, docset['directory'])
+            if not os.path.exists(ramls_dir):
+                logger.critical("Directory not found: {0}/{1}".format(args.repo, docset['directory']))
+                sys.exit(1)
             if args.test is True:
                 print("Waiting for Ctrl-C or {0} seconds to enable tweaking of input ...".format(DEV_WAIT_TIME))
-                print("input_dir={0}".format(input_dir))
+                print("ramls_dir={0}".format(ramls_dir))
                 try:
                     for i in range(0, DEV_WAIT_TIME):
                         sleep(1)
