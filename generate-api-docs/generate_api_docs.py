@@ -50,9 +50,9 @@ def main():
 
     loglevel = LOGLEVELS.get(args.loglevel.lower(), logging.NOTSET)
     if args.verbose is True:
-      loglevel = LOGLEVELS.get("info")
-    logging.basicConfig(level=loglevel)
-    logger = logging.getLogger(os.path.basename(sys.argv[0]))
+      loglevel = logging.INFO
+    logging.basicConfig(format='%(levelname)s: %(name)s: %(message)s', level=loglevel)
+    logger = logging.getLogger("generate-api-docs")
     logging.getLogger("sh").setLevel(logging.ERROR)
     logging.getLogger("requests").setLevel(logging.ERROR)
 
@@ -78,7 +78,7 @@ def main():
         sys.exit(1)
 
     with tempfile.TemporaryDirectory() as input_dir:
-        logger.info("Doing git clone recursive for '{0}' ...".format(args.repo))
+        logger.info("Doing git clone recursive for '{0}'".format(args.repo))
         repo_url = REPO_HOME_URL + "/" + args.repo
         sh.git.clone("--recursive", repo_url, input_dir)
         for docset in metadata[args.repo]:
@@ -92,7 +92,7 @@ def main():
             if docset['ramlutil'] is not None:
                 ramlutil_dir = "{0}/{1}".format(input_dir, docset['ramlutil'])
                 if os.path.exists(ramlutil_dir):
-                    logger.info("Copying {0}/traits/auth_security.raml ...".format(docset['ramlutil']))
+                    logger.info("Copying {0}/traits/auth_security.raml".format(docset['ramlutil']))
                     src_file = "{0}/traits/auth_security.raml".format(ramlutil_dir)
                     dest_file = "{0}/traits/auth.raml".format(ramlutil_dir)
                     shutil.copyfile(src_file, dest_file)
@@ -106,7 +106,7 @@ def main():
                 if os.path.exists(input_file):
                     cmd_name = "raml2html"
                     cmd = sh.Command(os.path.join(sys.path[0], "node_modules", ".bin", cmd_name))
-                    logger.info("Doing {0} with {1}.raml into {2} ...".format(cmd_name, raml_file, output_1_file))
+                    logger.info("Doing {0} with {1}.raml into {2}".format(cmd_name, raml_file, output_1_file))
                     #sh.raml2html("-i", input_file, "-o", output_file)
                     try:
                         cmd(i=input_file, o=output_1_file)
@@ -117,7 +117,7 @@ def main():
                     cmd = sh.Command(os.path.join(sys.path[0], "node_modules", ".bin", cmd_name))
                     template_parameters_pn = os.path.join(sys.path[0], "resources", "raml-fleece", "parameters.handlebars")
                     #cmd = sh.Command(cmd_name)
-                    logger.info("Doing {0} with {1}.raml into {2} ...".format(cmd_name, raml_file, output_2_file))
+                    logger.info("Doing {0} with {1}.raml into {2}".format(cmd_name, raml_file, output_2_file))
                     try:
                         cmd(input_file,
                             template_parameters=template_parameters_pn,
