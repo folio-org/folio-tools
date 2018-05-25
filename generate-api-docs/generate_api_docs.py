@@ -157,6 +157,12 @@ def main():
                 output_fn = raml_name + ".html"
                 output_1_pn = os.path.join(output_dir, output_fn)
                 output_2_pn = os.path.join(output_2_dir, output_fn)
+                # If there are raml files in sub-directories, then need mkdir
+                output_sub_dirs = os.path.dirname(raml_fn)
+                if output_sub_dirs:
+                    os.makedirs(os.path.join(output_dir, output_sub_dirs), exist_ok=True)
+                    os.makedirs(os.path.join(output_2_dir, output_sub_dirs), exist_ok=True)
+
                 cmd_name = "raml2html"
                 cmd = sh.Command(os.path.join(sys.path[0], "node_modules", ".bin", cmd_name))
                 logger.info("Doing %s with %s into %s", cmd_name, raml_fn, output_1_pn)
