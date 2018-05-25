@@ -56,7 +56,7 @@ def main():
 
     loglevel = LOGLEVELS.get(args.loglevel.lower(), logging.NOTSET)
     if args.verbose is True:
-      loglevel = logging.INFO
+        loglevel = logging.INFO
     logging.basicConfig(format='%(levelname)s: %(name)s: %(message)s', level=loglevel)
     logger = logging.getLogger("generate-api-docs")
     logging.getLogger("sh").setLevel(logging.ERROR)
@@ -73,8 +73,8 @@ def main():
         http_response.raise_for_status()
         metadata = yaml.safe_load(http_response.text)
     else:
-        with open(os.path.join(sys.path[0], CONFIG_FILE_LOCAL)) as input_file:
-            metadata = yaml.safe_load(input_file)
+        with open(os.path.join(sys.path[0], CONFIG_FILE_LOCAL)) as input_pn:
+            metadata = yaml.safe_load(input_pn)
     if metadata is None:
         logger.critical("Configuration data was not loaded.")
         sys.exit(1)
@@ -84,7 +84,7 @@ def main():
         sys.exit(1)
 
     with tempfile.TemporaryDirectory() as input_dir:
-        logger.info("Doing git clone recursive for '{0}'".format(args.repo))
+        logger.info("Doing git clone recursive for '%s'", args.repo)
         repo_url = REPO_HOME_URL + "/" + args.repo
         sh.git.clone("--recursive", repo_url, input_dir)
         if args.test is True:
@@ -98,85 +98,83 @@ def main():
                 print("Proceeding")
         # Gather metadata for all raml files in this repo
         for docset in metadata[args.repo]:
-            logger.info("Investigating {0}/{1}".format(args.repo, docset['directory']))
+            logger.info("Investigating %s/%s", args.repo, docset['directory'])
             ramls_dir = os.path.join(input_dir, docset['directory'])
             if not os.path.exists(ramls_dir):
-                logger.critical("The 'ramls' directory not found: {0}/{1}".format(args.repo, docset['directory']))
+                logger.critical("The 'ramls' directory not found: %s/%s", args.repo, docset['directory'])
                 sys.exit(1)
             if docset['ramlutil'] is not None:
-                ramlutil_dir = "{0}/{1}".format(input_dir, docset['ramlutil'])
+                ramlutil_dir = os.path.join(input_dir, docset['ramlutil'])
                 if os.path.exists(ramlutil_dir):
-                    logger.info("Copying {0}/traits/auth_security.raml".format(docset['ramlutil']))
-                    src_file = "{0}/traits/auth_security.raml".format(ramlutil_dir)
-                    dest_file = "{0}/traits/auth.raml".format(ramlutil_dir)
-                    shutil.copyfile(src_file, dest_file)
+                    logger.info("Copying %s/traits/auth_security.raml", docset['ramlutil'])
+                    src_pn = os.path.join(ramlutil_dir, "traits", "auth_security.raml")
+                    dest_pn = os.path.join(ramlutil_dir, "traits", "auth.raml")
+                    shutil.copyfile(src_pn, dest_pn)
                 else:
-                    logger.critical("The 'raml-util' directory not found: {0}/{1}".format(args.repo, docset['ramlutil']))
+                    logger.critical("The 'raml-util' directory not found: %s/%s", args.repo, docset['ramlutil'])
                     sys.exit(1)
-            output_dir = output_home_dir + "/" + args.repo
-            if docset['label'] is not None:
-                output_dir += "/" + docset['label']
-            logger.debug("Output directory: {0}".format(output_dir))
-            output_2_dir = output_dir + "/2"
+            if docset['label'] is None:
+                output_dir = os.path.join(output_home_dir, args.repo)
+            else:
+                output_dir = os.path.join(output_home_dir, args.repo, docset['label'])
+            logger.debug("Output directory: %s", output_dir)
+            output_2_dir = os.path.join(output_dir, "2")
             os.makedirs(output_dir, exist_ok=True)
             os.makedirs(output_2_dir, exist_ok=True)
             configured_raml_files = []
-            for raml_file in docset['files']:
-                filename = "{0}.raml".format(raml_file)
-                configured_raml_files.append(filename)
+            for raml_name in docset['files']:
+                raml_fn = "{0}.raml".format(raml_name)
+                configured_raml_files.append(raml_fn)
             found_raml_files = []
             raml_files = []
             if docset['label'] == "shared":
                 # If this is the top-level of the shared space, then do not descend
                 pattern = os.path.join(ramls_dir, "*.raml")
-                for filename in glob.glob(pattern):
-                    raml_file = os.path.relpath(filename, ramls_dir)
-                    found_raml_files.append(raml_file)
+                for raml_fn in glob.glob(pattern):
+                    raml_pn = os.path.relpath(raml_fn, ramls_dir)
+                    found_raml_files.append(raml_pn)
             else:
                 excludes = set(['raml-util', 'rtypes', 'traits', 'node_modules'])
                 for root, dirs, files in os.walk(ramls_dir, topdown=True):
                     dirs[:] = [d for d in dirs if d not in excludes]
-                    for filename in fnmatch.filter(files, '*.raml'):
-                        raml_file = os.path.relpath(os.path.join(root, filename), ramls_dir)
-                        found_raml_files.append(raml_file)
-            for filename in configured_raml_files:
-                if filename not in found_raml_files:
-                    logger.warning("Configured file not found: {0}".format(filename))
+                    for raml_fn in fnmatch.filter(files, '*.raml'):
+                        raml_pn = os.path.relpath(os.path.join(root, raml_fn), ramls_dir)
+                        found_raml_files.append(raml_pn)
+            for raml_fn in configured_raml_files:
+                if raml_fn not in found_raml_files:
+                    logger.warning("Configured file not found: %s", raml_fn)
                 else:
-                    raml_files.append(filename)
-            for filename in found_raml_files:
-                if filename not in configured_raml_files:
-                    raml_files.append(filename)
-            print("configured_raml_files:", configured_raml_files)
-            print("found_raml_files:", found_raml_files)
-            print("raml_files:", raml_files)
-            # sys.exit(0)
-            for raml_file in raml_files:
-                raml_name = raml_file[:-5]
-                input_file = os.path.join(ramls_dir, raml_file)
+                    raml_files.append(raml_fn)
+            for raml_fn in found_raml_files:
+                if raml_fn not in configured_raml_files:
+                    raml_files.append(raml_fn)
+            logger.debug("configured_raml_files: %s", configured_raml_files)
+            logger.debug("found_raml_files: %s", found_raml_files)
+            logger.debug("raml_files: %s", raml_files)
+            for raml_fn in raml_files:
+                raml_name = raml_fn[:-5]
+                input_pn = os.path.join(ramls_dir, raml_fn)
                 output_fn = raml_name + ".html"
-                output_1_file = os.path.join(output_dir, output_fn)
-                output_2_file = os.path.join(output_2_dir, output_fn)
+                output_1_pn = os.path.join(output_dir, output_fn)
+                output_2_pn = os.path.join(output_2_dir, output_fn)
                 cmd_name = "raml2html"
                 cmd = sh.Command(os.path.join(sys.path[0], "node_modules", ".bin", cmd_name))
-                logger.info("Doing {0} with {1} into {2}".format(cmd_name, raml_file, output_1_file))
-                #sh.raml2html("-i", input_file, "-o", output_file)
+                logger.info("Doing %s with %s into %s", cmd_name, raml_fn, output_1_pn)
                 try:
-                    cmd(i=input_file, o=output_1_file)
+                    cmd(i=input_pn, o=output_1_pn)
                 except sh.ErrorReturnCode_1 as err:
-                    logger.error("{0}: {1}".format(cmd_name, err))
+                    logger.error("%s: %s", cmd_name, err)
 
                 cmd_name = "raml-fleece"
                 cmd = sh.Command(os.path.join(sys.path[0], "node_modules", ".bin", cmd_name))
                 template_parameters_pn = os.path.join(sys.path[0], "resources", "raml-fleece", "parameters.handlebars")
-                #cmd = sh.Command(cmd_name)
-                logger.info("Doing {0} with {1} into {2}".format(cmd_name, raml_file, output_2_file))
+                logger.info("Doing %s with %s into %s", cmd_name, raml_fn, output_2_pn)
                 try:
-                    cmd(input_file,
+                    cmd(input_pn,
                         template_parameters=template_parameters_pn,
-                        _out=output_2_file)
+                        _out=output_2_pn)
                 except sh.ErrorReturnCode_1 as err:
-                    logger.error("{0}: {1}".format(cmd_name, err))
+                    logger.error("%s: %s", cmd_name, err)
 
 if __name__ == '__main__':
     main()
