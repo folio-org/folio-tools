@@ -134,10 +134,17 @@ def main():
                     raml_pn = os.path.relpath(raml_fn, ramls_dir)
                     found_raml_files.append(raml_pn)
             else:
-                excludes = set(['raml-util', 'rtypes', 'traits', 'node_modules'])
+                exclude_list = ['raml-util', 'rtypes', 'traits', 'node_modules']
+                try:
+                    exclude_list.extend(docset['excludes'])
+                except KeyError:
+                    pass
+                excludes = set(exclude_list)
                 for root, dirs, files in os.walk(ramls_dir, topdown=True):
                     dirs[:] = [d for d in dirs if d not in excludes]
                     for raml_fn in fnmatch.filter(files, '*.raml'):
+                        if raml_fn in excludes:
+                            continue
                         raml_pn = os.path.relpath(os.path.join(root, raml_fn), ramls_dir)
                         found_raml_files.append(raml_pn)
             for raml_fn in configured_raml_files:
