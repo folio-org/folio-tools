@@ -147,6 +147,9 @@ def main():
                             continue
                         raml_pn = os.path.relpath(os.path.join(root, raml_fn), ramls_dir)
                         found_raml_files.append(raml_pn)
+            logger.debug("configured_raml_files: %s", configured_raml_files)
+            logger.debug("found_raml_files: %s", found_raml_files)
+            logger.debug("raml_files: %s", raml_files)
             for raml_fn in configured_raml_files:
                 if raml_fn not in found_raml_files:
                     logger.warning("Configured file not found: %s", raml_fn)
@@ -155,9 +158,7 @@ def main():
             for raml_fn in found_raml_files:
                 if raml_fn not in configured_raml_files:
                     raml_files.append(raml_fn)
-            logger.debug("configured_raml_files: %s", configured_raml_files)
-            logger.debug("found_raml_files: %s", found_raml_files)
-            logger.debug("raml_files: %s", raml_files)
+                    logger.warning("Missing from configuration: %s", raml_fn)
             for raml_fn in raml_files:
                 raml_name = raml_fn[:-5]
                 input_pn = os.path.join(ramls_dir, raml_fn)
