@@ -11,6 +11,7 @@ import glob
 import json
 import logging
 import os
+import re
 import shutil
 import tempfile
 import sys
@@ -181,6 +182,14 @@ def main():
                 if output_sub_dirs:
                     os.makedirs(os.path.join(output_dir, output_sub_dirs), exist_ok=True)
                     os.makedirs(os.path.join(output_2_dir, output_sub_dirs), exist_ok=True)
+                version_re = re.compile(r'^#%RAML ([0-9.]+)')
+                with open(input_pn, 'r') as input_fh:
+                    for num, line in enumerate(input_fh):
+                        match = re.search(version_re, line)
+                        if match:
+                            version_value = match.group(1)
+                            logger.debug("Input file is RAML version: %s", version_value)
+                            break
 
                 cmd_name = "raml2html"
                 cmd = sh.Command(os.path.join(sys.path[0], "node_modules", ".bin", cmd_name))
