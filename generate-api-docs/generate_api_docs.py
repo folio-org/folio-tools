@@ -5,14 +5,16 @@ Generate API docs from RAML using raml2html and raml-fleece
 """
 
 import argparse
+import datetime
 import fnmatch
 import glob
+import json
 import logging
 import os
 import shutil
 import tempfile
 import sys
-from time import sleep
+import time
 
 import requests
 import sh
@@ -96,7 +98,11 @@ def main():
                 print("Proceeding")
             except KeyboardInterrupt:
                 print("Proceeding")
-        # Gather metadata for all raml files in this repo
+        config_json = {}
+        config_json['metadata'] = {}
+        config_json['metadata']['repository'] = args.repo
+        config_json['metadata']['timestamp'] = int(time.time())
+        config_json['configs'] = []
         for docset in metadata[args.repo]:
             logger.info("Investigating %s/%s", args.repo, docset['directory'])
             ramls_dir = os.path.join(input_dir, docset['directory'])
@@ -159,6 +165,11 @@ def main():
                 if raml_fn not in configured_raml_files:
                     raml_files.append(raml_fn)
                     logger.warning("Missing from configuration: %s", raml_fn)
+            config_json_packet = {}
+            config_json_packet['label'] = docset['label'] if docset['label'] is not None else ""
+            config_json_packet['directory'] = docset['directory']
+            config_json_packet['files'] = raml_files
+            config_json['configs'].append(config_json_packet)
             for raml_fn in raml_files:
                 raml_name = raml_fn[:-5]
                 input_pn = os.path.join(ramls_dir, raml_fn)
@@ -189,6 +200,11 @@ def main():
                         _out=output_2_pn)
                 except sh.ErrorReturnCode_1 as err:
                     logger.error("%s: %s", cmd_name, err)
+            config_pn = os.path.join(output_home_dir, args.repo, "config.json")
+            output_json_fh = open(config_pn, 'w')
+            output_json_fh.write( json.dumps(config_json, sort_keys=True, indent=2, separators=(',', ': ')) )
+            output_json_fh.write('\n')
+            output_json_fh.close()
 
 if __name__ == '__main__':
     main()
