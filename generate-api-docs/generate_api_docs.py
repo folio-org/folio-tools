@@ -94,7 +94,7 @@ def main():
             print("input_dir={0}".format(input_dir))
             try:
                 for i in range(0, DEV_WAIT_TIME):
-                    sleep(1)
+                    time.sleep(1)
                 print("Proceeding")
             except KeyboardInterrupt:
                 print("Proceeding")
