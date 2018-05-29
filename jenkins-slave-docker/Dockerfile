@@ -70,10 +70,11 @@ RUN apt-get -q update && \
     npm install -g http-server && \
     npm install -g karma-junit-reporter
 
+ENV YARN_VERSION 1.6.0-1
 RUN wget -O - https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
     sh -c 'echo "deb https://dl.yarnpkg.com/debian/ stable main" \
     >> /etc/apt/sources.list.d/yarn.list' && \
-    apt-get -q update && apt-get install -y yarn && \
+    apt-get -q update && apt-get install -y yarn=${YARN_VERSION}  && \
     yarn config set registry https://repository.folio.org/repository/npm-ci-all && \
     yarn global add @folio/stripes-cli --prefix /usr/local
 
