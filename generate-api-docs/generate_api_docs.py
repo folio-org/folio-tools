@@ -191,24 +191,25 @@ def main():
                             logger.debug("Input file is RAML version: %s", version_value)
                             break
 
-                cmd_name = "raml2html"
-                cmd = sh.Command(os.path.join(sys.path[0], "node_modules", ".bin", cmd_name))
+                cmd_name = "raml2html3" if version_value == "0.8" else "raml2html"
+                cmd = sh.Command(os.path.join(sys.path[0], "node_modules", cmd_name, "bin", "raml2html"))
                 logger.info("Doing %s with %s into %s", cmd_name, raml_fn, output_1_pn)
                 try:
                     cmd(i=input_pn, o=output_1_pn)
                 except sh.ErrorReturnCode_1 as err:
                     logger.error("%s: %s", cmd_name, err)
 
-                cmd_name = "raml-fleece"
-                cmd = sh.Command(os.path.join(sys.path[0], "node_modules", ".bin", cmd_name))
-                template_parameters_pn = os.path.join(sys.path[0], "resources", "raml-fleece", "parameters.handlebars")
-                logger.info("Doing %s with %s into %s", cmd_name, raml_fn, output_2_pn)
-                try:
-                    cmd(input_pn,
-                        template_parameters=template_parameters_pn,
-                        _out=output_2_pn)
-                except sh.ErrorReturnCode_1 as err:
-                    logger.error("%s: %s", cmd_name, err)
+                if version_value == "0.8":
+                    cmd_name = "raml-fleece"
+                    cmd = sh.Command(os.path.join(sys.path[0], "node_modules", ".bin", cmd_name))
+                    template_parameters_pn = os.path.join(sys.path[0], "resources", "raml-fleece", "parameters.handlebars")
+                    logger.info("Doing %s with %s into %s", cmd_name, raml_fn, output_2_pn)
+                    try:
+                        cmd(input_pn,
+                            template_parameters=template_parameters_pn,
+                            _out=output_2_pn)
+                    except sh.ErrorReturnCode_1 as err:
+                        logger.error("%s: %s", cmd_name, err)
             config_pn = os.path.join(output_home_dir, args.repo, "config.json")
             output_json_fh = open(config_pn, 'w')
             output_json_fh.write( json.dumps(config_json, sort_keys=True, indent=2, separators=(',', ': ')) )
