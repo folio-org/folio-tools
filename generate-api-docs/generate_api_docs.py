@@ -169,7 +169,9 @@ def main():
             config_json_packet = {}
             config_json_packet['label'] = docset['label'] if docset['label'] is not None else ""
             config_json_packet['directory'] = docset['directory']
-            config_json_packet['files'] = raml_files
+            config_json_packet['files'] = {}
+            config_json_packet['files']['0.8'] = []
+            config_json_packet['files']['1.0'] = []
             config_json['configs'].append(config_json_packet)
             for raml_fn in raml_files:
                 raml_name = raml_fn[:-5]
@@ -183,6 +185,7 @@ def main():
                     os.makedirs(os.path.join(output_dir, output_sub_dirs), exist_ok=True)
                     os.makedirs(os.path.join(output_2_dir, output_sub_dirs), exist_ok=True)
                 version_re = re.compile(r'^#%RAML ([0-9.]+)')
+                version_value = None
                 with open(input_pn, 'r') as input_fh:
                     for num, line in enumerate(input_fh):
                         match = re.search(version_re, line)
@@ -190,7 +193,11 @@ def main():
                             version_value = match.group(1)
                             logger.debug("Input file is RAML version: %s", version_value)
                             break
-
+                try:
+                    config_json_packet['files'][version_value].append(raml_fn)
+                except KeyError:
+                    logger.error("Input '%s' RAML version missing or not valid: %s", raml_fn, version_value)
+                    continue
                 cmd_name = "raml2html3" if version_value == "0.8" else "raml2html"
                 cmd = sh.Command(os.path.join(sys.path[0], "node_modules", cmd_name, "bin", "raml2html"))
                 logger.info("Doing %s with %s into %s", cmd_name, raml_fn, output_1_pn)
