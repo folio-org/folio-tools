@@ -7,8 +7,9 @@
 - pip install requests
 - pip install sh
 - git
-- [raml2html](https://github.com/raml2html/raml2html) (version 3 for RAML-0.8)
-- [raml-fleece](https://github.com/janrain/raml-fleece) (need pull/45)
+- [raml2html v3](https://github.com/raml2html/raml2html) (version 3 for RAML-0.8)
+- [raml2html](https://github.com/raml2html/raml2html) (for RAML-1.0)
+- [raml-fleece](https://github.com/janrain/raml-fleece) (only for RAML-0.8)
 
 ## Method
 
@@ -18,6 +19,8 @@
 - For each RAML file, call 'raml2html' and 'raml-fleece'
   and generate html to output_directory.
 - Deploy to AWS.
+
+For local testing, first do 'yarn install'.
 
 # Some relevant issues
 
