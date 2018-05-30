@@ -128,7 +128,7 @@ RUN apt-get -q update && \
 RUN cd /usr/local && \
     git clone https://github.com/folio-org/folio-tools && \
     cd /usr/local/folio-tools/generate-api-docs && \
-    npm install && \
+    yarn install && \
     ln -s /usr/local/folio-tools/generate-api-docs/generate_api_docs.py \
     /usr/local/bin/generate_api_docs.py && \
     chmod +x /usr/local/folio-tools/generate-api-docs/generate_api_docs.py
