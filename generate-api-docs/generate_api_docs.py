@@ -5,7 +5,6 @@ Generate API docs from RAML using raml2html and raml-fleece
 """
 
 import argparse
-import datetime
 import fnmatch
 import glob
 import json
@@ -52,7 +51,7 @@ def main():
     parser.add_argument('-v', '--verbose', action='store_true',
                         help='Be verbose. (Default: False) Deprecated: use --loglevel')
     parser.add_argument('-d', '--dev', action='store_true',
-                        help='Development mode. Local config file. (Default: False)')
+                        help='Development mode. Local api.yml config file. (Default: False)')
     parser.add_argument('-t', '--test', action='store_true',
                         help='Manual test mode. Wait for input tweaks. (Default: False)')
     args = parser.parse_args()
@@ -89,7 +88,11 @@ def main():
     with tempfile.TemporaryDirectory() as input_dir:
         logger.info("Doing git clone recursive for '%s'", args.repo)
         repo_url = REPO_HOME_URL + "/" + args.repo
-        sh.git.clone("--recursive", repo_url, input_dir)
+        try:
+            sh.git.clone("--recursive", repo_url, input_dir)
+        except sh.ErrorReturnCode_1 as err:
+            logger.error("git clone: %s", err)
+            sys.exit(1)
         if args.test is True:
             print("Waiting for Ctrl-C or {0} seconds, to enable tweaking of input ...".format(DEV_WAIT_TIME))
             print("input_dir={0}".format(input_dir))
@@ -169,7 +172,9 @@ def main():
             config_json_packet = {}
             config_json_packet['label'] = docset['label'] if docset['label'] is not None else ""
             config_json_packet['directory'] = docset['directory']
-            config_json_packet['files'] = raml_files
+            config_json_packet['files'] = {}
+            config_json_packet['files']['0.8'] = []
+            config_json_packet['files']['1.0'] = []
             config_json['configs'].append(config_json_packet)
             for raml_fn in raml_files:
                 raml_name = raml_fn[:-5]
@@ -183,6 +188,7 @@ def main():
                     os.makedirs(os.path.join(output_dir, output_sub_dirs), exist_ok=True)
                     os.makedirs(os.path.join(output_2_dir, output_sub_dirs), exist_ok=True)
                 version_re = re.compile(r'^#%RAML ([0-9.]+)')
+                version_value = None
                 with open(input_pn, 'r') as input_fh:
                     for num, line in enumerate(input_fh):
                         match = re.search(version_re, line)
@@ -190,28 +196,33 @@ def main():
                             version_value = match.group(1)
                             logger.debug("Input file is RAML version: %s", version_value)
                             break
-
-                cmd_name = "raml2html"
-                cmd = sh.Command(os.path.join(sys.path[0], "node_modules", ".bin", cmd_name))
+                try:
+                    config_json_packet['files'][version_value].append(raml_fn)
+                except KeyError:
+                    logger.error("Input '%s' RAML version missing or not valid: %s", raml_fn, version_value)
+                    continue
+                cmd_name = "raml2html3" if version_value == "0.8" else "raml2html"
+                cmd = sh.Command(os.path.join(sys.path[0], "node_modules", cmd_name, "bin", "raml2html"))
                 logger.info("Doing %s with %s into %s", cmd_name, raml_fn, output_1_pn)
                 try:
                     cmd(i=input_pn, o=output_1_pn)
                 except sh.ErrorReturnCode_1 as err:
                     logger.error("%s: %s", cmd_name, err)
 
-                cmd_name = "raml-fleece"
-                cmd = sh.Command(os.path.join(sys.path[0], "node_modules", ".bin", cmd_name))
-                template_parameters_pn = os.path.join(sys.path[0], "resources", "raml-fleece", "parameters.handlebars")
-                logger.info("Doing %s with %s into %s", cmd_name, raml_fn, output_2_pn)
-                try:
-                    cmd(input_pn,
-                        template_parameters=template_parameters_pn,
-                        _out=output_2_pn)
-                except sh.ErrorReturnCode_1 as err:
-                    logger.error("%s: %s", cmd_name, err)
+                if version_value == "0.8":
+                    cmd_name = "raml-fleece"
+                    cmd = sh.Command(os.path.join(sys.path[0], "node_modules", ".bin", cmd_name))
+                    template_parameters_pn = os.path.join(sys.path[0], "resources", "raml-fleece", "parameters.handlebars")
+                    logger.info("Doing %s with %s into %s", cmd_name, raml_fn, output_2_pn)
+                    try:
+                        cmd(input_pn,
+                            template_parameters=template_parameters_pn,
+                            _out=output_2_pn)
+                    except sh.ErrorReturnCode_1 as err:
+                        logger.error("%s: %s", cmd_name, err)
             config_pn = os.path.join(output_home_dir, args.repo, "config.json")
             output_json_fh = open(config_pn, 'w')
-            output_json_fh.write( json.dumps(config_json, sort_keys=True, indent=2, separators=(',', ': ')) )
+            output_json_fh.write(json.dumps(config_json, sort_keys=True, indent=2, separators=(',', ': ')))
             output_json_fh.write('\n')
             output_json_fh.close()
 

@@ -7,17 +7,22 @@
 - pip install requests
 - pip install sh
 - git
-- [raml2html](https://github.com/raml2html/raml2html) (version 3 for RAML-0.8)
-- [raml-fleece](https://github.com/janrain/raml-fleece) (need pull/45)
+- yarn
+- [raml2html v3](https://github.com/raml2html/raml2html) (version 3 for RAML-0.8)
+- [raml2html](https://github.com/raml2html/raml2html) (for RAML-1.0)
+- [raml-fleece](https://github.com/janrain/raml-fleece) (only for RAML-0.8)
 
 ## Method
 
 - On merge to master, Jenkins calls 'generate_api_docs.py -r repo_name'.
 - Loads configuration data.
 - Does 'git clone' to a temporary directory.
-- For each RAML file, call 'raml2html' and 'raml-fleece'
+- For each RAML file, determine input RAML version,
+  call 'raml2html' and 'raml-fleece'
   and generate html to output_directory.
 - Deploy to AWS.
+
+For local testing, first do 'yarn install'.
 
 # Some relevant issues
 
