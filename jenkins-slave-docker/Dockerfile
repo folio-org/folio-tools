@@ -48,10 +48,11 @@ RUN wget -q --no-check-certificate --no-cookies -O - \
     echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" \
     > /etc/apt/sources.list.d/google.list
 
+# Disabled for now.  repository is too unstable.
 # Install Ubuntuzilla/Firefox repo for firefox-esr
-RUN apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 2667CA5C && \ 
-    echo "deb http://downloads.sourceforge.net/project/ubuntuzilla/mozilla/apt all main" \
-    > /etc/apt/sources.list.d/ubuntuzilla.list 
+#RUN apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 2667CA5C && \ 
+# echo "deb http://downloads.sourceforge.net/project/ubuntuzilla/mozilla/apt all main" \
+#    > /etc/apt/sources.list.d/ubuntuzilla.list 
 
 # Install  packages for our build environment. 
 RUN apt-get -q update && \
@@ -60,7 +61,8 @@ RUN apt-get -q update && \
     openjdk-8-jdk build-essential debhelper lintian fakeroot devscripts jq maven python python-pip  \
     python3-pip python3-setuptools python3-wheel python3-yaml python3-requests python3-sh nodejs \
     postgresql-client-${POSTGRES_VERSION} xvfb libgtk2.0-0 libxtst6 libxss1 libgconf-2-4 libnss3 \
-    libnspr4 libasound2 firefox firefox-esr-mozilla-build google-chrome-stable && \
+    libnspr4 libasound2 firefox googfle-chrome-stable && \
+    #libnspr4 libasound2 firefox firefox-esr-mozilla-build google-chrome-stable && \
     #apt-get -q clean -y && rm -rf /var/lib/apt/lists/* && \
     #rm -f /var/cache/apt/*.bin && \
     rm -f /tmp/node.sh && \
