@@ -5,7 +5,6 @@ Generate API docs from RAML using raml2html and raml-fleece
 """
 
 import argparse
-import datetime
 import fnmatch
 import glob
 import json
@@ -52,7 +51,7 @@ def main():
     parser.add_argument('-v', '--verbose', action='store_true',
                         help='Be verbose. (Default: False) Deprecated: use --loglevel')
     parser.add_argument('-d', '--dev', action='store_true',
-                        help='Development mode. Local config file. (Default: False)')
+                        help='Development mode. Local api.yml config file. (Default: False)')
     parser.add_argument('-t', '--test', action='store_true',
                         help='Manual test mode. Wait for input tweaks. (Default: False)')
     args = parser.parse_args()
@@ -89,7 +88,11 @@ def main():
     with tempfile.TemporaryDirectory() as input_dir:
         logger.info("Doing git clone recursive for '%s'", args.repo)
         repo_url = REPO_HOME_URL + "/" + args.repo
-        sh.git.clone("--recursive", repo_url, input_dir)
+        try:
+            sh.git.clone("--recursive", repo_url, input_dir)
+        except sh.ErrorReturnCode_1 as err:
+            logger.error("git clone: %s", err)
+            sys.exit(1)
         if args.test is True:
             print("Waiting for Ctrl-C or {0} seconds, to enable tweaking of input ...".format(DEV_WAIT_TIME))
             print("input_dir={0}".format(input_dir))
@@ -219,7 +222,7 @@ def main():
                         logger.error("%s: %s", cmd_name, err)
             config_pn = os.path.join(output_home_dir, args.repo, "config.json")
             output_json_fh = open(config_pn, 'w')
-            output_json_fh.write( json.dumps(config_json, sort_keys=True, indent=2, separators=(',', ': ')) )
+            output_json_fh.write(json.dumps(config_json, sort_keys=True, indent=2, separators=(',', ': ')))
             output_json_fh.write('\n')
             output_json_fh.close()
 

@@ -16,7 +16,8 @@
 - On merge to master, Jenkins calls 'generate_api_docs.py -r repo_name'.
 - Loads configuration data.
 - Does 'git clone' to a temporary directory.
-- For each RAML file, call 'raml2html' and 'raml-fleece'
+- For each RAML file, determine input RAML version,
+  call 'raml2html' and 'raml-fleece'
   and generate html to output_directory.
 - Deploy to AWS.
 
