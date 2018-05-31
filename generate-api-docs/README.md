@@ -7,6 +7,7 @@
 - pip install requests
 - pip install sh
 - git
+- yarn
 - [raml2html v3](https://github.com/raml2html/raml2html) (version 3 for RAML-0.8)
 - [raml2html](https://github.com/raml2html/raml2html) (for RAML-1.0)
 - [raml-fleece](https://github.com/janrain/raml-fleece) (only for RAML-0.8)
