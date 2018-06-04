@@ -64,17 +64,17 @@ fi
 
 repo_name="${1}"
 
-echo "repo_name=${repo_name}"
-exit 0
-
 # Space-separated list of sub-directory paths that need to be avoided.
 prune_dirs="raml-util"
 
-if ! cmd=$(command -v raml-cop); then
-  echo "raml-cop is not available. Do 'npm install -g raml-cop'"
-  echo "${help_msg}"
+cmd="$( dirname "${BASH_SOURCE[0]}" )/node_modules/.bin/raml-cop"
+if [[ ! -x "${cmd}" ]]; then
+  echo "raml-cop is not available."
+  echo "Do 'npm install' in folio-tools/lint-raml directory."
   exit 1
 fi
+
+exit 0
 
 repo_home="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 cd "${repo_home}" || exit
