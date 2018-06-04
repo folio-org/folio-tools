@@ -26,7 +26,7 @@ Optional:
 EOM
 }
 
-base_dir=../
+base_dir="../.."
 repo_name=""
 ramls_dir="${default_ramls_dir}"
 
@@ -59,7 +59,7 @@ shift $((OPTIND-1))
 if [ $# -eq 0 ]; then
   echo "REPO_NAME is required."
   usage
-  exit 0
+  exit 1
 fi
 
 repo_name="${1}"
@@ -74,10 +74,17 @@ if [[ ! -x "${cmd}" ]]; then
   exit 1
 fi
 
-exit 0
+if [[ "${base_dir}" != "../.." ]]; then
+  repo_dir="${base_dir}/${repo_name}"
+else
+  repo_dir="$( dirname "${BASH_SOURCE[0]}" )/../../${repo_name}"
+fi
+if [[ ! -d "${repo_dir}" ]]; then
+  echo "The directory does not exist: ${repo_dir}"
+  exit 1
+fi
 
-repo_home="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
-cd "${repo_home}" || exit
+cd "${repo_dir}" || exit
 
 prune_string=$(printf " -path ${ramls_dir}/%s -o" ${prune_dirs})
 raml_files=($(find ${ramls_dir} \( ${prune_string% -o} \) -prune -o -name "*.raml" -print))
