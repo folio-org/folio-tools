@@ -65,7 +65,7 @@ while getopts ":hb:d:a:" opt; do
 done
 shift $((OPTIND-1))
 
-if [ $# -eq 0 ]; then
+if [ $# -ne 1 ]; then
   echo "REPO_NAME is required."
   usage
   exit 1
