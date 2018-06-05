@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 help_msg="Some assistance is at https://dev.folio.org/guides/raml-cop"
 default_ramls_dir="ramls"
@@ -98,18 +98,18 @@ fi
 
 script_home="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cmd="${script_home}/node_modules/.bin/raml-cop"
-if [[ ! -x "${cmd}" ]]; then
+if [ ! -x "${cmd}" ]; then
   echo "raml-cop is not available."
   echo "Do 'npm install' in folio-tools/lint-raml directory."
   exit 1
 fi
 
-if [[ "${base_dir}" != "../.." ]]; then
+if [ "${base_dir}" != "../.." ]; then
   repo_dir="${base_dir}/${repo_name}"
 else
   repo_dir="$( dirname "${BASH_SOURCE[0]}" )/../../${repo_name}"
 fi
-if [[ ! -d "${repo_dir}" ]]; then
+if [ ! -d "${repo_dir}" ]; then
   echo "The directory does not exist: ${repo_dir}"
   exit 1
 fi
@@ -117,10 +117,9 @@ fi
 cd "${repo_dir}" || exit
 
 prune_string=$(printf " -path ${ramls_dir}/%s -o" ${avoid_dirs})
-echo "prune_string=${prune_string}"
 raml_files=($(find ${ramls_dir} \( ${prune_string% -o} \) -prune -o -name "*.raml" -print))
 
-if [[ ${#raml_files[@]} -eq 0 ]]; then
+if [ ${#raml_files[@]} -eq 0 ]; then
   echo "No RAML files found under '${repo_name}/${ramls_dir}'"
   exit 1
 fi
@@ -135,10 +134,10 @@ result=0
 # when there is an issue then this helps to know which file.
 #
 #######################################
-function process_file () {
+process_file () {
   local file="$1"
   ${cmd} "${file}"
-  if [[ $? -eq 1 ]]; then
+  if [ $? -eq 1 ]; then
     echo "Errors: ${file}"
     result=1
   fi
@@ -148,7 +147,7 @@ for f in "${raml_files[@]}"; do
   process_file "$f"
 done
 
-if [[ "${result}" -eq 1 ]]; then
+if [ ${result} -eq 1 ]; then
   echo "${help_msg}"
 fi
 
