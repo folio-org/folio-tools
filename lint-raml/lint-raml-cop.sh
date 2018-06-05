@@ -8,8 +8,8 @@ usage() {
 
 Usage:
 
-$(basename $0) REPO_NAME
-$(basename $0) [-h] [-b BASE_DIR] [-d RAMLS_DIR] REPO_NAME
+${0##*/} REPO_NAME
+${0##*/} [-h] [-b BASE_DIR] [-d RAMLS_DIR] REPO_NAME
 
 Investigate RAML and schema files.
 
@@ -19,7 +19,7 @@ Required:
 Optional:
   -h             Display this help and exit.
   -b BASE_DIR    The pathname of the directory holding the git checkouts.
-                 Default assumes next to "folio-tools", so: ../
+                 Default assumes parent of "folio-tools", so: ../../
   -d RAMLS_DIR   The directory within the project to commence searching for RAML files.
                  Relative to the root of the repository.
                  Default: ${default_ramls_dir}
@@ -91,7 +91,7 @@ prune_string=$(printf " -path ${ramls_dir}/%s -o" ${prune_dirs})
 raml_files=($(find ${ramls_dir} \( ${prune_string% -o} \) -prune -o -name "*.raml" -print))
 
 if [[ ${#raml_files[@]} -eq 0 ]]; then
-  echo "No RAML files found under '${repo_home}/${ramls_dir}'"
+  echo "No RAML files found under '${repo_name}/${ramls_dir}'"
   exit 1
 fi
 
