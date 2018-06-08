@@ -84,6 +84,10 @@ def main():
         logger.critical("No configuration found for repository '%s'", args.repo)
         logger.critical("See FOLIO-903")
         sys.exit(1)
+    local_input_dir = os.getcwd()
+    logger.info("local_input_dir: %s", local_input_dir)
+    if not os.path.exists(os.path.join(local_input_dir, "Jenkinsfile")):
+        logger.info("Jenkinsfile not found")
 
     with tempfile.TemporaryDirectory() as input_dir:
         logger.info("Doing git clone recursive for '%s'", args.repo)
