@@ -203,7 +203,7 @@ def main():
                     continue
                 cmd_name = "raml2html3" if version_value == "0.8" else "raml2html"
                 cmd = sh.Command(os.path.join(sys.path[0], "node_modules", cmd_name, "bin", "raml2html"))
-                logger.info("Doing %s with %s into %s", cmd_name, raml_fn, output_1_pn)
+                logger.info("Doing %s with %s as v%s into %s", cmd_name, raml_fn, version_value, output_1_pn)
                 try:
                     cmd(i=input_pn, o=output_1_pn)
                 except sh.ErrorReturnCode_1 as err:
@@ -222,7 +222,7 @@ def main():
                         logger.error("%s: %s", cmd_name, err)
             config_pn = os.path.join(output_home_dir, args.repo, "config.json")
             output_json_fh = open(config_pn, 'w')
-            output_json_fh.write(json.dumps(config_json, sort_keys=True, indent=2, separators=(',', ': ')))
+            output_json_fh.write(json.dumps(config_json, sort_keys=True, indent=2, separators=(',', ': ')) )
             output_json_fh.write('\n')
             output_json_fh.close()
 
