@@ -1,5 +1,6 @@
 A collection of tools and various bits used primarily by FOLIO CI to build and deploy FOLIO artifacts.   
 
- * generate-api-docs - for generating API docs in HTML from RAML files 
+ * generate-api-docs - For generating API docs in HTML from RAML files 
  * jenkins-slave-docker - Dockerfiles used for FOLIO builds in Jenkins.
+ * lint-raml - Various processing tools to assist RAML and schema maintenance.
  * packaging - Experimental debian packaging scripts using Docker and git-buildpackage.
