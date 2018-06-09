@@ -25,7 +25,6 @@ if sys.version_info[0] < 3:
 
 REPO_HOME_URL = "https://github.com/folio-org"
 CONFIG_FILE = "https://raw.githubusercontent.com/folio-org/folio-org.github.io/master/_data/api.yml"
-CONFIG_FILE_LOCAL = "api.yml"
 DEV_WAIT_TIME = 60
 
 LOGLEVELS = {
@@ -38,7 +37,7 @@ LOGLEVELS = {
 
 def main():
     parser = argparse.ArgumentParser(
-        description='For the specified repository, generate API docs using raml2html.')
+        description='For the specified repository, generate API docs from its RAML and Schema files.')
     parser.add_argument('-r', '--repo',
                         default='okapi',
                         help='Which repository. (Default: okapi)')
@@ -51,7 +50,10 @@ def main():
     parser.add_argument('-v', '--verbose', action='store_true',
                         help='Be verbose. (Default: False) Deprecated: use --loglevel')
     parser.add_argument('-d', '--dev', action='store_true',
-                        help='Development mode. Local api.yml config file. (Default: False)')
+                        help='Development mode. Use local config file. (Default: False) ')
+    parser.add_argument('-c', '--config',
+                        default='api.yml',
+                        help='Pathname to local configuration file. (Default: api.yml)')
     parser.add_argument('-t', '--test', action='store_true',
                         help='Manual test mode. Wait for input tweaks. (Default: False)')
     args = parser.parse_args()
@@ -70,13 +72,21 @@ def main():
         output_home_dir = args.output
 
     # Get the configuration metadata for all repositories that are known to have RAML.
+    if args.config.startswith("~"):
+        config_local_pn = os.path.expanduser(args.config)
+    else:
+        config_local_pn = args.config
     if args.dev is False:
         http_response = requests.get(CONFIG_FILE)
         http_response.raise_for_status()
         metadata = yaml.safe_load(http_response.text)
     else:
-        with open(os.path.join(sys.path[0], CONFIG_FILE_LOCAL)) as input_pn:
-            metadata = yaml.safe_load(input_pn)
+        if not os.path.exists(config_local_pn):
+            msg = "Development mode specified (-d) but config file (-c) not found: {0}".format(config_local_pn)
+            logger.critical(msg)
+            sys.exit(1)
+        with open(config_local_pn) as input_fh:
+            metadata = yaml.safe_load(input_fh)
     if metadata is None:
         logger.critical("Configuration data was not loaded.")
         sys.exit(1)
