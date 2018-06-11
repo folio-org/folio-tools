@@ -3,9 +3,9 @@
 ## Prerequisites
 
 - python (version 3 or higher)
-- pip install pyyaml
-- pip install requests
-- pip install sh
+- pip3 install pyyaml
+- pip3 install requests
+- pip3 install sh
 - git
 - yarn
 - [raml2html v3](https://github.com/raml2html/raml2html) (version 3 for RAML-0.8)
@@ -16,13 +16,16 @@
 
 - On merge to master, Jenkins calls 'generate_api_docs.py -r repo_name'.
 - Loads configuration data.
-- Does 'git clone' to a temporary directory.
 - For each RAML file, determine input RAML version,
   call 'raml2html' and 'raml-fleece'
   and generate html to output_directory.
 - Deploy to AWS.
 
-For local testing, first do 'yarn install'.
+For local use, first do:
+```
+yarn install
+pip3 install -r requirements.txt
+```
 
 # Some relevant issues
 
