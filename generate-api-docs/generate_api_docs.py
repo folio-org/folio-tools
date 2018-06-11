@@ -115,6 +115,7 @@ def main():
         sys.exit(2)
 
     # Ensure that we are dealing with the expected git clone
+    ''' Disabled until find better way.
     try:
         repo_pn = sh.git("rev-parse", "--show-toplevel", _cwd=input_dir).stdout.decode().strip()
     except sh.ErrorReturnCode as err:
@@ -126,11 +127,12 @@ def main():
         if repo_name != args.repo:
             logger.critical("This git repo name is '%s' which is not that specified (-r): %s", repo_name, args.repo)
             sys.exit(2)
+    '''
     try:
         git_dir = sh.git("rev-parse", "--show-cdup", _cwd=input_dir).stdout.decode().strip()
     except sh.ErrorReturnCode as err:
         logger.critical("Trouble doing 'git rev-parse': %s", err.stderr.decode())
-        logger.critical("Could not determine name of git clone in specified input directory: %s", input_dir)
+        logger.critical("Could not determine location of git clone in specified input directory: %s", input_dir)
         sys.exit(2)
     else:
         if git_dir != "":
