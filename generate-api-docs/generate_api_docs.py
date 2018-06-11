@@ -39,8 +39,10 @@ def main():
     parser = argparse.ArgumentParser(
         description='For the specified repository, generate API docs from its RAML and Schema files.')
     parser.add_argument('-r', '--repo',
-                        default='okapi',
-                        help='Which repository. (Default: okapi)')
+                        help='Which repository name, e.g. mod-circulation')
+    parser.add_argument('-i', '--input',
+                        default='.',
+                        help='Directory of the repo git clone. (Default: current working directory)')
     parser.add_argument('-o', '--output',
                         default='~/folio-api-docs',
                         help='Directory for outputs. (Default: ~/folio-api-docs)')
@@ -66,10 +68,23 @@ def main():
     logging.getLogger("sh").setLevel(logging.ERROR)
     logging.getLogger("requests").setLevel(logging.ERROR)
 
+    if not args.repo:
+        logger.critical("The repository name (-r) is required.")
+        parser.print_help()
+        sys.exit(1)
+
     if args.output.startswith("~"):
         output_home_dir = os.path.expanduser(args.output)
     else:
         output_home_dir = args.output
+    if args.input.startswith("~"):
+        input_home_dir = os.path.expanduser(args.input)
+    else:
+        input_home_dir = args.input
+        if not os.path.exists(input_home_dir):
+            msg = "Specified input directory of git clone (-i) not found: {0}".format(input_home_dir)
+            logger.critical(msg)
+            sys.exit(1)
 
     # Get the configuration metadata for all repositories that are known to have RAML.
     if args.config.startswith("~"):
@@ -82,7 +97,7 @@ def main():
         metadata = yaml.safe_load(http_response.text)
     else:
         if not os.path.exists(config_local_pn):
-            msg = "Development mode specified (-d) but config file (-c) not found: {0}".format(config_local_pn)
+            logger.critical("Development mode specified (-d) but config file (-c) not found: %s", config_local_pn)
             logger.critical(msg)
             sys.exit(1)
         with open(config_local_pn) as input_fh:
@@ -94,10 +109,21 @@ def main():
         logger.critical("No configuration found for repository '%s'", args.repo)
         logger.critical("See FOLIO-903")
         sys.exit(1)
-    local_input_dir = os.getcwd()
-    logger.info("local_input_dir: %s", local_input_dir)
-    if not os.path.exists(os.path.join(local_input_dir, "Jenkinsfile")):
-        logger.info("Jenkinsfile not found")
+
+    # Ensure that we are dealing with the expected git clone
+    try:
+        repo_pn = sh.git("rev-parse", "--show-toplevel", _cwd=input_home_dir).stdout.decode().strip()
+    except ErrorReturnCode_2:
+        logger.critical("Could not determine name of git clone in specified input directory: %s", input_home_dir)
+        sys.exit(1)
+    except ErrorReturnCode:
+        logger.critical("Trouble doing 'git rev-parse'")
+        sys.exit(1)
+    else:
+        repo_name = os.path.basename(repo_pn)
+        if repo_name != args.repo:
+            logger.critical("This git repo name is '%s' which is not that specified (-r): %s", repo_name, args.repo)
+            sys.exit(1)
 
     with tempfile.TemporaryDirectory() as input_dir:
         logger.info("Doing git clone recursive for '%s'", args.repo)
