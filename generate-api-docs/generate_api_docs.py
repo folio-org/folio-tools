@@ -25,7 +25,7 @@ import sh
 import yaml
 
 if sys.version_info[0] < 3:
-    raise RuntimeError('Python 3 or above is required.')
+    raise RuntimeError("Python 3 or above is required.")
 
 CONFIG_FILE = "https://raw.githubusercontent.com/folio-org/folio-org.github.io/master/_data/api.yml"
 
@@ -47,32 +47,32 @@ def restore_ramlutil(ramlutil_dir, ramlutil_fn):
 
 def main():
     parser = argparse.ArgumentParser(
-        description='For the specified repository, generate API docs from its RAML and Schema files.')
-    parser.add_argument('-r', '--repo', required=True,
-                        help='Which repository name, e.g. mod-circulation')
-    parser.add_argument('-i', '--input',
-                        default='.',
-                        help='Directory of the repo git clone. (Default: current working directory)')
-    parser.add_argument('-o', '--output',
-                        default='~/folio-api-docs',
-                        help='Directory for outputs. (Default: ~/folio-api-docs)')
-    parser.add_argument('-l', '--loglevel',
-                        choices=['debug', 'info', 'warning', 'error', 'critical'],
-                        default='warning',
-                        help='Logging level. (Default: warning)')
-    parser.add_argument('-v', '--verbose', action='store_true',
-                        help='Be verbose. (Default: False) Deprecated: use --loglevel')
-    parser.add_argument('-d', '--dev', action='store_true',
-                        help='Development mode. Use local config file. (Default: False)')
-    parser.add_argument('-c', '--config',
-                        default='api.yml',
-                        help='Pathname to local configuration file. (Default: api.yml)')
+        description="For the specified repository, generate API docs from its RAML and Schema files.")
+    parser.add_argument("-r", "--repo", required=True,
+                        help="Which repository name, e.g. mod-circulation")
+    parser.add_argument("-i", "--input",
+                        default=".",
+                        help="Directory of the repo git clone. (Default: current working directory)")
+    parser.add_argument("-o", "--output",
+                        default="~/folio-api-docs",
+                        help="Directory for outputs. (Default: ~/folio-api-docs)")
+    parser.add_argument("-l", "--loglevel",
+                        choices=["debug", "info", "warning", "error", "critical"],
+                        default="warning",
+                        help="Logging level. (Default: warning)")
+    parser.add_argument("-v", "--verbose", action="store_true",
+                        help="Be verbose. (Default: False) Deprecated: use --loglevel")
+    parser.add_argument("-d", "--dev", action="store_true",
+                        help="Development mode. Use local config file. (Default: False)")
+    parser.add_argument("-c", "--config",
+                        default="api.yml",
+                        help="Pathname to local configuration file. (Default: api.yml)")
     args = parser.parse_args()
 
     loglevel = LOGLEVELS.get(args.loglevel.lower(), logging.NOTSET)
     if args.verbose is True:
         loglevel = logging.INFO
-    logging.basicConfig(format='%(levelname)s: %(name)s: %(message)s', level=loglevel)
+    logging.basicConfig(format="%(levelname)s: %(name)s: %(message)s", level=loglevel)
     logger = logging.getLogger("generate-api-docs")
     logging.getLogger("sh").setLevel(logging.ERROR)
     logging.getLogger("requests").setLevel(logging.ERROR)
@@ -102,7 +102,6 @@ def main():
     else:
         if not os.path.exists(config_local_pn):
             logger.critical("Development mode specified (-d) but config file (-c) not found: %s", config_local_pn)
-            logger.critical(msg)
             sys.exit(2)
         with open(config_local_pn) as input_fh:
             metadata = yaml.safe_load(input_fh)
@@ -140,20 +139,20 @@ def main():
     # Now process the RAMLs
     exit_code = 0
     config_json = {}
-    config_json['metadata'] = {}
-    config_json['metadata']['repository'] = args.repo
-    config_json['metadata']['timestamp'] = int(time.time())
-    config_json['configs'] = []
+    config_json["metadata"] = {}
+    config_json["metadata"]["repository"] = args.repo
+    config_json["metadata"]["timestamp"] = int(time.time())
+    config_json["configs"] = []
     for docset in metadata[args.repo]:
-        logger.info("Investigating %s/%s", args.repo, docset['directory'])
-        ramls_dir = os.path.join(input_dir, docset['directory'])
+        logger.info("Investigating %s/%s", args.repo, docset["directory"])
+        ramls_dir = os.path.join(input_dir, docset["directory"])
         if not os.path.exists(ramls_dir):
-            logger.critical("The 'ramls' directory not found: %s/%s", args.repo, docset['directory'])
+            logger.critical("The 'ramls' directory not found: %s/%s", args.repo, docset["directory"])
             sys.exit(2)
-        if docset['ramlutil'] is not None:
-            ramlutil_dir = os.path.join(input_dir, docset['ramlutil'])
+        if docset["ramlutil"] is not None:
+            ramlutil_dir = os.path.join(input_dir, docset["ramlutil"])
             if os.path.exists(ramlutil_dir):
-                logger.info("Copying %s/traits/auth_security.raml", docset['ramlutil'])
+                logger.info("Copying %s/traits/auth_security.raml", docset["ramlutil"])
                 src_pn = os.path.join(ramlutil_dir, "traits", "auth_security.raml")
                 dest_fn = os.path.join("traits", "auth.raml")
                 dest_pn = os.path.join(ramlutil_dir, dest_fn)
@@ -165,38 +164,38 @@ def main():
                 else:
                     atexit.register(restore_ramlutil, ramlutil_dir, dest_fn)
             else:
-                logger.critical("The 'raml-util' directory not found: %s/%s", args.repo, docset['ramlutil'])
+                logger.critical("The 'raml-util' directory not found: %s/%s", args.repo, docset["ramlutil"])
                 sys.exit(2)
-        if docset['label'] is None:
+        if docset["label"] is None:
             output_dir = os.path.join(output_home_dir, args.repo)
         else:
-            output_dir = os.path.join(output_home_dir, args.repo, docset['label'])
+            output_dir = os.path.join(output_home_dir, args.repo, docset["label"])
         logger.debug("Output directory: %s", output_dir)
         output_2_dir = os.path.join(output_dir, "2")
         os.makedirs(output_dir, exist_ok=True)
         os.makedirs(output_2_dir, exist_ok=True)
         configured_raml_files = []
-        for raml_name in docset['files']:
+        for raml_name in docset["files"]:
             raml_fn = "{0}.raml".format(raml_name)
             configured_raml_files.append(raml_fn)
         found_raml_files = []
         raml_files = []
-        if docset['label'] == "shared":
+        if docset["label"] == "shared":
             # If this is the top-level of the shared space, then do not descend
             pattern = os.path.join(ramls_dir, "*.raml")
             for raml_fn in glob.glob(pattern):
                 raml_pn = os.path.relpath(raml_fn, ramls_dir)
                 found_raml_files.append(raml_pn)
         else:
-            exclude_list = ['raml-util', 'rtypes', 'traits', 'node_modules']
+            exclude_list = ["raml-util", "rtypes", "traits", "node_modules"]
             try:
-                exclude_list.extend(docset['excludes'])
+                exclude_list.extend(docset["excludes"])
             except KeyError:
                 pass
             excludes = set(exclude_list)
             for root, dirs, files in os.walk(ramls_dir, topdown=True):
                 dirs[:] = [d for d in dirs if d not in excludes]
-                for raml_fn in fnmatch.filter(files, '*.raml'):
+                for raml_fn in fnmatch.filter(files, "*.raml"):
                     if raml_fn in excludes:
                         continue
                     raml_pn = os.path.relpath(os.path.join(root, raml_fn), ramls_dir)
@@ -214,12 +213,12 @@ def main():
                 raml_files.append(raml_fn)
                 logger.warning("Missing from configuration: %s", raml_fn)
         config_json_packet = {}
-        config_json_packet['label'] = docset['label'] if docset['label'] is not None else ""
-        config_json_packet['directory'] = docset['directory']
-        config_json_packet['files'] = {}
-        config_json_packet['files']['0.8'] = []
-        config_json_packet['files']['1.0'] = []
-        config_json['configs'].append(config_json_packet)
+        config_json_packet["label"] = docset["label"] if docset["label"] is not None else ""
+        config_json_packet["directory"] = docset["directory"]
+        config_json_packet["files"] = {}
+        config_json_packet["files"]["0.8"] = []
+        config_json_packet["files"]["1.0"] = []
+        config_json["configs"].append(config_json_packet)
         for raml_fn in raml_files:
             raml_name = raml_fn[:-5]
             input_pn = os.path.join(ramls_dir, raml_fn)
@@ -231,9 +230,9 @@ def main():
             if output_sub_dirs:
                 os.makedirs(os.path.join(output_dir, output_sub_dirs), exist_ok=True)
                 os.makedirs(os.path.join(output_2_dir, output_sub_dirs), exist_ok=True)
-            version_re = re.compile(r'^#%RAML ([0-9.]+)')
+            version_re = re.compile(r"^#%RAML ([0-9.]+)")
             version_value = None
-            with open(input_pn, 'r') as input_fh:
+            with open(input_pn, "r") as input_fh:
                 for num, line in enumerate(input_fh):
                     match = re.search(version_re, line)
                     if match:
@@ -241,7 +240,7 @@ def main():
                         logger.debug("Input file is RAML version: %s", version_value)
                         break
             try:
-                config_json_packet['files'][version_value].append(raml_fn)
+                config_json_packet["files"][version_value].append(raml_fn)
             except KeyError:
                 logger.error("Input '%s' RAML version missing or not valid: %s", raml_fn, version_value)
                 exit_code = 1
@@ -268,11 +267,11 @@ def main():
                     logger.error("%s: %s", cmd_name, err.stderr.decode())
                     exit_code = 1
         config_pn = os.path.join(output_home_dir, args.repo, "config.json")
-        output_json_fh = open(config_pn, 'w')
-        output_json_fh.write(json.dumps(config_json, sort_keys=True, indent=2, separators=(',', ': ')))
-        output_json_fh.write('\n')
+        output_json_fh = open(config_pn, "w")
+        output_json_fh.write(json.dumps(config_json, sort_keys=True, indent=2, separators=(",", ": ")))
+        output_json_fh.write("\n")
         output_json_fh.close()
-        sys.exit(exit_code)
+    sys.exit(exit_code)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
