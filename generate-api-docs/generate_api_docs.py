@@ -271,7 +271,7 @@ def main():
         output_json_fh.write(json.dumps(config_json, sort_keys=True, indent=2, separators=(",", ": ")))
         output_json_fh.write("\n")
         output_json_fh.close()
-        sys.exit(exit_code)
+    sys.exit(exit_code)
 
 if __name__ == "__main__":
     main()
