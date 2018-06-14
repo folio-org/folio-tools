@@ -61,7 +61,7 @@ RUN apt-get -q update && \
     openjdk-8-jdk build-essential debhelper lintian fakeroot devscripts jq maven python python-pip  \
     python3-pip python3-setuptools python3-wheel python3-yaml python3-requests python3-sh nodejs \
     postgresql-client-${POSTGRES_VERSION} xvfb libgtk2.0-0 libxtst6 libxss1 libgconf-2-4 libnss3 \
-    libnspr4 libasound2 firefox google-chrome-stable && \
+    libnspr4 libasound2 firefox google-chrome-stable libaio && \
     #libnspr4 libasound2 firefox firefox-esr-mozilla-build google-chrome-stable && \
     #apt-get -q clean -y && rm -rf /var/lib/apt/lists/* && \
     #rm -f /var/cache/apt/*.bin && \
