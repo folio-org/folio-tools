@@ -22,6 +22,46 @@ There is some assistance at [dev.folio.org/guides/raml-cop](https://dev.folio.or
 
 # Tools
 
+## lint_raml_cop.py
+
+Python script to discover RAML files in a project and run 'raml-cop'.
+
+Validates the RAML, ensures the $ref links in JSON Schema, and processes the examples.
+
+Does not assess the schema name declaration key names in the RAML file.
+
+### Prerequisites
+
+- python3+
+- npm
+- [raml-cop](https://github.com/thebinarypenguin/raml-cop) (see below)
+- Some extra Python modules (see requirements.txt).
+
+### Method
+
+Occasionally update raml-cop:
+
+```shell
+cd folio-tools/lint-raml
+npm install
+```
+
+Install the extra Python modules:
+
+```shell
+cd folio-tools/lint-raml
+pip3 install -r requirements.txt
+```
+
+Assuming folio-tools is cloned parallel to mod-notes.
+Assuming the repository is already listed in the api.yml configuration.
+Otherwise get a local copy from the URL listed in the script, add an entry, and use the `-d` option.
+
+```shell
+cd mod-notes
+python3 ../folio-tools/lint-raml/lint_raml_cop.py -l info
+```
+
 ## lint-raml-cop.sh
 
 Shell script to discover RAML files in a project and run 'raml-cop'.
@@ -34,14 +74,14 @@ Does not assess the schema name declaration key names in the RAML file.
 
 - bash3+
 - npm
-- [raml-cop](https://github.com/thebinarypenguin/raml-cop)
+- [raml-cop](https://github.com/thebinarypenguin/raml-cop) (see below)
 
 ### Method
 
 Occasionally update raml-cop:
 
 ```shell
-cd folio-tools/lint-raml 
+cd folio-tools/lint-raml
 npm install
 ```
 
@@ -56,6 +96,6 @@ Assuming folio-tools is cloned elsewhere, then specify the base directory,
 i.e. the parent of FOLIO back-end cloned projects.
 
 ```shell
-$GIT_1/folio-tools/lint-raml/lint-raml-cop.sh -b $GH_FOLIO mod-notes
+$GIT_HOME/folio-tools/lint-raml/lint-raml-cop.sh -b $GH_FOLIO mod-notes
 ```
 
