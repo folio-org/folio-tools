@@ -71,7 +71,7 @@ RUN apt-get -q update && \
     npm install -g npm-snapshot && \
     npm install -g http-server && \
     npm install -g xvfb-run && \
-    npm install -g mocha-jenkins-reporter & \
+    npm install -g mocha-jenkins-reporter && \
     npm install -g karma-junit-reporter
 
 ENV YARN_VERSION 1.6.0-1
