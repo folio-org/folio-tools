@@ -136,6 +136,12 @@ RUN cd /usr/local && \
     /usr/local/bin/generate_api_docs.py && \
     chmod +x /usr/local/folio-tools/generate-api-docs/generate_api_docs.py
 
+# Install lint_raml_cop from folio-org/folio-tools
+RUN cd /usr/local/folio-tools/lint-raml && \
+    yarn install && \
+    ln -s /usr/local/folio-tools/lint-raml/lint_raml_cop.py \
+    /usr/local/bin/lint_raml_cop.py && \
+    chmod +x /usr/local/folio-tools/lint-raml/lint_raml_cop.py
 
 # docker build '--build-arg' and their FOLIO CI defaults
 ARG user=jenkins
