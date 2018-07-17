@@ -53,6 +53,7 @@ def main():
                         help="Pathname to local configuration file. (Default: api.yml)")
     args = parser.parse_args()
 
+    print("Start lint-raml-cop")
     loglevel = LOGLEVELS.get(args.loglevel.lower(), logging.NOTSET)
     logging.basicConfig(format="%(levelname)s: %(name)s: %(message)s", level=loglevel)
     logger = logging.getLogger("lint-raml-cop")
