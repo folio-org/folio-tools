@@ -197,6 +197,7 @@ def main():
         logger.info("There were processing issues.")
     else:
         logger.info("raml-cop did not detect any issues.")
+    logging.shutdown()
     return exit_code
 
 if __name__ == "__main__":
