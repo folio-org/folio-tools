@@ -55,7 +55,7 @@ def main():
 
     print("Start lint-raml-cop")
     loglevel = LOGLEVELS.get(args.loglevel.lower(), logging.NOTSET)
-    logging.basicConfig(format="%(levelname)s: %(name)s: %(message)s", level=loglevel)
+    logging.basicConfig(stream=sys.stdout, format="%(levelname)s: %(name)s: %(message)s", level=loglevel)
     logger = logging.getLogger("lint-raml-cop")
     logging.getLogger("sh").setLevel(logging.ERROR)
     logging.getLogger("requests").setLevel(logging.ERROR)
