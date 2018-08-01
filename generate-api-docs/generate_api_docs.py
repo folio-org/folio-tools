@@ -88,7 +88,7 @@ def main():
         if not os.path.exists(input_dir):
             msg = "Specified input directory of git clone (-i) not found: {0}".format(input_dir)
             logger.critical(msg)
-            sys.exit(2)
+            return 2
 
     # Get the configuration metadata for all repositories that are known to have RAML.
     if args.config.startswith("~"):
@@ -102,16 +102,16 @@ def main():
     else:
         if not os.path.exists(config_local_pn):
             logger.critical("Development mode specified (-d) but config file (-c) not found: %s", config_local_pn)
-            sys.exit(2)
+            return 2
         with open(config_local_pn) as input_fh:
             metadata = yaml.safe_load(input_fh)
     if metadata is None:
         logger.critical("Configuration data was not loaded.")
-        sys.exit(2)
+        return 2
     if args.repo not in metadata:
         logger.critical("No configuration found for repository '%s'", args.repo)
         logger.critical("See FOLIO-903")
-        sys.exit(2)
+        return 2
 
     # Ensure that we are dealing with the expected git clone
     try:
@@ -119,22 +119,22 @@ def main():
     except sh.ErrorReturnCode as err:
         logger.critical("Trouble doing 'git config': %s", err.stderr.decode())
         logger.critical("Could not determine remote.origin.url of git clone in specified input directory: %s", input_dir)
-        sys.exit(2)
+        return 2
     else:
         repo_name = os.path.splitext(os.path.basename(repo_url))[0]
         if repo_name != args.repo:
             logger.critical("This git repo name is '%s' which is not that specified (-r): %s", repo_name, args.repo)
-            sys.exit(2)
+            return 2
     try:
         git_dir = sh.git("rev-parse", "--show-cdup", _cwd=input_dir).stdout.decode().strip()
     except sh.ErrorReturnCode as err:
         logger.critical("Trouble doing 'git rev-parse': %s", err.stderr.decode())
         logger.critical("Could not determine location of git clone in specified input directory: %s", input_dir)
-        sys.exit(2)
+        return 2
     else:
         if git_dir != "":
             logger.critical("The specified input directory is not the top-level of the git clone: %s", input_dir)
-            sys.exit(2)
+            return 2
 
     # Now process the RAMLs
     exit_code = 0
@@ -148,7 +148,7 @@ def main():
         ramls_dir = os.path.join(input_dir, docset["directory"])
         if not os.path.exists(ramls_dir):
             logger.critical("The 'ramls' directory not found: %s/%s", args.repo, docset["directory"])
-            sys.exit(2)
+            return 2
         if docset["ramlutil"] is not None:
             ramlutil_dir = os.path.join(input_dir, docset["ramlutil"])
             if os.path.exists(ramlutil_dir):
@@ -160,12 +160,12 @@ def main():
                     shutil.copyfile(src_pn, dest_pn)
                 except:
                     logger.critical("Could not copy to %s", dest_fn)
-                    sys.exit(2)
+                    return 2
                 else:
                     atexit.register(restore_ramlutil, ramlutil_dir, dest_fn)
             else:
-                logger.critical("The 'raml-util' directory not found: %s/%s", args.repo, docset["ramlutil"])
-                sys.exit(2)
+                logger.critical("The specified 'raml-util' directory not found: %s/%s", args.repo, docset["ramlutil"])
+                return 2
         if docset["label"] is None:
             output_dir = os.path.join(output_home_dir, args.repo)
         else:
@@ -271,7 +271,7 @@ def main():
         output_json_fh.write(json.dumps(config_json, sort_keys=True, indent=2, separators=(",", ": ")))
         output_json_fh.write("\n")
         output_json_fh.close()
-    sys.exit(exit_code)
+    return exit_code
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
