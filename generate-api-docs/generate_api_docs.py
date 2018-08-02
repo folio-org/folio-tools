@@ -136,6 +136,31 @@ def main():
             logger.critical("The specified input directory is not the top-level of the git clone: %s", input_dir)
             return 2
 
+    # Get the software version
+    sw_version_value = None
+    if repo_name != "raml":
+        md_pn = os.path.join(input_dir, "target", "ModuleDescriptor.json")
+        if not os.path.exists(md_pn):
+            md_pn = os.path.join(input_dir, "ModuleDescriptor.json")
+            if not os.path.exists(md_pn):
+                md_pn = None
+                logger.critical("The ModuleDescriptor.json was not found. Build needed?")
+                # Allow to proceed. Just will not have the versioned copy of the output.
+        if md_pn is not None:
+            with open(md_pn, "r") as md_fh:
+                md_data = json.load(md_fh)
+                try:
+                    sw_version_data = md_data['id']
+                except KeyError:
+                    logger.debug("The 'id' was not found in ModuleDescriptor.json")
+                else:
+                    match = re.search(r"-([0-9]+\.[0-9]+)", sw_version_data)
+                    if match:
+                        sw_version_value = match.group(1)
+                    else:
+                        logger.debug("The software version could not be determined from '%s'", sw_version_data)
+        logger.debug("sw_version_value=%s", sw_version_value)
+
     # Now process the RAMLs
     exit_code = 0
     config_json = {}
@@ -168,12 +193,20 @@ def main():
                 return 2
         if docset["label"] is None:
             output_dir = os.path.join(output_home_dir, args.repo)
+            if sw_version_value is not None:
+                output_version_dir = os.path.join(output_home_dir, args.repo, sw_version_value)
         else:
             output_dir = os.path.join(output_home_dir, args.repo, docset["label"])
+            if sw_version_value is not None:
+                output_version_dir = os.path.join(output_home_dir, args.repo, sw_version_value, docset["label"])
         logger.debug("Output directory: %s", output_dir)
         output_2_dir = os.path.join(output_dir, "2")
         os.makedirs(output_dir, exist_ok=True)
         os.makedirs(output_2_dir, exist_ok=True)
+        if sw_version_value is not None:
+            output_version_2_dir = os.path.join(output_version_dir, "2")
+            os.makedirs(output_version_dir, exist_ok=True)
+            os.makedirs(output_version_2_dir, exist_ok=True)
         configured_raml_files = []
         for raml_name in docset["files"]:
             raml_fn = "{0}.raml".format(raml_name)
@@ -200,9 +233,6 @@ def main():
                         continue
                     raml_pn = os.path.relpath(os.path.join(root, raml_fn), ramls_dir)
                     found_raml_files.append(raml_pn)
-        logger.debug("configured_raml_files: %s", configured_raml_files)
-        logger.debug("found_raml_files: %s", found_raml_files)
-        logger.debug("raml_files: %s", raml_files)
         for raml_fn in configured_raml_files:
             if raml_fn not in found_raml_files:
                 logger.warning("Configured file not found: %s", raml_fn)
@@ -212,6 +242,9 @@ def main():
             if raml_fn not in configured_raml_files:
                 raml_files.append(raml_fn)
                 logger.warning("Missing from configuration: %s", raml_fn)
+        logger.debug("configured_raml_files: %s", configured_raml_files)
+        logger.debug("found_raml_files: %s", found_raml_files)
+        logger.debug("raml_files: %s", raml_files)
         config_json_packet = {}
         config_json_packet["label"] = docset["label"] if docset["label"] is not None else ""
         config_json_packet["directory"] = docset["directory"]
@@ -230,35 +263,45 @@ def main():
             if output_sub_dirs:
                 os.makedirs(os.path.join(output_dir, output_sub_dirs), exist_ok=True)
                 os.makedirs(os.path.join(output_2_dir, output_sub_dirs), exist_ok=True)
-            version_re = re.compile(r"^#%RAML ([0-9.]+)")
-            version_value = None
+                if sw_version_value is not None:
+                    os.makedirs(os.path.join(output_version_dir, output_sub_dirs), exist_ok=True)
+                    os.makedirs(os.path.join(output_version_2_dir, output_sub_dirs), exist_ok=True)
+            raml_version_re = re.compile(r"^#%RAML ([0-9.]+)")
+            raml_version_value = None
             with open(input_pn, "r") as input_fh:
                 for num, line in enumerate(input_fh):
-                    match = re.search(version_re, line)
+                    match = re.search(raml_version_re, line)
                     if match:
-                        version_value = match.group(1)
-                        logger.debug("Input file is RAML version: %s", version_value)
+                        raml_version_value = match.group(1)
+                        logger.debug("Input file is RAML version: %s", raml_version_value)
                         break
             try:
-                config_json_packet["files"][version_value].append(raml_fn)
+                config_json_packet["files"][raml_version_value].append(raml_fn)
             except KeyError:
-                logger.error("Input '%s' RAML version missing or not valid: %s", raml_fn, version_value)
+                logger.error("Input '%s' RAML version missing or not valid: %s", raml_fn, raml_version_value)
                 exit_code = 1
                 continue
-            cmd_name = "raml2html3" if version_value == "0.8" else "raml2html"
+            cmd_name = "raml2html3" if raml_version_value == "0.8" else "raml2html"
             cmd = sh.Command(os.path.join(sys.path[0], "node_modules", cmd_name, "bin", "raml2html"))
-            logger.info("Doing %s with %s as v%s into %s", cmd_name, raml_fn, version_value, output_1_pn)
+            logger.info("Doing %s with %s as v%s into %s", cmd_name, raml_fn, raml_version_value, output_1_pn)
             try:
                 cmd(i=input_pn, o=output_1_pn)
             except sh.ErrorReturnCode as err:
                 logger.error("%s: %s", cmd_name, err.stderr.decode())
                 exit_code = 1
+            else:
+                if sw_version_value is not None:
+                    dest_pn = os.path.join(output_version_dir, output_fn)
+                try:
+                    shutil.copyfile(output_1_pn, dest_pn)
+                except:
+                    logger.debug("Could not copy %s to %s", output_1_pn, dest_fn)
 
-            if version_value == "0.8":
+            if raml_version_value == "0.8":
                 cmd_name = "raml-fleece"
                 cmd = sh.Command(os.path.join(sys.path[0], "node_modules", ".bin", cmd_name))
                 template_parameters_pn = os.path.join(sys.path[0], "resources", "raml-fleece", "parameters.handlebars")
-                logger.info("Doing %s with %s as v%s into %s", cmd_name, raml_fn, version_value, output_2_pn)
+                logger.info("Doing %s with %s as v%s into %s", cmd_name, raml_fn, raml_version_value, output_2_pn)
                 try:
                     cmd(input_pn,
                         template_parameters=template_parameters_pn,
@@ -266,6 +309,13 @@ def main():
                 except sh.ErrorReturnCode as err:
                     logger.error("%s: %s", cmd_name, err.stderr.decode())
                     exit_code = 1
+                else:
+                    if sw_version_value is not None:
+                        dest_pn = os.path.join(output_version_2_dir, output_fn)
+                    try:
+                        shutil.copyfile(output_2_pn, dest_pn)
+                    except:
+                        logger.debug("Could not copy %s to %s", output_2_pn, dest_fn)
         config_pn = os.path.join(output_home_dir, args.repo, "config.json")
         output_json_fh = open(config_pn, "w")
         output_json_fh.write(json.dumps(config_json, sort_keys=True, indent=2, separators=(",", ": ")))
