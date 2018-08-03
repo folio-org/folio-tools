@@ -136,7 +136,8 @@ def main():
             logger.critical("The specified input directory is not the top-level of the git clone: %s", input_dir)
             return 2
 
-    # Get the software version
+    # Get the software version.
+    # Try first with MD. If not then POM.
     sw_version_value = None
     if repo_name != "raml":
         md_pn = os.path.join(input_dir, "target", "ModuleDescriptor.json")
@@ -144,9 +145,16 @@ def main():
             md_pn = os.path.join(input_dir, "ModuleDescriptor.json")
             if not os.path.exists(md_pn):
                 md_pn = None
-                logger.critical("The ModuleDescriptor.json was not found. Build needed?")
-                # Allow to proceed. Just will not have the versioned copy of the output.
-        if md_pn is not None:
+                logger.debug("The ModuleDescriptor.json was not found. Build needed?")
+        if md_pn is None:
+            sw_version_re = re.compile(r"<version>([0-9]+\.[0-9]+)")
+            with open("pom.xml", "r") as pom_fh:
+                for line in pom_fh:
+                    match = re.search(sw_version_re, line)
+                    if match:
+                        sw_version_value = match.group(1)
+                        break
+        else:
             with open(md_pn, "r") as md_fh:
                 md_data = json.load(md_fh)
                 try:
@@ -160,6 +168,8 @@ def main():
                     else:
                         logger.debug("The software version could not be determined from '%s'", sw_version_data)
         logger.debug("sw_version_value=%s", sw_version_value)
+        if not sw_version_value:
+            logger.info("The software version could not be determined.")
 
     # Now process the RAMLs
     exit_code = 0
@@ -292,10 +302,10 @@ def main():
             else:
                 if sw_version_value is not None:
                     dest_pn = os.path.join(output_version_dir, output_fn)
-                try:
-                    shutil.copyfile(output_1_pn, dest_pn)
-                except:
-                    logger.debug("Could not copy %s to %s", output_1_pn, dest_fn)
+                    try:
+                        shutil.copyfile(output_1_pn, dest_pn)
+                    except:
+                        logger.debug("Could not copy %s to %s", output_1_pn, dest_fn)
 
             if raml_version_value == "0.8":
                 cmd_name = "raml-fleece"
@@ -312,10 +322,10 @@ def main():
                 else:
                     if sw_version_value is not None:
                         dest_pn = os.path.join(output_version_2_dir, output_fn)
-                    try:
-                        shutil.copyfile(output_2_pn, dest_pn)
-                    except:
-                        logger.debug("Could not copy %s to %s", output_2_pn, dest_fn)
+                        try:
+                            shutil.copyfile(output_2_pn, dest_pn)
+                        except:
+                            logger.debug("Could not copy %s to %s", output_2_pn, dest_fn)
         config_pn = os.path.join(output_home_dir, args.repo, "config.json")
         output_json_fh = open(config_pn, "w")
         output_json_fh.write(json.dumps(config_json, sort_keys=True, indent=2, separators=(",", ": ")))
