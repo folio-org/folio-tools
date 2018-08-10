@@ -168,29 +168,29 @@ def main():
                 if os.path.join(docset["directory"], raml_fn) != args.file:
                     logger.info("Skipping RAML file: %s", raml_fn)
                     continue
-            logger.info("Processing RAML file: %s", raml_fn)
             input_pn = os.path.join(ramls_dir, raml_fn)
             if not os.path.exists(input_pn):
-                logger.warning("Missing input file '%s'", os.path.join(repo_name, raml_fn))
+                logger.warning("Missing configured input file '%s'", os.path.join(repo_name, raml_fn))
                 logger.warning("Configuration needs to be updated (FOLIO-903).")
-            else:
-                # Determine raml version
-                version_value = None
-                with open(input_pn, "r") as input_fh:
-                    for num, line in enumerate(input_fh):
-                        match = re.search(version_re, line)
-                        if match:
-                            version_value = match.group(1)
-                            logger.info("Input file is RAML version: %s", version_value)
-                            break
-                # Now process this file
-                cmd_label = "raml-cop"
-                cmd = sh.Command(os.path.join(sys.path[0], "node_modules", ".bin", cmd_label))
-                try:
-                    cmd(input_pn, no_color=True)
-                except sh.ErrorReturnCode_1 as err:
-                    logger.error("%s has issues with %s:\n%s", raml_fn, cmd_label, err.stdout.decode())
-                    exit_code = 1
+                continue
+            logger.info("Processing RAML file: %s", raml_fn)
+            # Determine raml version
+            version_value = None
+            with open(input_pn, "r") as input_fh:
+                for num, line in enumerate(input_fh):
+                    match = re.search(version_re, line)
+                    if match:
+                        version_value = match.group(1)
+                        logger.info("Input file is RAML version: %s", version_value)
+                        break
+            # Now process this file
+            cmd_label = "raml-cop"
+            cmd = sh.Command(os.path.join(sys.path[0], "node_modules", ".bin", cmd_label))
+            try:
+                cmd(input_pn, no_color=True)
+            except sh.ErrorReturnCode_1 as err:
+                logger.error("%s has issues with %s:\n%s", raml_fn, cmd_label, err.stdout.decode())
+                exit_code = 1
     if exit_code == 1:
         logger.info("There were processing issues.")
     elif exit_code == 2:
