@@ -54,6 +54,9 @@ def main():
     parser.add_argument("-c", "--config",
                         default="api.yml",
                         help="Pathname to local configuration file. (Default: api.yml)")
+    parser.add_argument("-o", "--output_dir",
+                        default="",
+                        help="Output directory to save any modified files (Default: empty, so none.)")
     args = parser.parse_args()
 
     loglevel = LOGLEVELS.get(args.loglevel.lower(), logging.NOTSET)
@@ -72,6 +75,10 @@ def main():
         msg = "Specified input directory of git clone (-i) not found: {0}".format(git_input_dir)
         logger.critical(msg)
         return 2
+    if args.output_dir.startswith("~"):
+        output_dir = os.path.expanduser(args.output_dir)
+    else:
+        output_dir = args.output_dir
 
     # Get the repository name
     try:
@@ -128,6 +135,7 @@ def main():
         # because we might need to adjust $ref in schema files
         input_dir = os.path.join(temp_dir, repo_name)
         try:
+            logger.debug("Copying to temporary directory.")
             shutil.copytree(git_input_dir, input_dir)
         except:
             logger.critical("Trouble copying to temporary directory: %s", input_dir)
@@ -206,10 +214,10 @@ def main():
                     exit_code = 1
                     continue
                 # Now process this RAML file
+                # First load the content to extract some details.
                 (schemas, issues_flag) = gather_declarations(input_pn, raml_fn, version_value, ramls_dir)
                 if issues_flag:
                     exit_code = 1
-                pprint.pprint(schemas)
                 cmd_label = "raml-cop"
                 cmd = sh.Command(os.path.join(sys.path[0], "node_modules", ".bin", cmd_label))
                 try:
@@ -217,6 +225,15 @@ def main():
                 except sh.ErrorReturnCode_1 as err:
                     logger.error("%s has issues with %s:\n%s", raml_fn, cmd_label, err.stdout.decode())
                     exit_code = 1
+                # Copy the perhaps-modified schemas and raml, if specified, for later investigation.
+                top_raml_dir = os.path.dirname(docset["directory"])
+                if args.output_dir != "":
+                    temp_output_dir = os.path.join(output_dir, repo_name, top_raml_dir, raml_fn[:-5])
+                    try:
+                        logger.debug("Copying to %s", temp_output_dir)
+                        shutil.copytree(input_dir, temp_output_dir)
+                    except:
+                        logger.warning("Trouble copying to temporary directory: %s", temp_output_dir)
     if exit_code == 1:
         logger.info("There were processing issues.")
     elif exit_code == 2:
