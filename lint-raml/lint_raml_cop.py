@@ -13,6 +13,7 @@ import fnmatch
 import glob
 import logging
 import os
+import pprint
 import re
 import shutil
 import sys
@@ -112,6 +113,13 @@ def main():
         logger.critical("See FOLIO-903. Add an entry to api.yml")
         return 2
 
+    # The yaml parser gags on the "!include".
+    # http://stackoverflow.com/questions/13280978/pyyaml-errors-on-in-a-string
+    yaml.add_constructor(u"!include", construct_raml_include)
+
+    # Detect any schema $ref
+    schema_ref_re = re.compile(r'( +"\$ref"[ :]+")([^"]+)(".*)')
+
     # Process each configured set of RAML files
     version_re = re.compile(r"^#%RAML ([0-9.]+)")
     exit_code = 0
@@ -197,7 +205,11 @@ def main():
                     logger.error("Could not determine RAML version.")
                     exit_code = 1
                     continue
-                # Now process this file
+                # Now process this RAML file
+                (schemas, issues_flag) = gather_declarations(input_pn, raml_fn, version_value, ramls_dir)
+                if issues_flag:
+                    exit_code = 1
+                pprint.pprint(schemas)
                 cmd_label = "raml-cop"
                 cmd = sh.Command(os.path.join(sys.path[0], "node_modules", ".bin", cmd_label))
                 try:
@@ -213,6 +225,89 @@ def main():
         logger.info("raml-cop did not detect any issues.")
     logging.shutdown()
     return exit_code
+
+def construct_raml_include(loader, node):
+    "Add a special construct for YAML loader"
+    return loader.construct_yaml_str(node)
+
+def gather_declarations(raml_input_pn, raml_input_fn, raml_version, ramls_dir):
+    """
+    Gather the schemas (or types) and traits declarations from the RAML file.
+    Also ensure that each file exists.
+    """
+    logger = logging.getLogger("lint-raml-cop")
+    schemas = {}
+    traits = {}
+    issues = False
+    with open(raml_input_pn) as input_fh:
+        try:
+            raml_content = yaml.load(input_fh)
+        except yaml.scanner.ScannerError:
+            logger.critical("Trouble scanning RAML file '%s'", raml_input_pn)
+            issues = True
+            return (schemas, issues)
+        if raml_version == "0.8":
+            try:
+                raml_content["schemas"]
+            except KeyError:
+                logger.info("No schemas were declared in '%s'", raml_fn)
+            else:
+                for schema in raml_content["schemas"]:
+                    for key, schema_fn in schema.items():
+                        schema_pn = os.path.join(ramls_dir, schema_fn)
+                        if not os.path.exists(schema_pn):
+                            logger.error("Missing file '%s'. Declared in the RAML schemas section.", schema_fn)
+                            issues = True
+                        schemas[key] = schema_fn
+            try:
+                raml_content["traits"]
+            except KeyError:
+                logger.info("No traits were declared in '%s'", raml_fn)
+            else:
+                for trait in raml_content["traits"]:
+                    for key, trait_fn in trait.items():
+                        trait_pn = os.path.join(ramls_dir, trait_fn)
+                        if not os.path.exists(trait_pn):
+                            logger.error("Missing file '%s'. Declared in the RAML traits section.", trait_fn)
+                            issues = True
+                        traits[key] = trait_fn
+        else:
+            try:
+                raml_content["types"]
+            except KeyError:
+                logger.warning("No types were declared in '%s'", raml_fn)
+            else:
+                for type in raml_content["types"]:
+                    type_fn = raml_content["types"][type]
+                    # FIXME: The types can be other than schema. For now is okay.
+                    type_pn = os.path.join(ramls_dir, type_fn)
+                    if not os.path.exists(type_pn):
+                        logger.error("Missing file '%s'. Declared in the RAML types section.", type_fn)
+                        issues = True
+                    schemas[type] = type_fn
+            try:
+                raml_content["traits"]
+            except KeyError:
+                logger.info("No traits were declared in '%s'", raml_fn)
+            else:
+                for trait in raml_content["traits"]:
+                    trait_fn = raml_content["traits"][trait]
+                    trait_pn = os.path.join(ramls_dir, trait_fn)
+                    if not os.path.exists(trait_pn):
+                        logger.error("Missing file '%s'. Declared in the RAML traits section.", trait_fn)
+                        issues = True
+                    traits[trait] = trait_fn
+        # Some traits declare additional schemas. Ensure that the raml declares them.
+        for trait in traits:
+            trait_fn = traits[trait]
+            if "validation.raml" in trait_fn:
+                for schema_key in ["errors", "error.schema", "parameters.schema"]:
+                    try:
+                        schemas[schema_key]
+                    except KeyError:
+                        logger.error("Missing declaration in '%s' for schema $ref '%s'", raml_input_fn, schema_key)
+                        issues = True
+        return (schemas, issues)
 
 if __name__ == "__main__":
     sys.exit(main())
