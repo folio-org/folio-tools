@@ -214,16 +214,18 @@ def main():
                     continue
                 # Now process this RAML file
                 # First load the content to extract some details.
-                (schemas, issues_flag) = gather_declarations(input_pn, raml_fn, version_value, ramls_dir)
+                (schemas, issues_flag) = gather_declarations(input_pn, raml_fn, version_value, input_dir, docset["directory"])
                 if issues_flag:
                     exit_code = 1
-                cmd_label = "raml-cop"
-                cmd = sh.Command(os.path.join(sys.path[0], "node_modules", ".bin", cmd_label))
+                cmd_name = "raml-cop"
+                cmd = sh.Command(os.path.join(sys.path[0], "node_modules", ".bin", cmd_name))
                 try:
                     cmd(input_pn, no_color=True)
                 except sh.ErrorReturnCode_1 as err:
-                    logger.error("%s has issues with %s:\n%s", raml_fn, cmd_label, err.stdout.decode())
+                    logger.error("%s has issues with %s:\n%s", raml_fn, cmd_name, err.stdout.decode())
                     exit_code = 1
+                else:
+                    logger.debug("%s did not detect any issues.", cmd_name)
                 # Copy the perhaps-modified schemas and raml, if specified, for later investigation.
                 top_raml_dir = os.path.dirname(docset["directory"])
                 if args.output_dir != "":
@@ -238,7 +240,7 @@ def main():
     elif exit_code == 2:
         logger.info("There were processing issues.")
     else:
-        logger.info("raml-cop did not detect any issues.")
+        logger.info("Did not detect any issues.")
     logging.shutdown()
     return exit_code
 
@@ -246,12 +248,13 @@ def construct_raml_include(loader, node):
     "Add a special construct for YAML loader"
     return loader.construct_yaml_str(node)
 
-def gather_declarations(raml_input_pn, raml_input_fn, raml_version, ramls_dir):
+def gather_declarations(raml_input_pn, raml_input_fn, raml_version, input_dir, docset_dir):
     """
     Gather the schemas (or types) and traits declarations from the RAML file.
     Also ensure that each file exists.
     """
     logger = logging.getLogger("lint-raml-cop")
+    ramls_dir = os.path.join(input_dir, docset_dir)
     schemas = {}
     traits = {}
     issues = False
@@ -259,7 +262,7 @@ def gather_declarations(raml_input_pn, raml_input_fn, raml_version, ramls_dir):
         try:
             raml_content = yaml.load(input_fh)
         except yaml.scanner.ScannerError:
-            logger.critical("Trouble scanning RAML file '%s'", raml_input_pn)
+            logger.critical("Trouble scanning RAML file '%s'", os.path.relpath(raml_input_pn, input_dir))
             issues = True
             return (schemas, issues)
         # Handling of content is different for 0.8 and 1.0 raml.
@@ -268,7 +271,7 @@ def gather_declarations(raml_input_pn, raml_input_fn, raml_version, ramls_dir):
             try:
                 raml_content["schemas"]
             except KeyError:
-                logger.info("No schemas were declared in '%s'", raml_fn)
+                logger.debug("No schemas were declared in '%s'", os.path.relpath(raml_input_pn, input_dir))
             else:
                 for schema in raml_content["schemas"]:
                     for key, schema_fn in schema.items():
@@ -281,7 +284,7 @@ def gather_declarations(raml_input_pn, raml_input_fn, raml_version, ramls_dir):
             try:
                 raml_content["traits"]
             except KeyError:
-                logger.info("No traits were declared in '%s'", raml_fn)
+                logger.debug("No traits were declared in '%s'", os.path.relpath(raml_input_pn, input_dir))
             else:
                 for trait in raml_content["traits"]:
                     for key, trait_fn in trait.items():
@@ -295,7 +298,7 @@ def gather_declarations(raml_input_pn, raml_input_fn, raml_version, ramls_dir):
             try:
                 raml_content["types"]
             except KeyError:
-                logger.warning("No types were declared in '%s'", raml_fn)
+                logger.debug("No types were declared in '%s'", os.path.relpath(raml_input_pn, input_dir))
             else:
                 for type in raml_content["types"]:
                     type_fn = raml_content["types"][type]
@@ -309,7 +312,7 @@ def gather_declarations(raml_input_pn, raml_input_fn, raml_version, ramls_dir):
             try:
                 raml_content["traits"]
             except KeyError:
-                logger.info("No traits were declared in '%s'", raml_fn)
+                logger.debug("No traits were declared in '%s'", os.path.relpath(raml_input_pn, input_dir))
             else:
                 for trait in raml_content["traits"]:
                     trait_fn = raml_content["traits"][trait]
@@ -327,7 +330,7 @@ def gather_declarations(raml_input_pn, raml_input_fn, raml_version, ramls_dir):
                     try:
                         schemas[schema_key]
                     except KeyError:
-                        logger.error("Missing declaration in '%s' for schema $ref '%s'", raml_input_fn, schema_key)
+                        logger.error("Missing declaration in '%s' for schema $ref '%s'", os.path.relpath(raml_input_pn, input_dir), schema_key)
                         issues = True
         return (schemas, issues)
 
