@@ -72,8 +72,7 @@ def main():
     else:
         git_input_dir = args.input
     if not os.path.exists(git_input_dir):
-        msg = "Specified input directory of git clone (-i) not found: {0}".format(git_input_dir)
-        logger.critical(msg)
+        logger.critical("Specified input directory of git clone (-i) not found: %s", git_input_dir)
         return 2
     if args.output_dir.startswith("~"):
         output_dir = os.path.expanduser(args.output_dir)
@@ -129,7 +128,7 @@ def main():
 
     # Process each configured set of RAML files
     version_re = re.compile(r"^#%RAML ([0-9.]+)")
-    exit_code = 0
+    exit_code = 0 # Continue processing to detect various issues, then return the result.
     with tempfile.TemporaryDirectory() as temp_dir:
         # Copy everything to the temp directory
         # because we might need to adjust $ref in schema files
@@ -263,6 +262,8 @@ def gather_declarations(raml_input_pn, raml_input_fn, raml_version, ramls_dir):
             logger.critical("Trouble scanning RAML file '%s'", raml_input_pn)
             issues = True
             return (schemas, issues)
+        # Handling of content is different for 0.8 and 1.0 raml.
+        # FIXME: Move the guts to a function.
         if raml_version == "0.8":
             try:
                 raml_content["schemas"]
@@ -271,11 +272,12 @@ def gather_declarations(raml_input_pn, raml_input_fn, raml_version, ramls_dir):
             else:
                 for schema in raml_content["schemas"]:
                     for key, schema_fn in schema.items():
-                        schema_pn = os.path.join(ramls_dir, schema_fn)
-                        if not os.path.exists(schema_pn):
-                            logger.error("Missing file '%s'. Declared in the RAML schemas section.", schema_fn)
-                            issues = True
-                        schemas[key] = schema_fn
+                        if isinstance(schema_fn, str):
+                            schema_pn = os.path.join(ramls_dir, schema_fn)
+                            if not os.path.exists(schema_pn):
+                                logger.error("Missing file '%s'. Declared in the RAML schemas section.", schema_fn)
+                                issues = True
+                            schemas[key] = schema_fn
             try:
                 raml_content["traits"]
             except KeyError:
@@ -283,11 +285,12 @@ def gather_declarations(raml_input_pn, raml_input_fn, raml_version, ramls_dir):
             else:
                 for trait in raml_content["traits"]:
                     for key, trait_fn in trait.items():
-                        trait_pn = os.path.join(ramls_dir, trait_fn)
-                        if not os.path.exists(trait_pn):
-                            logger.error("Missing file '%s'. Declared in the RAML traits section.", trait_fn)
-                            issues = True
-                        traits[key] = trait_fn
+                        if isinstance(trait_fn, str):
+                            trait_pn = os.path.join(ramls_dir, trait_fn)
+                            if not os.path.exists(trait_pn):
+                                logger.error("Missing file '%s'. Declared in the RAML traits section.", trait_fn)
+                                issues = True
+                            traits[key] = trait_fn
         else:
             try:
                 raml_content["types"]
@@ -296,12 +299,13 @@ def gather_declarations(raml_input_pn, raml_input_fn, raml_version, ramls_dir):
             else:
                 for type in raml_content["types"]:
                     type_fn = raml_content["types"][type]
-                    # FIXME: The types can be other than schema. For now is okay.
-                    type_pn = os.path.join(ramls_dir, type_fn)
-                    if not os.path.exists(type_pn):
-                        logger.error("Missing file '%s'. Declared in the RAML types section.", type_fn)
-                        issues = True
-                    schemas[type] = type_fn
+                    # FIXME: The "types" can be other than schema. For now is okay.
+                    if isinstance(type_fn, str):
+                        type_pn = os.path.join(ramls_dir, type_fn)
+                        if not os.path.exists(type_pn):
+                            logger.error("Missing file '%s'. Declared in the RAML types section.", type_fn)
+                            issues = True
+                        schemas[type] = type_fn
             try:
                 raml_content["traits"]
             except KeyError:
@@ -309,11 +313,12 @@ def gather_declarations(raml_input_pn, raml_input_fn, raml_version, ramls_dir):
             else:
                 for trait in raml_content["traits"]:
                     trait_fn = raml_content["traits"][trait]
-                    trait_pn = os.path.join(ramls_dir, trait_fn)
-                    if not os.path.exists(trait_pn):
-                        logger.error("Missing file '%s'. Declared in the RAML traits section.", trait_fn)
-                        issues = True
-                    traits[trait] = trait_fn
+                    if isinstance(trait_fn, str):
+                        trait_pn = os.path.join(ramls_dir, trait_fn)
+                        if not os.path.exists(trait_pn):
+                            logger.error("Missing file '%s'. Declared in the RAML traits section.", trait_fn)
+                            issues = True
+                        traits[trait] = trait_fn
         # Some traits declare additional schemas. Ensure that the raml declares them.
         for trait in traits:
             trait_fn = traits[trait]
