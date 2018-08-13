@@ -333,6 +333,8 @@ def main():
                         shutil.copytree(input_dir, temp_output_dir)
                     except:
                         logger.warning("Trouble copying to temporary directory: %s", temp_output_dir)
+                # Restore git, ready for next processing run
+                restore_checkout(input_dir)
     if exit_code == 1:
         logger.info("There were processing issues.")
     elif exit_code == 2:
@@ -345,6 +347,14 @@ def main():
 def construct_raml_include(loader, node):
     "Add a special construct for YAML loader"
     return loader.construct_yaml_str(node)
+
+def restore_checkout(input_dir):
+    """Discard changes, so processing of each RAML file operates on a fresh working copy.
+    """
+    try:
+        sh.git.checkout("--", ".", _cwd=input_dir)
+    except:
+        print("Trouble with sh.git.checkout restoring %s", input_dir)
 
 def gather_declarations(raml_input_pn, raml_input_fn, raml_version, is_rmb, input_dir, docset_dir):
     """
