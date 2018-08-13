@@ -149,6 +149,11 @@ def main():
                 ramlutil_dir = os.path.join(input_dir, docset["ramlutil"])
                 if not os.path.exists(ramlutil_dir):
                     logger.warning("The specified 'raml-util' directory not found: %s", os.path.join(repo_name, docset["ramlutil"]))
+            # If is using RMB, then there are various peculiarities to assess.
+            try:
+                is_rmb = docset["rmb"]
+            except KeyError:
+                is_rmb = True
             # Ensure configuration and find any RAML files not configured
             configured_raml_files = []
             for raml_name in docset["files"]:
@@ -198,7 +203,6 @@ def main():
                     logger.warning("Missing configured input file '%s'", os.path.join(repo_name, raml_fn))
                     logger.warning("Configuration needs to be updated (FOLIO-903).")
                     continue
-                logger.info("Processing RAML file: %s", raml_fn)
                 # Determine raml version
                 version_value = None
                 with open(input_pn, "r") as input_fh:
@@ -206,17 +210,111 @@ def main():
                         match = re.search(version_re, line)
                         if match:
                             version_value = match.group(1)
-                            logger.info("Input file is RAML version: %s", version_value)
                             break
                 if not version_value:
-                    logger.error("Could not determine RAML version.")
+                    logger.error("Could not determine RAML version for file '%s' so skipping.", raml_fn)
                     exit_code = 1
                     continue
+                logger.info("Processing RAML v%s file: %s", version_value, raml_fn)
                 # Now process this RAML file
                 # First load the content to extract some details.
-                (schemas, issues_flag) = gather_declarations(input_pn, raml_fn, version_value, input_dir, docset["directory"])
+                (schemas, issues_flag) = gather_declarations(input_pn, raml_fn, version_value, is_rmb, input_dir, docset["directory"])
+                logger.debug("Found %s declared schemas or types files.", len(schemas))
                 if issues_flag:
                     exit_code = 1
+                # Ensure each $ref referenced schema file exists, is useable, and is declared in the RAML
+                for schema in schemas:
+                    schema_pn = os.path.normpath(os.path.join(ramls_dir, schemas[schema]))
+                    if not os.path.exists(schema_pn):
+                        # Missing file was already reported
+                        continue
+                    schema_dir = os.path.dirname(schema_pn)
+                    with open(schema_pn) as input_fh:
+                        lines = list(input_fh)
+                    with open(schema_pn, "w") as output_fh:
+                        for line in lines:
+                            match = re.search(schema_ref_re, line)
+                            if match:
+                                ref_value = match.group(2)
+                                logger.debug("Found schema $ref '%s' in schema file '%s'", ref_value, schemas[schema])
+                                relative_schema_ref_fn = os.path.normpath(os.path.join(os.path.dirname(schemas[schema]), ref_value))
+                                logger.debug("    relative_schema_ref_fn=%s", relative_schema_ref_fn)
+                                relative_schema_ref_pn = os.path.normpath(os.path.join(ramls_dir, relative_schema_ref_fn))
+                                if not is_rmb:
+                                    logger.debug("Not RMB type, so just report if file not found.")
+                                    if not os.path.exists(relative_schema_ref_pn):
+                                        logger.error("File not found: %s", relative_schema_ref_pn)
+                                        logger.error("  via schema $ref '%s' in schema file '%s'", ref_value, schemas[schema])
+                                        exit_code = 1
+                                else:
+                                    if version_value != "0.8":
+                                        logger.debug("Is RMB >= v20 and 1.0, so only utilise the schema key declaration.")
+                                        # RMB >= v20 specifies that if a schema key name is used in the RAML body,
+                                        # then it cannot be a pathname there, or as a $ref in a schema.
+                                        # This is non-standard so need to replace the $ref to enable raml-cop and other tools.
+                                        try:
+                                            ref_replace = schemas[ref_value]
+                                        except KeyError:
+                                            logger.error("The schema reference '%s' defined in '%s' is not declared in RAML file.", ref_value, schemas[schema])
+                                            exit_code = 1
+                                        else:
+                                            logger.debug("Obtained schema key path from raml: %s", ref_replace)
+                                            # In some projects, the schemas are at a different place in the filesystem tree,
+                                            # so need to calculate the path relative to the including schema file.
+                                            schema_ref_pn = os.path.normpath(os.path.join(ramls_dir, ref_replace))
+                                            schema_ref_rel_fn = os.path.relpath(schema_ref_pn, schema_dir)
+                                            schema_fn = os.path.relpath(schema_ref_pn, input_dir)
+                                            logger.debug("    schema_ref_rel_fn=%s", schema_ref_rel_fn)
+                                            logger.debug("Replacing key $ref '%s' with path '%s' in %s", ref_value, schema_ref_rel_fn, schemas[schema])
+                                            line = "".join([match.group(1), schema_ref_rel_fn, match.group(3)])
+                                            line += '\n'
+                                    else:
+                                        logger.debug("Is RMB < v20 and 0.8, so report if file not found, and ensure declaration.")
+                                        # RMB < v20 enables $ref in schema to be a pathname, if the position in the filesystem
+                                        # and its use in the RAML body meets strict conditions.
+                                        # The schema $ref can instead be a schema key name declared in the RAML file.
+                                        # This is non-standard so replace the $ref to enable raml-cop and other tools.
+                                        try:
+                                            ref_replace = schemas[ref_value]
+                                        except KeyError:
+                                            ref_replace = ""
+                                        if "." in relative_schema_ref_pn:
+                                            # FIXME: Hoping that no-one is using extensionless schema filenames as $ref.
+                                            if not os.path.exists(relative_schema_ref_pn):
+                                                logger.error("File not found: %s", relative_schema_ref_pn)
+                                                logger.error("  via schema $ref '%s' in schema file '%s'", ref_value, schemas[schema])
+                                                exit_code = 1
+                                            else:
+                                                # This RMB version has an extra bit of weirdness.
+                                                # If the declaration of a schema key in the raml file needs to be a path,
+                                                # (e.g. in raml-util mod-users-bl.raml) then if its included schema has $ref
+                                                # to another schema using a relative path with dot-dots, then that schema's key
+                                                # needs to be adjusted according to the depth of the path in the top-level
+                                                # schema key (e.g. for $ref=../metadata.schema).
+                                                if "../" in ref_value:
+                                                    rel_ref_value = ref_value
+                                                    for x in range(0, schema.count("/")):
+                                                        logger.debug("      dot-dot count x=%s", x+1)
+                                                        rel_ref_value = re.sub("\.\./", "", rel_ref_value, count=1)
+                                                    logger.debug("      rel_ref_value=%s", rel_ref_value)
+                                                    try:
+                                                        schemas[rel_ref_value]
+                                                    except KeyError:
+                                                        logger.error("The schema reference '%s' defined in '%s' needs to be declared as '%s' in RAML file.", ref_value, schemas[schema], rel_ref_value)
+                                                        exit_code = 1
+                                                else:
+                                                    if ref_replace == "":
+                                                        logger.error("The schema reference '%s' defined in '%s' is not declared in RAML file.", ref_value, schemas[schema])
+                                                        exit_code = 1
+                                        else:
+                                            # This schema $ref is using a schema key, so replace it.
+                                            if ref_replace != "":
+                                                logger.debug("Replacing key $ref '%s' with path '%s' in %s", ref_value, ref_replace, schemas[schema])
+                                                line = "".join([match.group(1), ref_replace, match.group(3)])
+                                                line += '\n'
+                                            else:
+                                                logger.error("The schema reference '%s' defined in '%s' is not declared in RAML file.", ref_value, schemas[schema])
+                            output_fh.write(line)
                 cmd_name = "raml-cop"
                 cmd = sh.Command(os.path.join(sys.path[0], "node_modules", ".bin", cmd_name))
                 try:
@@ -225,7 +323,7 @@ def main():
                     logger.error("%s has issues with %s:\n%s", raml_fn, cmd_name, err.stdout.decode())
                     exit_code = 1
                 else:
-                    logger.debug("%s did not detect any issues.", cmd_name)
+                    logger.debug("%s did not detect any issues with %s", cmd_name, raml_fn)
                 # Copy the perhaps-modified schemas and raml, if specified, for later investigation.
                 top_raml_dir = os.path.dirname(docset["directory"])
                 if args.output_dir != "":
@@ -248,7 +346,7 @@ def construct_raml_include(loader, node):
     "Add a special construct for YAML loader"
     return loader.construct_yaml_str(node)
 
-def gather_declarations(raml_input_pn, raml_input_fn, raml_version, input_dir, docset_dir):
+def gather_declarations(raml_input_pn, raml_input_fn, raml_version, is_rmb, input_dir, docset_dir):
     """
     Gather the schemas (or types) and traits declarations from the RAML file.
     Also ensure that each file exists.
@@ -266,15 +364,14 @@ def gather_declarations(raml_input_pn, raml_input_fn, raml_version, input_dir, d
             issues = True
             return (schemas, issues)
         # Handling of content is different for 0.8 and 1.0 raml.
-        # FIXME: Move the guts to a function.
         if raml_version == "0.8":
             try:
                 raml_content["schemas"]
             except KeyError:
                 logger.debug("No schemas were declared in '%s'", os.path.relpath(raml_input_pn, input_dir))
             else:
-                for schema in raml_content["schemas"]:
-                    for key, schema_fn in schema.items():
+                for decl in raml_content["schemas"]:
+                    for key, schema_fn in decl.items():
                         if isinstance(schema_fn, str):
                             schema_pn = os.path.join(ramls_dir, schema_fn)
                             if not os.path.exists(schema_pn):
@@ -286,8 +383,8 @@ def gather_declarations(raml_input_pn, raml_input_fn, raml_version, input_dir, d
             except KeyError:
                 logger.debug("No traits were declared in '%s'", os.path.relpath(raml_input_pn, input_dir))
             else:
-                for trait in raml_content["traits"]:
-                    for key, trait_fn in trait.items():
+                for decl in raml_content["traits"]:
+                    for key, trait_fn in decl.items():
                         if isinstance(trait_fn, str):
                             trait_pn = os.path.join(ramls_dir, trait_fn)
                             if not os.path.exists(trait_pn):
@@ -300,28 +397,30 @@ def gather_declarations(raml_input_pn, raml_input_fn, raml_version, input_dir, d
             except KeyError:
                 logger.debug("No types were declared in '%s'", os.path.relpath(raml_input_pn, input_dir))
             else:
-                for type in raml_content["types"]:
-                    type_fn = raml_content["types"][type]
+                for decl in raml_content["types"]:
+                    type_fn = raml_content["types"][decl]
                     # FIXME: The "types" can be other than schema. For now is okay.
                     if isinstance(type_fn, str):
                         type_pn = os.path.join(ramls_dir, type_fn)
                         if not os.path.exists(type_pn):
                             logger.error("Missing file '%s'. Declared in the RAML types section.", type_fn)
                             issues = True
-                        schemas[type] = type_fn
+                        if is_rmb and os.sep in decl:
+                            logger.error("The key name '%s' must not be a path. Declared in the RAML types section.", decl)
+                        schemas[decl] = type_fn
             try:
                 raml_content["traits"]
             except KeyError:
                 logger.debug("No traits were declared in '%s'", os.path.relpath(raml_input_pn, input_dir))
             else:
-                for trait in raml_content["traits"]:
-                    trait_fn = raml_content["traits"][trait]
+                for decl in raml_content["traits"]:
+                    trait_fn = raml_content["traits"][decl]
                     if isinstance(trait_fn, str):
                         trait_pn = os.path.join(ramls_dir, trait_fn)
                         if not os.path.exists(trait_pn):
                             logger.error("Missing file '%s'. Declared in the RAML traits section.", trait_fn)
                             issues = True
-                        traits[trait] = trait_fn
+                        traits[decl] = trait_fn
         # Some traits declare additional schemas. Ensure that the raml declares them.
         for trait in traits:
             trait_fn = traits[trait]
@@ -330,7 +429,7 @@ def gather_declarations(raml_input_pn, raml_input_fn, raml_version, input_dir, d
                     try:
                         schemas[schema_key]
                     except KeyError:
-                        logger.error("Missing declaration in '%s' for schema $ref '%s'", os.path.relpath(raml_input_pn, input_dir), schema_key)
+                        logger.error("Missing declaration in '%s' for schema $ref '%s' defined in 'validation.raml'", os.path.relpath(raml_input_pn, input_dir), schema_key)
                         issues = True
         return (schemas, issues)
 
