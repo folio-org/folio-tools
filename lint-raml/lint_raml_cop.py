@@ -360,7 +360,7 @@ def gather_declarations(raml_input_pn, raml_input_fn, raml_version, is_rmb, inpu
         try:
             raml_content = yaml.load(input_fh)
         except yaml.scanner.ScannerError:
-            logger.critical("Trouble scanning RAML file '%s'", os.path.relpath(raml_input_pn, input_dir))
+            logger.critical("Trouble scanning RAML file '%s'", raml_input_fn)
             issues = True
             return (schemas, issues)
         # Handling of content is different for 0.8 and 1.0 raml.
@@ -368,7 +368,7 @@ def gather_declarations(raml_input_pn, raml_input_fn, raml_version, is_rmb, inpu
             try:
                 raml_content["schemas"]
             except KeyError:
-                logger.debug("No schemas were declared in '%s'", os.path.relpath(raml_input_pn, input_dir))
+                logger.debug("No schemas were declared in '%s'", raml_input_fn)
             else:
                 for decl in raml_content["schemas"]:
                     for key, schema_fn in decl.items():
@@ -381,7 +381,7 @@ def gather_declarations(raml_input_pn, raml_input_fn, raml_version, is_rmb, inpu
             try:
                 raml_content["traits"]
             except KeyError:
-                logger.debug("No traits were declared in '%s'", os.path.relpath(raml_input_pn, input_dir))
+                logger.debug("No traits were declared in '%s'", raml_input_fn)
             else:
                 for decl in raml_content["traits"]:
                     for key, trait_fn in decl.items():
@@ -395,7 +395,7 @@ def gather_declarations(raml_input_pn, raml_input_fn, raml_version, is_rmb, inpu
             try:
                 raml_content["types"]
             except KeyError:
-                logger.debug("No types were declared in '%s'", os.path.relpath(raml_input_pn, input_dir))
+                logger.debug("No types were declared in '%s'", raml_input_fn)
             else:
                 for decl in raml_content["types"]:
                     type_fn = raml_content["types"][decl]
@@ -407,11 +407,12 @@ def gather_declarations(raml_input_pn, raml_input_fn, raml_version, is_rmb, inpu
                             issues = True
                         if is_rmb and os.sep in decl:
                             logger.error("The key name '%s' must not be a path. Declared in the RAML types section.", decl)
+                            issues = True
                         schemas[decl] = type_fn
             try:
                 raml_content["traits"]
             except KeyError:
-                logger.debug("No traits were declared in '%s'", os.path.relpath(raml_input_pn, input_dir))
+                logger.debug("No traits were declared in '%s'", raml_input_fn)
             else:
                 for decl in raml_content["traits"]:
                     trait_fn = raml_content["traits"][decl]
@@ -429,7 +430,7 @@ def gather_declarations(raml_input_pn, raml_input_fn, raml_version, is_rmb, inpu
                     try:
                         schemas[schema_key]
                     except KeyError:
-                        logger.error("Missing declaration in '%s' for schema $ref '%s' defined in 'validation.raml'", os.path.relpath(raml_input_pn, input_dir), schema_key)
+                        logger.error("Missing declaration in '%s' for schema $ref '%s' defined in 'validation.raml'", raml_input_fn, schema_key)
                         issues = True
         return (schemas, issues)
 
