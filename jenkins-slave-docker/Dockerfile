@@ -178,7 +178,7 @@ ENTRYPOINT ["setup-sshd"]
 # Run as user, $user below
 USER $user
 
-$ Install gradle from sdkman
+# Install gradle from sdkman
 RUN curl -s "https://get.sdkman.io" | bash \
     && source "/home/jenkins/.sdkman/bin/sdkman-init.sh \
     && sdk install gradle 4.9
