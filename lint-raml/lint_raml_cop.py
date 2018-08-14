@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
-"""Assess a set of RAML and schema files using raml-cop.
+"""
+Assess a set of RAML and schema files, detect various inconsistencies, then run raml-cop.
+Detecting these early helps with understanding the messages from the raml parser.
 
    Returns:
        0: Success.
@@ -315,6 +317,7 @@ def main():
                                             else:
                                                 logger.error("The schema reference '%s' defined in '%s' is not declared in RAML file.", ref_value, schemas[schema])
                             output_fh.write(line)
+                # Sool raml-cop onto it.
                 cmd_name = "raml-cop"
                 cmd = sh.Command(os.path.join(sys.path[0], "node_modules", ".bin", cmd_name))
                 try:
@@ -332,7 +335,7 @@ def main():
                         logger.debug("Copying to %s", temp_output_dir)
                         shutil.copytree(input_dir, temp_output_dir)
                     except:
-                        logger.warning("Trouble copying to temporary directory: %s", temp_output_dir)
+                        logger.warning("Trouble copying to temporary directory (existing content?): %s", temp_output_dir)
                 # Restore git, ready for next processing run
                 restore_checkout(input_dir)
     if exit_code == 1:
