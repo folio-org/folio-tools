@@ -61,19 +61,16 @@ RUN apt-get -q update && \
     openjdk-8-jdk build-essential debhelper lintian fakeroot devscripts jq maven python python-pip  \
     python3-pip python3-setuptools python3-wheel python3-yaml python3-requests python3-sh nodejs \
     postgresql-client-${POSTGRES_VERSION} xvfb libgtk2.0-0 libxtst6 libxss1 libgconf-2-4 libnss3 \
-    libnspr4 libasound2 firefox google-chrome-stable libaio1 && \
+    libnspr4 libasound2 firefox google-chrome-stable libaio1 zip && \
     #libnspr4 libasound2 firefox firefox-esr-mozilla-build google-chrome-stable && \
     #apt-get -q clean -y && rm -rf /var/lib/apt/lists/* && \
     #rm -f /var/cache/apt/*.bin && \
     rm -f /tmp/node.sh && \
     rm -f /etc/apt/sources.list.d/google.list && \
     npm install -g raml2html@3.0.1 && \
-    npm install -g npm-snapshot && \
-    npm install -g http-server && \
-    npm install -g mocha-jenkins-reporter && \
-    npm install -g karma-junit-reporter
+    npm install -g npm-snapshot
 
-ENV YARN_VERSION 1.6.0-1
+ENV YARN_VERSION 1.9.4-1
 RUN wget -O - https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
     sh -c 'echo "deb https://dl.yarnpkg.com/debian/ stable main" \
     >> /etc/apt/sources.list.d/yarn.list' && \
@@ -177,3 +174,4 @@ WORKDIR "${JENKINS_AGENT_HOME}"
 EXPOSE 22
 
 ENTRYPOINT ["setup-sshd"]
+
