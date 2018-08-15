@@ -436,10 +436,14 @@ def gather_declarations(raml_input_pn, raml_input_fn, raml_version, is_rmb, inpu
                             issues = True
                         traits[decl] = trait_fn
         # Some traits declare additional schemas. Ensure that the raml declares them.
+        if raml_version == "0.8":
+            trait_schemas = ["errors", "error.schema", "parameters.schema"]
+        else:
+            trait_schemas = ["errors", "error", "parameters"]
         for trait in traits:
             trait_fn = traits[trait]
             if "validation.raml" in trait_fn:
-                for schema_key in ["errors", "error.schema", "parameters.schema"]:
+                for schema_key in trait_schemas:
                     try:
                         schemas[schema_key]
                     except KeyError:
