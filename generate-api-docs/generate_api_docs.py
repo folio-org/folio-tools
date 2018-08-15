@@ -142,10 +142,12 @@ def main():
     if repo_name != "raml":
         md_pn = os.path.join(input_dir, "target", "ModuleDescriptor.json")
         if not os.path.exists(md_pn):
-            md_pn = os.path.join(input_dir, "ModuleDescriptor.json")
+            md_pn = os.path.join(input_dir, "build", "ModuleDescriptor.json")
             if not os.path.exists(md_pn):
-                md_pn = None
-                logger.debug("The ModuleDescriptor.json was not found. Build needed?")
+                md_pn = os.path.join(input_dir, "ModuleDescriptor.json")
+                if not os.path.exists(md_pn):
+                    md_pn = None
+                    logger.debug("The ModuleDescriptor.json was not found. Build needed?")
         if md_pn is None:
             sw_version_re = re.compile(r"<version>([0-9]+\.[0-9]+)")
             with open("pom.xml", "r") as pom_fh:
