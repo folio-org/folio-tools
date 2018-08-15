@@ -323,11 +323,13 @@ def main():
                 try:
                     cmd(input_pn, no_color=True)
                 except sh.ErrorReturnCode_1 as err:
-                    logger.error("%s has issues with %s:\n%s", raml_fn, cmd_name, err.stdout.decode())
+                    # Remove the temp_dir path from its messages
+                    error_text = re.sub("\[.*?{0}/".format(repo_name), "[", err.stdout.decode())
+                    logger.error("%s has issues with %s:\n%s", raml_fn, cmd_name, error_text)
                     exit_code = 1
                 else:
                     logger.debug("%s did not detect any issues with %s", cmd_name, raml_fn)
-                # Copy the perhaps-modified schemas and raml, if specified, for later investigation.
+                # If specified, copy the perhaps-modified schemas and raml for later investigation.
                 top_raml_dir = os.path.dirname(docset["directory"])
                 if args.output_dir != "":
                     temp_output_dir = os.path.join(output_dir, repo_name, top_raml_dir, raml_fn[:-5])
