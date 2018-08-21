@@ -166,6 +166,11 @@ RUN groupadd -g ${gid} ${group} \
     && mv /usr/local/share/.yarnrc ${JENKINS_AGENT_HOME} \
     && chown -R ${user}.${group} ${JENKINS_AGENT_HOME}
 
+# Run as user, $user,to install sdkman for Gradle
+RUN su - ${user} -s /bin/bash -c 'curl -s "https://get.sdkman.io" | bash \
+    && source "/home/jenkins/.sdkman/bin/sdkman-init.sh" \
+    && sdk install gradle 4.9'
+
 COPY setup-sshd /usr/local/bin/setup-sshd
 
 VOLUME "${JENKINS_AGENT_HOME}" "/tmp" "/run" "/var/run" "/var/run/docker.sock"
@@ -175,10 +180,3 @@ EXPOSE 22
 
 ENTRYPOINT ["setup-sshd"]
 
-# Run as user, $user below
-USER $user
-
-# Install gradle from sdkman
-RUN curl -s "https://get.sdkman.io" | bash \
-    && source "/home/jenkins/.sdkman/bin/sdkman-init.sh \
-    && sdk install gradle 4.9
