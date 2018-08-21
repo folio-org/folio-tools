@@ -24,16 +24,20 @@ There is some assistance at [dev.folio.org/guides/raml-cop](https://dev.folio.or
 
 ## lint_raml_cop.py
 
-Python script to discover RAML files in a project and run 'raml-cop'.
+Python script to discover RAML files in a project, assess them, and run 'raml-cop'.
 
 Validates the RAML, ensures the $ref links in JSON Schema, and processes the examples.
 
-Does not assess the schema name declaration key names in the RAML file.
+Assesses the RAML files to detect various inconsistencies, before running raml-cop.
+Detecting these early helps with understanding the messages from the raml parser.
+
+The schema name declaration key names in the RAML file have particular needs when being used with RMB.
+This script attempts to assess those, for both pre and post RMB v20.
 
 ### Prerequisites
 
 - python3+
-- npm
+- yarn
 - [raml-cop](https://github.com/thebinarypenguin/raml-cop) (see below)
 - Some extra Python modules (see requirements.txt).
 
@@ -43,7 +47,7 @@ Occasionally update raml-cop:
 
 ```shell
 cd folio-tools/lint-raml
-npm install
+yarn install
 ```
 
 Install the extra Python modules:
@@ -69,6 +73,8 @@ Shell script to discover RAML files in a project and run 'raml-cop'.
 Validates the RAML, ensures the $ref links in JSON Schema, and processes the examples.
 
 Does not assess the schema name declaration key names in the RAML file.
+
+*Note* that this does not work with RMB >= v20
 
 ### Prerequisites
 
