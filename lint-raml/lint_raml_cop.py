@@ -371,15 +371,17 @@ def gather_declarations(raml_input_pn, raml_input_fn, raml_version, is_rmb, inpu
         # Some traits declare additional schemas. Ensure that the raml declares them.
         if raml_version == "0.8":
             trait_schemas = ["errors", "error.schema", "parameters.schema"]
-            for trait in traits:
-                trait_fn = traits[trait]
-                if "validation.raml" in trait_fn:
-                    for schema_key in trait_schemas:
-                        try:
-                            schemas[schema_key]
-                        except KeyError:
-                            logger.error("Missing declaration in '%s' for schema $ref '%s' defined in 'validation.raml'", raml_input_fn, schema_key)
-                            issues = True
+        else:
+            trait_schemas = ["errors"]
+        for trait in traits:
+            trait_fn = traits[trait]
+            if "validation.raml" in trait_fn:
+                for schema_key in trait_schemas:
+                    try:
+                        schemas[schema_key]
+                    except KeyError:
+                        logger.error("Missing declaration in '%s' for schema $ref '%s' used in 'validation.raml'", raml_input_fn, schema_key)
+                        issues = True
         return (schemas, issues)
 
 if __name__ == "__main__":
