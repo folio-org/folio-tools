@@ -74,12 +74,10 @@ Validates the RAML, ensures the $ref links in JSON Schema, and processes the exa
 
 Does not assess the schema name declaration key names in the RAML file.
 
-*Note* that this does not work with RMB >= v20
-
 ### Prerequisites
 
 - bash3+
-- npm
+- yarn
 - [raml-cop](https://github.com/thebinarypenguin/raml-cop) (see below)
 
 ### Method
@@ -88,7 +86,7 @@ Occasionally update raml-cop:
 
 ```shell
 cd folio-tools/lint-raml
-npm install
+yarn install
 ```
 
 Assuming folio-tools is cloned parallel to mod-notes:
