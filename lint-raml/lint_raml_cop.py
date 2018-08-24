@@ -134,6 +134,14 @@ def main():
             ramlutil_dir = os.path.join(input_dir, docset["ramlutil"])
             if not os.path.exists(ramlutil_dir):
                 logger.warning("The specified 'raml-util' directory not found: %s", os.path.join(repo_name, docset["ramlutil"]))
+            else:
+                try:
+                    rev_object = "@:./{0}".format(docset["ramlutil"])
+                    util_id = sh.git("rev-parse", rev_object, _cwd=input_dir).stdout.decode().strip()
+                except sh.ErrorReturnCode as err:
+                    logger.critical("Trouble doing 'git rev-parse': %s", err.stderr.decode())
+                else:
+                    logger.info("Using submodule %s at %s", docset["ramlutil"], util_id)
         # If is using RMB, then there are various peculiarities to assess.
         try:
             is_rmb = docset["rmb"]
