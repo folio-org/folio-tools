@@ -189,16 +189,15 @@ def main():
         if docset["ramlutil"] is not None:
             ramlutil_dir = os.path.join(input_dir, docset["ramlutil"])
             if os.path.exists(ramlutil_dir):
-                logger.info("Copying %s/traits/auth_security.raml", docset["ramlutil"])
                 src_pn = os.path.join(ramlutil_dir, "traits", "auth_security.raml")
                 dest_fn = os.path.join("traits", "auth.raml")
                 dest_pn = os.path.join(ramlutil_dir, dest_fn)
                 try:
                     shutil.copyfile(src_pn, dest_pn)
                 except:
-                    logger.critical("Could not copy to %s", dest_fn)
-                    return 2
+                    logger.info("Could not copy %s/traits/auth_security.raml to %s", docset["ramlutil"], dest_fn)
                 else:
+                    logger.info("Copied %s/traits/auth_security.raml to %s", docset["ramlutil"], dest_fn)
                     atexit.register(restore_ramlutil, ramlutil_dir, dest_fn)
             else:
                 logger.critical("The specified 'raml-util' directory not found: %s/%s", args.repo, docset["ramlutil"])
