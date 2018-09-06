@@ -391,6 +391,15 @@ def gather_declarations(raml_input_pn, raml_input_fn, raml_version, is_rmb, inpu
                     except KeyError:
                         logger.error("Missing declaration in '%s' for schema $ref '%s' used in 'validation.raml'", raml_input_fn, schema_key)
                         issues = True
+        # Some old traits must not be declared in new RMB, and will cause wierd messages
+        if raml_version != "0.8":
+            traits_excluded = ["auth.raml"]
+            for trait in traits:
+                for trait_excluded in traits_excluded:
+                    if trait_excluded in traits[trait]:
+                        logger.info("Must not declare trait: %s", traits[trait])
+
+        trait_schemas = ["errors"]
         return (schemas, issues)
 
 if __name__ == "__main__":
