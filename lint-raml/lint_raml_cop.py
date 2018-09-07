@@ -127,6 +127,7 @@ def main():
         logger.info("Investigating %s", os.path.join(repo_name, docset["directory"]))
         ramls_dir = os.path.join(input_dir, docset["directory"])
         logger.debug("ramls_dir=%s", ramls_dir)
+        version_ramlutil_v1 = True
         if not os.path.exists(ramls_dir):
             logger.critical("The specified 'ramls' directory not found: %s", os.path.join(repo_name, docset["directory"]))
             return 2
@@ -143,6 +144,10 @@ def main():
                         logger.critical("Trouble doing 'git rev-parse': %s", err.stderr.decode())
                     else:
                         logger.info("Using submodule %s at %s", docset["ramlutil"], util_id)
+                # Detect if new raml-util
+                auth_trait_pn = os.path.join(input_dir, docset["ramlutil"], "traits/auth.raml")
+                if os.path.exists(auth_trait_pn):
+                    version_ramlutil_v1 = False
         # If is using RMB, then there are various peculiarities to assess.
         try:
             is_rmb = docset["rmb"]
@@ -210,6 +215,10 @@ def main():
                 exit_code = 1
                 continue
             logger.info("Processing RAML v%s file: %s", version_value, raml_fn)
+            if version_value != "0.8" and not version_ramlutil_v1:
+                logger.error("The raml-util is not RAML-1.0 version. Update git submodule.")
+                exit_code = 2
+                continue
             # Now process this RAML file
             # First load the content to extract some details.
             (schemas, issues_flag) = gather_declarations(input_pn, raml_fn, version_value, is_rmb, input_dir, docset["directory"])
@@ -398,7 +407,6 @@ def gather_declarations(raml_input_pn, raml_input_fn, raml_version, is_rmb, inpu
                 for trait_excluded in traits_excluded:
                     if trait_excluded in traits[trait]:
                         logger.info("Must not declare trait: %s", traits[trait])
-
         trait_schemas = ["errors"]
         return (schemas, issues)
 
