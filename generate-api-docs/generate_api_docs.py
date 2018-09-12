@@ -183,6 +183,10 @@ def main():
     config_json["configs"] = []
     for docset in metadata[args.repo]:
         logger.info("Investigating %s/%s", args.repo, docset["directory"])
+        try:
+            is_version1 = docset["version1"]
+        except KeyError:
+            is_version1 = False
         ramls_dir = os.path.join(input_dir, docset["directory"])
         if not os.path.exists(ramls_dir):
             logger.critical("The 'ramls' directory not found: %s/%s", args.repo, docset["directory"])
@@ -190,16 +194,17 @@ def main():
         if docset["ramlutil"] is not None:
             ramlutil_dir = os.path.join(input_dir, docset["ramlutil"])
             if os.path.exists(ramlutil_dir):
-                src_pn = os.path.join(ramlutil_dir, "traits", "auth_security.raml")
-                dest_fn = os.path.join("traits", "auth.raml")
-                dest_pn = os.path.join(ramlutil_dir, dest_fn)
-                try:
-                    shutil.copyfile(src_pn, dest_pn)
-                except:
-                    logger.info("Could not copy %s/traits/auth_security.raml to %s", docset["ramlutil"], dest_fn)
-                else:
-                    logger.info("Copied %s/traits/auth_security.raml to %s", docset["ramlutil"], dest_fn)
-                    atexit.register(restore_ramlutil, ramlutil_dir, dest_fn)
+                if not is_version1:
+                    src_pn = os.path.join(ramlutil_dir, "traits", "auth_security.raml")
+                    dest_fn = os.path.join("traits", "auth.raml")
+                    dest_pn = os.path.join(ramlutil_dir, dest_fn)
+                    try:
+                        shutil.copyfile(src_pn, dest_pn)
+                    except:
+                        logger.info("Could not copy %s/traits/auth_security.raml to %s", docset["ramlutil"], dest_fn)
+                    else:
+                        logger.info("Copied %s/traits/auth_security.raml to %s", docset["ramlutil"], dest_fn)
+                        atexit.register(restore_ramlutil, ramlutil_dir, dest_fn)
             else:
                 logger.critical("The specified 'raml-util' directory not found: %s/%s", args.repo, docset["ramlutil"])
                 return 2
