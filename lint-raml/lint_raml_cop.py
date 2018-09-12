@@ -108,9 +108,10 @@ def main():
         logger.critical("Configuration data was not loaded.")
         return 2
     if repo_name not in config:
-        logger.critical("No configuration found for repository '%s'", repo_name)
-        logger.critical("See FOLIO-903. Add an entry to api.yml")
-        return 2
+        logger.warning("No configuration found for repository '%s'", repo_name)
+        logger.warning("See FOLIO-903. Add an entry to api.yml")
+        logger.warning("Attempting default.")
+        config[repo_name] = config["default"]
 
     # The yaml parser gags on the "!include".
     # http://stackoverflow.com/questions/13280978/pyyaml-errors-on-in-a-string
