@@ -109,9 +109,10 @@ def main():
         logger.critical("Configuration data was not loaded.")
         return 2
     if args.repo not in metadata:
-        logger.critical("No configuration found for repository '%s'", args.repo)
-        logger.critical("See FOLIO-903")
-        return 2
+        logger.warning("No configuration found for repository '%s'", args.repo)
+        logger.warning("See FOLIO-903. Add an entry to api.yml")
+        logger.warning("Attempting default.")
+        metadata[args.repo] = metadata["default"]
 
     # Ensure that we are dealing with the expected git clone
     try:
