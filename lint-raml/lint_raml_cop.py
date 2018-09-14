@@ -130,8 +130,14 @@ def main():
         logger.debug("ramls_dir=%s", ramls_dir)
         version_ramlutil_v1 = True
         if not os.path.exists(ramls_dir):
-            logger.critical("The specified 'ramls' directory not found: %s", os.path.join(repo_name, docset["directory"]))
-            return 2
+            logger.warning("The specified 'ramls' directory not found: %s", os.path.join(repo_name, docset["directory"]))
+            logger.warning("See FOLIO-903. Update entry in api.yml")
+            logger.warning("Attempting default.")
+            docset["directory"] = config["default"][0]["directory"]
+            ramls_dir = os.path.join(input_dir, docset["directory"])
+            if not os.path.exists(ramls_dir):
+                logger.critical("The default 'ramls' directory not found: %s/%s", repo_name, docset["directory"])
+                return 2
         if docset["ramlutil"] is not None:
             ramlutil_dir = os.path.join(input_dir, docset["ramlutil"])
             if not os.path.exists(ramlutil_dir):
