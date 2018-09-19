@@ -13,6 +13,7 @@ Detecting these early helps with understanding the messages from the raml parser
 import argparse
 import fnmatch
 import glob
+import json
 import logging
 import os
 import re
@@ -167,6 +168,7 @@ def main():
             configured_raml_files.append(raml_fn)
         found_raml_files = []
         raml_files = []
+        found_schema_files = []
         if docset["label"] == "shared":
             # If this is the top-level of the shared space, then do not descend
             pattern = os.path.join(ramls_dir, "*.raml")
@@ -174,7 +176,7 @@ def main():
                 raml_pn = os.path.relpath(raml_fn, ramls_dir)
                 found_raml_files.append(raml_pn)
         else:
-            exclude_list = ["raml-util", "rtypes", "traits", "node_modules"]
+            exclude_list = ["raml-util", "rtypes", "traits", "examples", "node_modules"]
             try:
                 exclude_list.extend(docset["excludes"])
             except KeyError:
@@ -187,6 +189,15 @@ def main():
                         continue
                     raml_pn = os.path.relpath(os.path.join(root, raml_fn), ramls_dir)
                     found_raml_files.append(raml_pn)
+            # Also find the JSON Schemas to later scan them
+            for root, dirs, files in os.walk(ramls_dir, topdown=True):
+                excludes.add("acq-models") # FIXME: Avoid for time being.
+                dirs[:] = [d for d in dirs if d not in excludes]
+                for filename in files:
+                    if filename.endswith((".json", ".schema")):
+                        schema_pn = os.path.relpath(os.path.join(root, filename), ramls_dir)
+                        found_schema_files.append(schema_pn)
+            logger.debug("found_schema_files: %s", found_schema_files)
         for raml_fn in configured_raml_files:
             if raml_fn not in found_raml_files:
                 logger.warning("Configured file not found: %s", raml_fn)
@@ -199,6 +210,11 @@ def main():
         logger.debug("configured_raml_files: %s", configured_raml_files)
         logger.debug("found_raml_files: %s", found_raml_files)
         logger.debug("raml_files: %s", raml_files)
+        if found_schema_files:
+            issues_flag = assess_schema_descriptions(ramls_dir, found_schema_files)
+            if issues_flag:
+                exit_code = 1
+        logger.info("Assessing RAML files:")
         for raml_fn in raml_files:
             if args.file:
                 if os.path.join(docset["directory"], raml_fn) != args.file:
@@ -300,16 +316,17 @@ def main():
             try:
                 cmd(input_pn, no_color=True)
             except sh.ErrorReturnCode_1 as err:
-                logger.error("%s has issues with %s:\n%s", raml_fn, cmd_name, err.stdout.decode())
+                logger.error("%s detected errors with %s:\n%s", raml_fn, cmd_name, err.stdout.decode())
                 exit_code = 1
             else:
-                logger.debug("%s did not detect any issues with %s", cmd_name, raml_fn)
+                logger.debug("%s did not detect any errors with %s", cmd_name, raml_fn)
+    # Report the outcome
     if exit_code == 1:
-        logger.info("There were processing issues.")
+        logger.error("There were processing errors.")
     elif exit_code == 2:
-        logger.info("There were processing issues.")
+        logger.error("There were processing errors.")
     else:
-        logger.info("Did not detect any issues.")
+        logger.info("Did not detect any errors.")
     logging.shutdown()
     return exit_code
 
@@ -416,6 +433,52 @@ def gather_declarations(raml_input_pn, raml_input_fn, raml_version, is_rmb, inpu
                         logger.info("Must not declare trait: %s", traits[trait])
         trait_schemas = ["errors"]
         return (schemas, issues)
+
+def assess_schema_descriptions(ramls_dir, schema_files):
+    """
+    Ensure top-level "description" and for each property.
+    """
+    logger = logging.getLogger("lint-raml-cop")
+    logger.info("Assessing schema files:")
+    issues = False
+    props_skipped = ["id", "metadata", "resultInfo", "totalRecords"]
+    for schema_fn in schema_files:
+        schema_pn = os.path.join(ramls_dir, schema_fn)
+        with open(schema_pn, "r") as schema_fh:
+            try:
+                schema_data = json.load(schema_fh)
+            except Exception as err:
+                logger.error("Trouble loading %s: %s", schema_fn, err)
+                issues = True
+                continue
+        try:
+            desc = schema_data['description']
+        except KeyError:
+            logger.warning('%s: Missing top-level "description".', schema_fn)
+        else:
+            if len(desc) < 3:
+                logger.warning('%s: The top-level "description" is too short.', schema_fn)
+        try:
+            properties = schema_data['properties']
+        except KeyError:
+            continue
+        else:
+            desc_missing = []
+            for prop in properties:
+                if prop in props_skipped:
+                    continue
+                try:
+                    desc = properties['description']
+                except KeyError:
+                    desc_missing.append(prop)
+                else:
+                    if len(desc) < 3:
+                        desc_missing.append(prop)
+            if desc_missing:
+                logger.warning('%s: Missing "description" for: %s', schema_fn, ', '.join(desc_missing))
+            else:
+                logger.info('%s: Each "description" is present.', schema_fn)
+    return issues
 
 if __name__ == "__main__":
     sys.exit(main())
