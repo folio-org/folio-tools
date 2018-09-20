@@ -185,8 +185,6 @@ def main():
             for root, dirs, files in os.walk(ramls_dir, topdown=True):
                 dirs[:] = [d for d in dirs if d not in excludes]
                 for raml_fn in fnmatch.filter(files, "*.raml"):
-                    if raml_fn in excludes:
-                        continue
                     raml_pn = os.path.relpath(os.path.join(root, raml_fn), ramls_dir)
                     found_raml_files.append(raml_pn)
             # Also find the JSON Schemas to later scan them
@@ -273,13 +271,13 @@ def main():
                                 exit_code = 1
                         else:
                             if version_value != "0.8":
-                                logger.debug("Is RMB >= v20 and 1.0, so report if file not found.")
+                                #logger.debug("Is RMB >= v20 and 1.0, so report if file not found.")
                                 if not os.path.exists(relative_schema_ref_pn):
                                     logger.error("File not found: %s", relative_schema_ref_pn)
                                     logger.error("  via schema $ref '%s' in schema file '%s'", ref_value, schemas[schema])
                                     exit_code = 1
                             else:
-                                logger.debug("Is RMB < v20 and 0.8, so report if file not found, and ensure declaration.")
+                                #logger.debug("Is RMB < v20 and 0.8, so report if file not found, and ensure declaration.")
                                 # RMB < v20 enables $ref in schema to be a pathname, if the position in the filesystem
                                 # and its use in the RAML meets strict conditions.
                                 if not os.path.exists(relative_schema_ref_pn):
