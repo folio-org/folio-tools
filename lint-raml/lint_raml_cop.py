@@ -439,7 +439,7 @@ def assess_schema_descriptions(ramls_dir, schema_files):
     logger = logging.getLogger("lint-raml-cop")
     logger.info("Assessing schema files:")
     issues = False
-    props_skipped = ["id", "metadata", "resultInfo", "totalRecords"]
+    props_skipped = ["id", "metadata", "resultInfo", "tags", "totalRecords"]
     for schema_fn in schema_files:
         schema_pn = os.path.join(ramls_dir, schema_fn)
         with open(schema_pn, "r") as schema_fh:
