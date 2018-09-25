@@ -466,7 +466,7 @@ def assess_schema_descriptions(ramls_dir, schema_files):
                 if prop in props_skipped:
                     continue
                 try:
-                    desc = properties['description']
+                    desc = properties[prop]['description']
                 except KeyError:
                     desc_missing.append(prop)
                 else:
@@ -475,7 +475,7 @@ def assess_schema_descriptions(ramls_dir, schema_files):
             if desc_missing:
                 logger.warning('%s: Missing "description" for: %s', schema_fn, ', '.join(desc_missing))
             else:
-                logger.info('%s: Each "description" is present.', schema_fn)
+                logger.info('%s: Each property "description" is present.', schema_fn)
     return issues
 
 if __name__ == "__main__":
