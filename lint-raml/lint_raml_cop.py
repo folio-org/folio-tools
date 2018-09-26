@@ -317,12 +317,12 @@ def main():
                 logger.error("%s detected errors with %s:\n%s", raml_fn, cmd_name, err.stdout.decode())
                 exit_code = 1
             else:
-                logger.debug("%s did not detect any errors with %s", cmd_name, raml_fn)
+                logger.info("%s did not detect any errors with %s", cmd_name, raml_fn)
     # Report the outcome
     if exit_code == 1:
-        logger.error("There were processing errors.")
+        logger.error("There were processing errors. See list above.")
     elif exit_code == 2:
-        logger.error("There were processing errors.")
+        logger.error("There were processing errors. See list above.")
     else:
         logger.info("Did not detect any errors.")
     logging.shutdown()
@@ -452,10 +452,12 @@ def assess_schema_descriptions(ramls_dir, schema_files):
         try:
             desc = schema_data['description']
         except KeyError:
-            logger.warning('%s: Missing top-level "description".', schema_fn)
+            logger.error('%s: Missing top-level "description".', schema_fn)
+            issues = True
         else:
             if len(desc) < 3:
-                logger.warning('%s: The top-level "description" is too short.', schema_fn)
+                logger.error('%s: The top-level "description" is too short.', schema_fn)
+                issues = True
         try:
             properties = schema_data['properties']
         except KeyError:
@@ -473,7 +475,8 @@ def assess_schema_descriptions(ramls_dir, schema_files):
                     if len(desc) < 3:
                         desc_missing.append(prop)
             if desc_missing:
-                logger.warning('%s: Missing "description" for: %s', schema_fn, ', '.join(desc_missing))
+                logger.error('%s: Missing "description" for: %s', schema_fn, ', '.join(desc_missing))
+                issues = True
             else:
                 logger.info('%s: Each property "description" is present.', schema_fn)
     return issues
