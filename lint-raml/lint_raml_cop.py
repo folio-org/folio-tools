@@ -188,8 +188,12 @@ def main():
                     raml_pn = os.path.relpath(os.path.join(root, raml_fn), ramls_dir)
                     found_raml_files.append(raml_pn)
             # Also find the JSON Schemas to later scan them
-            for root, dirs, files in os.walk(ramls_dir, topdown=True):
+            acq_dir = os.path.join(ramls_dir, "acq-models")
+            if os.path.exists(acq_dir):
                 excludes.add("acq-models") # FIXME: Avoid for time being.
+                logger.error("Excluding acq-models from schema processing: MODORDSTOR-12")
+                exit_code = 1
+            for root, dirs, files in os.walk(ramls_dir, topdown=True):
                 dirs[:] = [d for d in dirs if d not in excludes]
                 for filename in files:
                     if filename.endswith((".json", ".schema")):
