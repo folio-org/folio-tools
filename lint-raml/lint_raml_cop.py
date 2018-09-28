@@ -176,7 +176,7 @@ def main():
                 raml_pn = os.path.relpath(raml_fn, ramls_dir)
                 found_raml_files.append(raml_pn)
         else:
-            exclude_list = ["raml-util", "rtypes", "traits", "examples", "node_modules"]
+            exclude_list = ["raml-util", "rtypes", "traits", "examples", "bindings", "node_modules"]
             try:
                 exclude_list.extend(docset["excludes"])
             except KeyError:
@@ -188,16 +188,21 @@ def main():
                     raml_pn = os.path.relpath(os.path.join(root, raml_fn), ramls_dir)
                     found_raml_files.append(raml_pn)
             # Also find the JSON Schemas to later scan them
+            try:
+                schemas_dir = os.path.join(input_dir, docset["schemasDirectory"])
+            except KeyError:
+                schemas_dir = os.path.join(input_dir, docset["directory"])
             acq_dir = os.path.join(ramls_dir, "acq-models")
             if os.path.exists(acq_dir):
                 excludes.add("acq-models") # FIXME: Avoid for time being.
                 logger.error("Excluding acq-models from schema processing: MODORDSTOR-12")
                 exit_code = 1
-            for root, dirs, files in os.walk(ramls_dir, topdown=True):
+            for root, dirs, files in os.walk(schemas_dir, topdown=True):
                 dirs[:] = [d for d in dirs if d not in excludes]
+                logger.info("Looking for schema files: %s", root)
                 for filename in files:
                     if filename.endswith((".json", ".schema")):
-                        schema_pn = os.path.relpath(os.path.join(root, filename), ramls_dir)
+                        schema_pn = os.path.relpath(os.path.join(root, filename), schemas_dir)
                         found_schema_files.append(schema_pn)
             logger.debug("found_schema_files: %s", found_schema_files)
         for raml_fn in configured_raml_files:
@@ -213,7 +218,7 @@ def main():
         logger.debug("found_raml_files: %s", found_raml_files)
         logger.debug("raml_files: %s", raml_files)
         if found_schema_files:
-            issues_flag = assess_schema_descriptions(ramls_dir, found_schema_files)
+            issues_flag = assess_schema_descriptions(schemas_dir, found_schema_files)
             if issues_flag:
                 exit_code = 1
         logger.info("Assessing RAML files:")
@@ -436,7 +441,7 @@ def gather_declarations(raml_input_pn, raml_input_fn, raml_version, is_rmb, inpu
         trait_schemas = ["errors"]
         return (schemas, issues)
 
-def assess_schema_descriptions(ramls_dir, schema_files):
+def assess_schema_descriptions(schemas_dir, schema_files):
     """
     Ensure top-level "description" and for each property.
     """
@@ -445,7 +450,7 @@ def assess_schema_descriptions(ramls_dir, schema_files):
     issues = False
     props_skipped = ["id", "metadata", "resultInfo", "tags", "totalRecords"]
     for schema_fn in schema_files:
-        schema_pn = os.path.join(ramls_dir, schema_fn)
+        schema_pn = os.path.join(schemas_dir, schema_fn)
         with open(schema_pn, "r") as schema_fh:
             try:
                 schema_data = json.load(schema_fh)
