@@ -314,10 +314,10 @@ def main():
             try:
                 cmd(input_pn, no_color=True)
             except sh.ErrorReturnCode_1 as err:
-                logger.error("%s detected errors with %s:\n%s", raml_fn, cmd_name, err.stdout.decode())
+                logger.error("  %s detected errors with %s:\n%s", cmd_name, raml_fn,  err.stdout.decode())
                 exit_code = 1
             else:
-                logger.info("%s did not detect any errors with %s", cmd_name, raml_fn)
+                logger.info("  %s did not detect any errors with %s", cmd_name, raml_fn)
     # Report the outcome
     if exit_code == 1:
         logger.error("There were processing errors. See list above.")
