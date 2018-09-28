@@ -48,7 +48,7 @@ def main():
                         help="Limit to this particular pathname, e.g. ramls/item-storage.raml (Default: '' so all files)")
     parser.add_argument("-l", "--loglevel",
                         choices=["debug", "info", "warning", "error", "critical"],
-                        default="warning",
+                        default="info",
                         help="Logging level. (Default: warning)")
     parser.add_argument("-d", "--dev", action="store_true",
                         help="Development mode. Use local config file. (Default: False)")
