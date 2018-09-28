@@ -48,7 +48,7 @@ def main():
                         help="Limit to this particular pathname, e.g. ramls/item-storage.raml (Default: '' so all files)")
     parser.add_argument("-l", "--loglevel",
                         choices=["debug", "info", "warning", "error", "critical"],
-                        default="warning",
+                        default="info",
                         help="Logging level. (Default: warning)")
     parser.add_argument("-d", "--dev", action="store_true",
                         help="Development mode. Use local config file. (Default: False)")
@@ -188,8 +188,12 @@ def main():
                     raml_pn = os.path.relpath(os.path.join(root, raml_fn), ramls_dir)
                     found_raml_files.append(raml_pn)
             # Also find the JSON Schemas to later scan them
-            for root, dirs, files in os.walk(ramls_dir, topdown=True):
+            acq_dir = os.path.join(ramls_dir, "acq-models")
+            if os.path.exists(acq_dir):
                 excludes.add("acq-models") # FIXME: Avoid for time being.
+                logger.error("Excluding acq-models from schema processing: MODORDSTOR-12")
+                exit_code = 1
+            for root, dirs, files in os.walk(ramls_dir, topdown=True):
                 dirs[:] = [d for d in dirs if d not in excludes]
                 for filename in files:
                     if filename.endswith((".json", ".schema")):
@@ -314,15 +318,15 @@ def main():
             try:
                 cmd(input_pn, no_color=True)
             except sh.ErrorReturnCode_1 as err:
-                logger.error("%s detected errors with %s:\n%s", raml_fn, cmd_name, err.stdout.decode())
+                logger.error("  %s detected errors with %s:\n%s", cmd_name, raml_fn,  err.stdout.decode())
                 exit_code = 1
             else:
-                logger.debug("%s did not detect any errors with %s", cmd_name, raml_fn)
+                logger.info("  %s did not detect any errors with %s", cmd_name, raml_fn)
     # Report the outcome
     if exit_code == 1:
-        logger.error("There were processing errors.")
+        logger.error("There were processing errors. See list above.")
     elif exit_code == 2:
-        logger.error("There were processing errors.")
+        logger.error("There were processing errors. See list above.")
     else:
         logger.info("Did not detect any errors.")
     logging.shutdown()
@@ -452,10 +456,12 @@ def assess_schema_descriptions(ramls_dir, schema_files):
         try:
             desc = schema_data['description']
         except KeyError:
-            logger.warning('%s: Missing top-level "description".', schema_fn)
+            logger.error('%s: Missing top-level "description".', schema_fn)
+            issues = True
         else:
             if len(desc) < 3:
-                logger.warning('%s: The top-level "description" is too short.', schema_fn)
+                logger.error('%s: The top-level "description" is too short.', schema_fn)
+                issues = True
         try:
             properties = schema_data['properties']
         except KeyError:
@@ -473,7 +479,8 @@ def assess_schema_descriptions(ramls_dir, schema_files):
                     if len(desc) < 3:
                         desc_missing.append(prop)
             if desc_missing:
-                logger.warning('%s: Missing "description" for: %s', schema_fn, ', '.join(desc_missing))
+                logger.error('%s: Missing "description" for: %s', schema_fn, ', '.join(desc_missing))
+                issues = True
             else:
                 logger.info('%s: Each property "description" is present.', schema_fn)
     return issues
