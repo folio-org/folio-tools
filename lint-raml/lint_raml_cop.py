@@ -230,7 +230,7 @@ def main():
         logger.debug("found_raml_files: %s", found_raml_files)
         logger.debug("raml_files: %s", raml_files)
         if found_schema_files:
-            issues_flag = assess_schema_descriptions(schemas_dir, found_schema_files)
+            issues_flag = assess_schema_descriptions(schemas_dir, found_schema_files, has_jq)
             if issues_flag:
                 exit_code = 1
         logger.info("Assessing RAML files:")
@@ -452,7 +452,7 @@ def gather_declarations(raml_input_pn, raml_input_fn, raml_version, is_rmb, inpu
         trait_schemas = ["errors"]
         return (schemas, issues)
 
-def assess_schema_descriptions(schemas_dir, schema_files):
+def assess_schema_descriptions(schemas_dir, schema_files, has_jq):
     """
     Ensure top-level "description" and for each property.
     """
@@ -482,23 +482,46 @@ def assess_schema_descriptions(schemas_dir, schema_files):
             properties = schema_data['properties']
         except KeyError:
             continue
+        if has_jq:
+           logger.debug("Doing jq")
+           # Use jq to gather all properties into easier-to-use form.
+           jq_filter = '[ .. | .properties? | objects ]'
+           try:
+               result_jq = sh.jq('--monochrome-output', jq_filter, schema_pn).stdout.decode().strip()
+           except sh.ErrorReturnCode_2 as err:
+               logger.error("Trouble doing jq: usage error: %s", err.stderr.decode())
+               issues = True
+           except sh.ErrorReturnCode_3 as err:
+               logger.error("Trouble doing jq: compile error: %s", err.stderr.decode())
+               issues = True
+           else:
+               try:
+                   jq = json.loads(result_jq)
+               except Exception as err:
+                   logger.error("Trouble loading JSON obtained from jq: %s", err)
+                   issues = True
+                   continue
+               else:
+                   # logger.debug("JQ: %s", jq)
+                   desc_missing = []
+                   for props in jq:
+                       for prop in props:
+                           if prop in props_skipped:
+                               continue
+                           try:
+                               desc = props[prop]['description']
+                           except KeyError:
+                               desc_missing.append(prop)
+                           else:
+                               if len(desc) < 3:
+                                   desc_missing.append(prop)
+                   if desc_missing:
+                       logger.error('%s: Missing "description" for: %s', schema_fn, ', '.join(desc_missing))
+                       issues = True
+                   else:
+                       logger.info('%s: Each property "description" is present.', schema_fn)
         else:
-            desc_missing = []
-            for prop in properties:
-                if prop in props_skipped:
-                    continue
-                try:
-                    desc = properties[prop]['description']
-                except KeyError:
-                    desc_missing.append(prop)
-                else:
-                    if len(desc) < 3:
-                        desc_missing.append(prop)
-            if desc_missing:
-                logger.error('%s: Missing "description" for: %s', schema_fn, ', '.join(desc_missing))
-                issues = True
-            else:
-                logger.info('%s: Each property "description" is present.', schema_fn)
+           logger.warning("No 'jq' so not assessing schema file.")
     return issues
 
 if __name__ == "__main__":

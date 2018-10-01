@@ -34,11 +34,16 @@ Detecting these early helps with understanding the messages from the raml parser
 The schema name declaration key names in the RAML file have particular needs when being used with RMB.
 This script attempts to assess those, for both pre and post RMB v20.
 
+Also schema files are assessed (if 'jq' is available) to ensure that property descriptions are present (FOLIO-1447).
+
+This script is used as the Jenkins CI stage "lint-raml".
+
 ### Prerequisites
 
 - python3+
 - yarn
 - [raml-cop](https://github.com/thebinarypenguin/raml-cop) (see below)
+- [jq](https://github.com/stedolan/jq)
 - Some extra Python modules (see requirements.txt).
 
 ### Method
@@ -57,6 +62,8 @@ cd folio-tools/lint-raml
 pip3 install -r requirements.txt
 ```
 
+If 'jq' is available on system $PATH, then will also do some extra assessment of JSON files.
+
 Assuming folio-tools is cloned parallel to mod-notes.
 Assuming the repository is already listed in the api.yml configuration.
 Otherwise get a local copy from the URL listed in the script, add an entry, and use the `-d` option.
@@ -73,6 +80,8 @@ Shell script to discover RAML files in a project and run 'raml-cop'.
 Validates the RAML, ensures the $ref links in JSON Schema, and processes the examples.
 
 Does not assess the schema name declaration key names in the RAML file.
+
+(Probably out-of-date. Use the Python tool above.)
 
 ### Prerequisites
 
