@@ -73,6 +73,18 @@ def main():
         logger.critical("Specified input directory of git clone (-i) not found: %s", git_input_dir)
         return 2
 
+    # Ensure that commands are available
+    if sh.which("jq"):
+        has_jq = True
+    else:
+        logger.warning("'jq' is not available. So will not do extra JSON assessment.")
+        has_jq = False
+    bin_raml_cop = os.path.join(sys.path[0], "node_modules", ".bin", "raml-cop")
+    if not os.path.exists(bin_raml_cop):
+        logger.critical("'raml-cop' is not available.")
+        logger.critical("Do 'yarn install' in folio-tools/lint-raml directory.")
+        return 2
+
     # Get the repository name
     try:
         repo_url = sh.git.config("--get", "remote.origin.url", _cwd=git_input_dir).stdout.decode().strip()
@@ -318,15 +330,14 @@ def main():
                                             logger.error("The schema reference '%s' defined in '%s' is not declared in RAML file.", ref_value, schemas[schema])
                                             exit_code = 1
             # Sool raml-cop onto it.
-            cmd_name = "raml-cop"
-            cmd = sh.Command(os.path.join(sys.path[0], "node_modules", ".bin", cmd_name))
+            cmd_raml_cop = sh.Command(bin_raml_cop)
             try:
-                cmd(input_pn, no_color=True)
+                cmd_raml_cop(input_pn, no_color=True)
             except sh.ErrorReturnCode_1 as err:
-                logger.error("  %s detected errors with %s:\n%s", cmd_name, raml_fn,  err.stdout.decode())
+                logger.error("  raml-cop detected errors with %s:\n%s", raml_fn, err.stdout.decode())
                 exit_code = 1
             else:
-                logger.info("  %s did not detect any errors with %s", cmd_name, raml_fn)
+                logger.info("  raml-cop did not detect any errors with %s", raml_fn)
     # Report the outcome
     if exit_code == 1:
         logger.error("There were processing errors. See list above.")
