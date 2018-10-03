@@ -365,8 +365,8 @@ def gather_declarations(raml_input_pn, raml_input_fn, raml_version, is_rmb, inpu
     with open(raml_input_pn) as input_fh:
         try:
             raml_content = yaml.load(input_fh)
-        except yaml.scanner.ScannerError:
-            logger.critical("Trouble scanning RAML file '%s'", raml_input_fn)
+        except yaml.scanner.ScannerError as err:
+            logger.error("Trouble scanning RAML file '%s': %s", raml_input_fn, err)
             issues = True
             return (schemas, issues)
         # Handling of content is different for 0.8 and 1.0 raml.
@@ -377,8 +377,13 @@ def gather_declarations(raml_input_pn, raml_input_fn, raml_version, is_rmb, inpu
                 logger.debug("No schemas were declared in '%s'", raml_input_fn)
             else:
                 for decl in raml_content["schemas"]:
-                    for key, schema_fn in decl.items():
-                        if isinstance(schema_fn, str):
+                    try:
+                        decl.items()
+                    except AttributeError:
+                        logger.error("Missing colon in RAML schemas section of '%s': %s", raml_input_fn, decl)
+                        issues = True
+                    else:
+                        for key, schema_fn in decl.items():
                             schema_pn = os.path.join(ramls_dir, schema_fn)
                             if not os.path.exists(schema_pn):
                                 logger.error("Missing file '%s'. Declared in the RAML schemas section.", schema_fn)
@@ -390,8 +395,13 @@ def gather_declarations(raml_input_pn, raml_input_fn, raml_version, is_rmb, inpu
                 logger.debug("No traits were declared in '%s'", raml_input_fn)
             else:
                 for decl in raml_content["traits"]:
-                    for key, trait_fn in decl.items():
-                        if isinstance(trait_fn, str):
+                    try:
+                        decl.items()
+                    except AttributeError:
+                        logger.error("Missing colon in RAML traits section of '%s': %s", raml_input_fn, decl)
+                        issues = True
+                    else:
+                        for key, trait_fn in decl.items():
                             trait_pn = os.path.join(ramls_dir, trait_fn)
                             if not os.path.exists(trait_pn):
                                 logger.error("Missing file '%s'. Declared in the RAML traits section.", trait_fn)
