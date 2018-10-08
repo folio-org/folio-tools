@@ -123,7 +123,7 @@ def main():
     if repo_name not in config:
         logger.warning("No configuration found for repository '%s'", repo_name)
         logger.warning("See FOLIO-903. Add an entry to api.yml")
-        logger.warning("Attempting default.")
+        logger.warning("Attempting default configuration.")
         config[repo_name] = config["default"]
 
     # The yaml parser gags on the "!include".
@@ -234,6 +234,9 @@ def main():
             if issues_flag:
                 exit_code = 1
         logger.info("Assessing RAML files:")
+        if not raml_files:
+          logger.error("No RAML files found in %s", ramls_dir)
+          exit_code = 1
         for raml_fn in raml_files:
             if args.file:
                 if os.path.join(docset["directory"], raml_fn) != args.file:
