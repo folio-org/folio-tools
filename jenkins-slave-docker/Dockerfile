@@ -106,6 +106,7 @@ RUN apt-get -q update && \
     -o Dpkg::Options::="--force-confnew"  --no-install-recommends \
     ansible python-jmespath && \
     pip install boto
+    pip install boto3
    
 
 # ruby/rvm
