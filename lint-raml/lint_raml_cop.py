@@ -204,11 +204,6 @@ def main():
                 schemas_dir = os.path.join(input_dir, docset["schemasDirectory"])
             except KeyError:
                 schemas_dir = os.path.join(input_dir, docset["directory"])
-            acq_dir = os.path.join(ramls_dir, "acq-models")
-            if os.path.exists(acq_dir):
-                excludes.add("acq-models") # FIXME: Avoid for time being.
-                logger.error("Excluding acq-models from schema processing: MODORDSTOR-12")
-                exit_code = 1
             for root, dirs, files in os.walk(schemas_dir, topdown=True):
                 dirs[:] = [d for d in dirs if d not in excludes]
                 logger.info("Looking for schema files: %s", root)
