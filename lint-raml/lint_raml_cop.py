@@ -204,9 +204,15 @@ def main():
                 schemas_dir = os.path.join(input_dir, docset["schemasDirectory"])
             except KeyError:
                 schemas_dir = os.path.join(input_dir, docset["directory"])
+            else:
+                if not os.path.exists(schemas_dir):
+                    logger.warning("The specified 'schemasDirectory' not found: %s", os.path.join(repo_name, docset["schemasDirectory"]))
+                    logger.warning("See FOLIO-903. Update entry in api.yml")
+                    logger.warning("Attempting default.")
+                    schemas_dir = os.path.join(input_dir, docset["directory"])
             for root, dirs, files in os.walk(schemas_dir, topdown=True):
                 dirs[:] = [d for d in dirs if d not in excludes]
-                logger.info("Looking for schema files: %s", root)
+                logger.info("Looking for JSON schema files: %s", root)
                 for filename in files:
                     if filename.endswith((".json", ".schema")):
                         schema_pn = os.path.relpath(os.path.join(root, filename), schemas_dir)
