@@ -15,7 +15,7 @@ The tools also compare examples with their RAML and schema.
 
 Note that most projects have a standard directory layout (i.e.
 `./ramls` holding the RAML files and Schemas, with a shared git submodule at `./ramls/raml-util`).
-Some projects have known variations. The scripts are configured for that,
+Some projects have known variations. The scripts are [configured](https://dev.folio.org/reference/api/#configure-api-docs) for that,
 but options are provided to handle different situations. See the script help.
 
 There is some assistance at [dev.folio.org/guides/raml-cop](https://dev.folio.org/guides/raml-cop)
@@ -65,8 +65,10 @@ pip3 install -r requirements.txt
 If 'jq' is available on system $PATH, then will also do some extra assessment of JSON files.
 
 Assuming folio-tools is cloned parallel to mod-notes.
-Assuming the repository is already listed in the api.yml configuration.
-Otherwise get a local copy from the URL listed in the script, add an entry, and use the `-d` option.
+Assuming the repository is already [listed](https://dev.folio.org/reference/api/#configure-api-docs) in the [api.yml](https://github.com/folio-org/folio-org.github.io/blob/master/_data/api.yml) configuration file.
+Otherwise get a local copy from that URL, add an entry, and use the script option `-d -c path/to/local/api.yml`
+
+(However, as explained in the [configuration](https://dev.folio.org/reference/api/#configure-api-docs) documentation, the script will still operate without a configuration entry.)
 
 ```shell
 cd mod-notes
