@@ -234,7 +234,7 @@ def main():
             issues_flag = assess_schema_descriptions(schemas_dir, found_schema_files, has_jq)
             if issues_flag:
                 exit_code = 1
-        logger.info("Assessing RAML files:")
+        logger.info("Assessing RAML files (FOLIO-1447):")
         if not raml_files:
           logger.error("No RAML files found in %s", ramls_dir)
           exit_code = 1
