@@ -520,7 +520,7 @@ def assess_schema_descriptions(schemas_dir, schema_files, has_jq):
                                if len(desc) < 3:
                                    desc_missing.append(prop)
                    if desc_missing:
-                       logger.error('%s: Missing "description" for: %s', schema_fn, ', '.join(desc_missing))
+                       logger.error('%s: Missing "description" for: %s', schema_fn, ', '.join(sorted(desc_missing)))
                        issues = True
                    else:
                        logger.info('%s: Each property "description" is present.', schema_fn)
