@@ -524,6 +524,9 @@ def assess_schema_descriptions(schemas_dir, schema_files, has_jq):
                                desc = props[prop]['description']
                            except KeyError:
                                desc_missing.append(prop)
+                           except TypeError:
+                               logger.error('%s: Trouble determining "description" for property, perhaps misplaced.', schema_fn)
+                               desc_missing.append("misplaced")
                            else:
                                if len(desc) < 3:
                                    desc_missing.append(prop)
