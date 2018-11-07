@@ -178,6 +178,12 @@ def main():
         for raml_name in docset["files"]:
             raml_fn = "{0}.raml".format(raml_name)
             configured_raml_files.append(raml_fn)
+        exclude_list = ["raml-util", "rtypes", "traits", "examples", "bindings", "node_modules"]
+        try:
+            exclude_list.extend(docset["excludes"])
+        except KeyError:
+            pass
+        excludes = set(exclude_list)
         found_raml_files = []
         raml_files = []
         found_schema_files = []
@@ -188,28 +194,30 @@ def main():
                 raml_pn = os.path.relpath(raml_fn, ramls_dir)
                 found_raml_files.append(raml_pn)
         else:
-            exclude_list = ["raml-util", "rtypes", "traits", "examples", "bindings", "node_modules"]
-            try:
-                exclude_list.extend(docset["excludes"])
-            except KeyError:
-                pass
-            excludes = set(exclude_list)
             for root, dirs, files in os.walk(ramls_dir, topdown=True):
                 dirs[:] = [d for d in dirs if d not in excludes]
                 for raml_fn in fnmatch.filter(files, "*.raml"):
                     raml_pn = os.path.relpath(os.path.join(root, raml_fn), ramls_dir)
                     found_raml_files.append(raml_pn)
-            # Also find the JSON Schemas to later scan them
-            try:
-                schemas_dir = os.path.join(input_dir, docset["schemasDirectory"])
-            except KeyError:
+        # Also find the JSON Schemas to later scan them
+        try:
+            schemas_dir = os.path.join(input_dir, docset["schemasDirectory"])
+        except KeyError:
+            schemas_dir = os.path.join(input_dir, docset["directory"])
+        else:
+            if not os.path.exists(schemas_dir):
+                logger.warning("The specified 'schemasDirectory' not found: %s", os.path.join(repo_name, docset["schemasDirectory"]))
+                logger.warning("See FOLIO-903. Update entry in api.yml")
+                logger.warning("Attempting default.")
                 schemas_dir = os.path.join(input_dir, docset["directory"])
-            else:
-                if not os.path.exists(schemas_dir):
-                    logger.warning("The specified 'schemasDirectory' not found: %s", os.path.join(repo_name, docset["schemasDirectory"]))
-                    logger.warning("See FOLIO-903. Update entry in api.yml")
-                    logger.warning("Attempting default.")
-                    schemas_dir = os.path.join(input_dir, docset["directory"])
+        if docset["label"] == "shared":
+            # If this is the top-level of the shared space, then do not descend
+            pattern = os.path.join(schemas_dir, "*.schema")
+            logger.info("Looking for JSON schema files: %s", docset["schemasDirectory"])
+            for schema_fn in glob.glob(pattern):
+                schema_pn = os.path.relpath(schema_fn, schemas_dir)
+                found_schema_files.append(schema_pn)
+        else:
             for root, dirs, files in os.walk(schemas_dir, topdown=True):
                 dirs[:] = [d for d in dirs if d not in excludes]
                 logger.info("Looking for JSON schema files: %s", root)
@@ -217,7 +225,7 @@ def main():
                     if filename.endswith((".json", ".schema")):
                         schema_pn = os.path.relpath(os.path.join(root, filename), schemas_dir)
                         found_schema_files.append(schema_pn)
-            logger.debug("found_schema_files: %s", found_schema_files)
+        logger.debug("found_schema_files: %s", found_schema_files)
         for raml_fn in configured_raml_files:
             if raml_fn not in found_raml_files:
                 logger.warning("Configured file not found: %s", raml_fn)
