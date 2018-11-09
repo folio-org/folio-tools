@@ -10,6 +10,10 @@ Detecting these early helps with understanding the messages from the raml parser
        2: Configuration issues.
 """
 
+import sys
+if sys.version_info[0] < 3:
+    raise RuntimeError("Python 3 or above is required.")
+
 import argparse
 import fnmatch
 import glob
@@ -18,14 +22,10 @@ import logging
 import os
 import re
 import shutil
-import sys
 
 import requests
 import sh
 import yaml
-
-if sys.version_info[0] < 3:
-    raise RuntimeError("Python 3 or above is required.")
 
 CONFIG_FILE = "https://raw.githubusercontent.com/folio-org/folio-org.github.io/master/_data/api.yml"
 
