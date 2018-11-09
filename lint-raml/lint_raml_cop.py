@@ -46,6 +46,8 @@ def main():
     parser.add_argument("-f", "--file",
                         default="",
                         help="Limit to this particular pathname, e.g. ramls/item-storage.raml (Default: '' so all files)")
+    parser.add_argument("-v", "--validate-only", action="store_true",
+                        help="Just assess the RAML files. No schema assessment. (Default: False)")
     parser.add_argument("-l", "--loglevel",
                         choices=["debug", "info", "warning", "error", "critical"],
                         default="info",
@@ -239,9 +241,12 @@ def main():
         logger.debug("found_raml_files: %s", found_raml_files)
         logger.debug("raml_files: %s", raml_files)
         if found_schema_files:
-            issues_flag = assess_schema_descriptions(schemas_dir, found_schema_files, has_jq)
-            if issues_flag:
-                exit_code = 1
+            if args.validate_only:
+                logger.warning("Not assessing schema descriptions, as per option '--validate-only'.")
+            else:
+                issues_flag = assess_schema_descriptions(schemas_dir, found_schema_files, has_jq)
+                if issues_flag:
+                    exit_code = 1
         logger.info("Assessing RAML files:")
         if not raml_files:
             logger.error("No RAML files found in %s", ramls_dir)
