@@ -10,6 +10,10 @@ Detecting these early helps with understanding the messages from the raml parser
        2: Configuration issues.
 """
 
+import sys
+if sys.version_info[0] < 3:
+    raise RuntimeError("Python 3 or above is required.")
+
 import argparse
 import fnmatch
 import glob
@@ -18,14 +22,10 @@ import logging
 import os
 import re
 import shutil
-import sys
 
 import requests
 import sh
 import yaml
-
-if sys.version_info[0] < 3:
-    raise RuntimeError("Python 3 or above is required.")
 
 CONFIG_FILE = "https://raw.githubusercontent.com/folio-org/folio-org.github.io/master/_data/api.yml"
 
@@ -46,6 +46,8 @@ def main():
     parser.add_argument("-f", "--file",
                         default="",
                         help="Limit to this particular pathname, e.g. ramls/item-storage.raml (Default: '' so all files)")
+    parser.add_argument("-v", "--validate-only", action="store_true",
+                        help="Just assess the RAML files. No schema assessment. (Default: False)")
     parser.add_argument("-l", "--loglevel",
                         choices=["debug", "info", "warning", "error", "critical"],
                         default="info",
@@ -239,13 +241,16 @@ def main():
         logger.debug("found_raml_files: %s", found_raml_files)
         logger.debug("raml_files: %s", raml_files)
         if found_schema_files:
-            issues_flag = assess_schema_descriptions(schemas_dir, found_schema_files, has_jq)
-            if issues_flag:
-                exit_code = 1
+            if args.validate_only:
+                logger.warning("Not assessing schema descriptions, as per option '--validate-only'.")
+            else:
+                issues_flag = assess_schema_descriptions(schemas_dir, found_schema_files, has_jq)
+                if issues_flag:
+                    exit_code = 1
         logger.info("Assessing RAML files:")
         if not raml_files:
-          logger.error("No RAML files found in %s", ramls_dir)
-          exit_code = 1
+            logger.error("No RAML files found in %s", ramls_dir)
+            exit_code = 1
         for raml_fn in raml_files:
             if args.file:
                 if os.path.join(docset["directory"], raml_fn) != args.file:
@@ -495,48 +500,48 @@ def assess_schema_descriptions(schemas_dir, schema_files, has_jq):
         except KeyError:
             continue
         if has_jq:
-           logger.debug("Doing jq")
-           # Use jq to gather all properties into easier-to-use form.
-           jq_filter = '[ .. | .properties? | objects ]'
-           try:
-               result_jq = sh.jq('--monochrome-output', jq_filter, schema_pn).stdout.decode().strip()
-           except sh.ErrorReturnCode_2 as err:
-               logger.error("Trouble doing jq: usage error: %s", err.stderr.decode())
-               issues = True
-           except sh.ErrorReturnCode_3 as err:
-               logger.error("Trouble doing jq: compile error: %s", err.stderr.decode())
-               issues = True
-           else:
-               try:
-                   jq = json.loads(result_jq)
-               except Exception as err:
-                   logger.error("Trouble loading JSON obtained from jq: %s", err)
-                   issues = True
-                   continue
-               else:
-                   # logger.debug("JQ: %s", jq)
-                   desc_missing = []
-                   for props in jq:
-                       for prop in props:
-                           if prop in props_skipped:
-                               continue
-                           try:
-                               desc = props[prop]['description']
-                           except KeyError:
-                               desc_missing.append(prop)
-                           except TypeError:
-                               logger.error('%s: Trouble determining "description" for property, perhaps misplaced.', schema_fn)
-                               desc_missing.append("misplaced")
-                           else:
-                               if len(desc) < 3:
-                                   desc_missing.append(prop)
-                   if desc_missing:
-                       logger.error('%s: Missing "description" for: %s', schema_fn, ', '.join(sorted(desc_missing)))
-                       issues = True
-                   else:
-                       logger.info('%s: Each property "description" is present.', schema_fn)
+            logger.debug("Doing jq")
+            # Use jq to gather all properties into easier-to-use form.
+            jq_filter = '[ .. | .properties? | objects ]'
+            try:
+                result_jq = sh.jq('--monochrome-output', jq_filter, schema_pn).stdout.decode().strip()
+            except sh.ErrorReturnCode_2 as err:
+                logger.error("Trouble doing jq: usage error: %s", err.stderr.decode())
+                issues = True
+            except sh.ErrorReturnCode_3 as err:
+                logger.error("Trouble doing jq: compile error: %s", err.stderr.decode())
+                issues = True
+            else:
+                try:
+                    jq = json.loads(result_jq)
+                except Exception as err:
+                    logger.error("Trouble loading JSON obtained from jq: %s", err)
+                    issues = True
+                    continue
+                else:
+                    # logger.debug("JQ: %s", jq)
+                    desc_missing = []
+                    for props in jq:
+                        for prop in props:
+                            if prop in props_skipped:
+                                continue
+                            try:
+                                desc = props[prop]['description']
+                            except KeyError:
+                                desc_missing.append(prop)
+                            except TypeError:
+                                logger.error('%s: Trouble determining "description" for property, perhaps misplaced.', schema_fn)
+                                desc_missing.append("misplaced")
+                            else:
+                                if len(desc) < 3:
+                                    desc_missing.append(prop)
+                    if desc_missing:
+                        logger.error('%s: Missing "description" for: %s', schema_fn, ', '.join(sorted(desc_missing)))
+                        issues = True
+                    else:
+                        logger.info('%s: Each property "description" is present.', schema_fn)
         else:
-           logger.warning("No 'jq' so not assessing schema file.")
+            logger.warning("No 'jq' so not assessing schema file.")
     return issues
 
 if __name__ == "__main__":
