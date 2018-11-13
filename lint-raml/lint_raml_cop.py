@@ -157,6 +157,7 @@ def main():
             ramlutil_dir = os.path.join(input_dir, docset["ramlutil"])
             if not os.path.exists(ramlutil_dir):
                 logger.warning("The specified 'raml-util' directory not found: %s", os.path.join(repo_name, docset["ramlutil"]))
+                logger.warning("See FOLIO-903. Update entry in api.yml")
             else:
                 if docset["ramlutil"] != ".":
                     try:
@@ -231,12 +232,14 @@ def main():
         for raml_fn in configured_raml_files:
             if raml_fn not in found_raml_files:
                 logger.warning("Configured file not found: %s", raml_fn)
+                logger.warning("Configuration needs to be updated (FOLIO-903).")
             else:
                 raml_files.append(raml_fn)
         for raml_fn in found_raml_files:
             if raml_fn not in configured_raml_files:
                 raml_files.append(raml_fn)
                 logger.warning("Missing from configuration: %s", raml_fn)
+                logger.warning("Configuration needs to be updated (FOLIO-903).")
         logger.debug("configured_raml_files: %s", configured_raml_files)
         logger.debug("found_raml_files: %s", found_raml_files)
         logger.debug("raml_files: %s", raml_files)
