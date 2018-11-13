@@ -250,7 +250,7 @@ def main():
                 issues_flag = assess_schema_descriptions(schemas_dir, found_schema_files, has_jq)
                 if issues_flag:
                     exit_code = 1
-        logger.info("Assessing RAML files:")
+        logger.info("Assessing RAML files (https://dev.folio.org/guides/raml-cop/):")
         if not raml_files:
             logger.error("No RAML files found in %s", ramls_dir)
             exit_code = 1
@@ -477,7 +477,7 @@ def assess_schema_descriptions(schemas_dir, schema_files, has_jq):
     Ensure top-level "description" and for each property.
     """
     logger = logging.getLogger("lint-raml-cop")
-    logger.info("Assessing schema files (FOLIO-1447):")
+    logger.info("Assessing schema files (https://dev.folio.org/guides/describe-schema/):")
     issues = False
     props_skipped = ["id", "metadata", "resultInfo", "tags", "totalRecords"]
     for schema_fn in schema_files:
