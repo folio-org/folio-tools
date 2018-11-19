@@ -176,6 +176,12 @@ def main():
             is_rmb = docset["rmb"]
         except KeyError:
             is_rmb = True
+        # Some repos have no RAMLs.
+        # Currently this script is also processing schemas FOLIO-1447, so this can be intentional.
+        try:
+            is_schemas_only = docset["schemasOnly"]
+        except KeyError:
+            is_schemas_only = False
         # Ensure configuration and find any RAML files not configured
         configured_raml_files = []
         for raml_name in docset["files"]:
@@ -250,10 +256,11 @@ def main():
                 issues_flag = assess_schema_descriptions(schemas_dir, found_schema_files, has_jq)
                 if issues_flag:
                     exit_code = 1
-        logger.info("Assessing RAML files (https://dev.folio.org/guides/raml-cop/):")
-        if not raml_files:
-            logger.error("No RAML files found in %s", ramls_dir)
-            exit_code = 1
+        if not is_schemas_only:
+            logger.info("Assessing RAML files (https://dev.folio.org/guides/raml-cop/):")
+            if not raml_files:
+                logger.error("No RAML files found in %s", ramls_dir)
+                exit_code = 1
         for raml_fn in raml_files:
             if args.file:
                 if os.path.join(docset["directory"], raml_fn) != args.file:
