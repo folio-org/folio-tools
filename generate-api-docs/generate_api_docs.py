@@ -236,11 +236,11 @@ def main():
             if sw_version_value is not None:
                 output_version_dir = os.path.join(output_home_dir, args.repo, sw_version_value, docset["label"])
         logger.debug("Output directory: %s", output_dir)
-        output_2_dir = os.path.join(output_dir, "2")
+        output_2_dir = os.path.join(output_dir, "p") # plain
         os.makedirs(output_dir, exist_ok=True)
         os.makedirs(output_2_dir, exist_ok=True)
         if sw_version_value is not None:
-            output_version_2_dir = os.path.join(output_version_dir, "2")
+            output_version_2_dir = os.path.join(output_version_dir, "p")
             os.makedirs(output_version_dir, exist_ok=True)
             os.makedirs(output_version_2_dir, exist_ok=True)
         configured_raml_files = []
@@ -326,6 +326,7 @@ def main():
             cmd_name = "raml2html3" if raml_version_value == "0.8" else "raml2html"
             cmd = sh.Command(os.path.join(sys.path[0], "node_modules", cmd_name, "bin", "raml2html"))
             logger.info("Doing %s with %s as v%s into %s", cmd_name, raml_fn, raml_version_value, output_1_pn)
+            # Generate using the default template
             try:
                 cmd(i=input_pn, o=output_1_pn)
             except sh.ErrorReturnCode as err:
@@ -339,15 +340,16 @@ def main():
                     except:
                         logger.debug("Could not copy %s to %s", output_1_pn, dest_fn)
 
-            if raml_version_value == "0.8":
-                cmd_name = "raml-fleece"
-                cmd = sh.Command(os.path.join(sys.path[0], "node_modules", ".bin", cmd_name))
-                template_parameters_pn = os.path.join(sys.path[0], "resources", "raml-fleece", "parameters.handlebars")
-                logger.info("Doing %s with %s as v%s into %s", cmd_name, raml_fn, raml_version_value, output_2_pn)
+            # Generate using other templates
+            if raml_version_value != "0.8":
+                # raml2html-plain-theme
+                theme_name = "plain"
+                logger.info("Doing '%s' theme with %s as v%s into %s", theme_name, raml_fn, raml_version_value, output_2_pn)
                 try:
                     cmd(input_pn,
-                        template_parameters=template_parameters_pn,
-                        _out=output_2_pn)
+                        theme="raml2html-plain-theme",
+                        i=input_pn,
+                        o=output_2_pn)
                 except sh.ErrorReturnCode as err:
                     logger.error("%s: %s", cmd_name, err.stderr.decode())
                     exit_code = 1

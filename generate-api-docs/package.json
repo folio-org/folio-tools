@@ -1,7 +1,7 @@
 {
   "dependencies": {
-    "raml-fleece": "dcrossleyau/raml-fleece",
     "raml2html": "^7.1.0",
-    "raml2html3": "npm:raml2html@3.0.1"
+    "raml2html3": "npm:raml2html@3.0.1",
+    "raml2html-plain-theme": "^0.1.5"
   }
 }
