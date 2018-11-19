@@ -113,6 +113,15 @@ def main():
         logger.warning("See FOLIO-903. Add an entry to api.yml")
         logger.warning("Attempting default.")
         metadata[args.repo] = metadata["default"]
+    # Some repos intentionally have no RAMLs.
+    try:
+        is_schemas_only = metadata[args.repo][0]["schemasOnly"]
+    except KeyError:
+        pass
+    else:
+        if is_schemas_only:
+            logger.critical('This repository is configured as "schemasOnly".')
+            return 2
 
     # Ensure that we are dealing with the expected git clone
     try:
@@ -150,13 +159,15 @@ def main():
                     md_pn = None
                     logger.debug("The ModuleDescriptor.json was not found. Build needed?")
         if md_pn is None:
-            sw_version_re = re.compile(r"<version>([0-9]+\.[0-9]+)")
-            with open("pom.xml", "r") as pom_fh:
-                for line in pom_fh:
-                    match = re.search(sw_version_re, line)
-                    if match:
-                        sw_version_value = match.group(1)
-                        break
+            pom_pn = os.path.join(input_dir, "pom.xml")
+            if os.path.exists(pom_pn):
+                sw_version_re = re.compile(r"<version>([0-9]+\.[0-9]+)")
+                with open(pom_pn, "r") as pom_fh:
+                    for line in pom_fh:
+                        match = re.search(sw_version_re, line)
+                        if match:
+                            sw_version_value = match.group(1)
+                            break
         else:
             with open(md_pn, "r") as md_fh:
                 md_data = json.load(md_fh)
