@@ -15,6 +15,7 @@ if sys.version_info[0] < 3:
     raise RuntimeError("Python 3 or above is required.")
 
 import argparse
+from collections.abc import Iterable
 import fnmatch
 import glob
 import json
@@ -127,6 +128,7 @@ def main():
         logger.warning("See FOLIO-903. Add an entry to api.yml")
         logger.warning("Attempting default configuration.")
         config[repo_name] = config["default"]
+        config[repo_name][0]["files"].remove("dummy")
 
     # The yaml parser gags on the "!include".
     # http://stackoverflow.com/questions/13280978/pyyaml-errors-on-in-a-string
@@ -184,9 +186,15 @@ def main():
             is_schemas_only = False
         # Ensure configuration and find any RAML files not configured
         configured_raml_files = []
-        for raml_name in docset["files"]:
-            raml_fn = "{0}.raml".format(raml_name)
-            configured_raml_files.append(raml_fn)
+        try:
+            docset["files"]
+        except KeyError:
+            pass
+        else:
+            if isinstance(docset["files"], Iterable):
+                for raml_name in docset["files"]:
+                    raml_fn = "{0}.raml".format(raml_name)
+                    configured_raml_files.append(raml_fn)
         exclude_list = ["raml-util", "rtypes", "traits", "examples", "bindings", "node_modules"]
         try:
             exclude_list.extend(docset["excludes"])
