@@ -10,6 +10,7 @@
 
 import argparse
 import atexit
+from collections.abc import Iterable
 import fnmatch
 import glob
 import json
@@ -113,6 +114,16 @@ def main():
         logger.warning("See FOLIO-903. Add an entry to api.yml")
         logger.warning("Attempting default.")
         metadata[args.repo] = metadata["default"]
+        metadata[args.repo][0]["files"].remove("dummy")
+    # Some repos intentionally have no RAMLs.
+    try:
+        is_schemas_only = metadata[args.repo][0]["schemasOnly"]
+    except KeyError:
+        pass
+    else:
+        if is_schemas_only:
+            logger.critical('This repository is configured as "schemasOnly".')
+            return 2
 
     # Ensure that we are dealing with the expected git clone
     try:
@@ -150,13 +161,15 @@ def main():
                     md_pn = None
                     logger.debug("The ModuleDescriptor.json was not found. Build needed?")
         if md_pn is None:
-            sw_version_re = re.compile(r"<version>([0-9]+\.[0-9]+)")
-            with open("pom.xml", "r") as pom_fh:
-                for line in pom_fh:
-                    match = re.search(sw_version_re, line)
-                    if match:
-                        sw_version_value = match.group(1)
-                        break
+            pom_pn = os.path.join(input_dir, "pom.xml")
+            if os.path.exists(pom_pn):
+                sw_version_re = re.compile(r"<version>([0-9]+\.[0-9]+)")
+                with open(pom_pn, "r") as pom_fh:
+                    for line in pom_fh:
+                        match = re.search(sw_version_re, line)
+                        if match:
+                            sw_version_value = match.group(1)
+                            break
         else:
             with open(md_pn, "r") as md_fh:
                 md_data = json.load(md_fh)
@@ -231,9 +244,15 @@ def main():
             os.makedirs(output_version_dir, exist_ok=True)
             os.makedirs(output_version_2_dir, exist_ok=True)
         configured_raml_files = []
-        for raml_name in docset["files"]:
-            raml_fn = "{0}.raml".format(raml_name)
-            configured_raml_files.append(raml_fn)
+        try:
+            docset["files"]
+        except KeyError:
+            pass
+        else:
+            if isinstance(docset["files"], Iterable):
+                for raml_name in docset["files"]:
+                    raml_fn = "{0}.raml".format(raml_name)
+                    configured_raml_files.append(raml_fn)
         found_raml_files = []
         raml_files = []
         if docset["label"] == "shared":

@@ -15,6 +15,7 @@ if sys.version_info[0] < 3:
     raise RuntimeError("Python 3 or above is required.")
 
 import argparse
+from collections.abc import Iterable
 import fnmatch
 import glob
 import json
@@ -127,6 +128,7 @@ def main():
         logger.warning("See FOLIO-903. Add an entry to api.yml")
         logger.warning("Attempting default configuration.")
         config[repo_name] = config["default"]
+        config[repo_name][0]["files"].remove("dummy")
 
     # The yaml parser gags on the "!include".
     # http://stackoverflow.com/questions/13280978/pyyaml-errors-on-in-a-string
@@ -176,12 +178,24 @@ def main():
             is_rmb = docset["rmb"]
         except KeyError:
             is_rmb = True
+        # Some repos have no RAMLs.
+        # Currently this script is also processing schemas FOLIO-1447, so this can be intentional.
+        try:
+            is_schemas_only = docset["schemasOnly"]
+        except KeyError:
+            is_schemas_only = False
         # Ensure configuration and find any RAML files not configured
         configured_raml_files = []
-        for raml_name in docset["files"]:
-            raml_fn = "{0}.raml".format(raml_name)
-            configured_raml_files.append(raml_fn)
-        exclude_list = ["raml-util", "rtypes", "traits", "examples", "bindings", "node_modules"]
+        try:
+            docset["files"]
+        except KeyError:
+            pass
+        else:
+            if isinstance(docset["files"], Iterable):
+                for raml_name in docset["files"]:
+                    raml_fn = "{0}.raml".format(raml_name)
+                    configured_raml_files.append(raml_fn)
+        exclude_list = ["raml-util", "rtypes", "traits", "examples", "bindings", "node_modules", ".git"]
         try:
             exclude_list.extend(docset["excludes"])
         except KeyError:
@@ -213,17 +227,17 @@ def main():
                 logger.warning("See FOLIO-903. Update entry in api.yml")
                 logger.warning("Attempting default.")
                 schemas_dir = os.path.join(input_dir, docset["directory"])
+        logger.info("Looking for JSON schema files: %s", docset["schemasDirectory"])
         if docset["label"] == "shared":
             # If this is the top-level of the shared space, then do not descend
             pattern = os.path.join(schemas_dir, "*.schema")
-            logger.info("Looking for JSON schema files: %s", docset["schemasDirectory"])
             for schema_fn in glob.glob(pattern):
                 schema_pn = os.path.relpath(schema_fn, schemas_dir)
                 found_schema_files.append(schema_pn)
         else:
             for root, dirs, files in os.walk(schemas_dir, topdown=True):
                 dirs[:] = [d for d in dirs if d not in excludes]
-                logger.info("Looking for JSON schema files: %s", root)
+                logger.debug("Looking for JSON schema files: %s", root)
                 for filename in files:
                     if filename.endswith((".json", ".schema")):
                         schema_pn = os.path.relpath(os.path.join(root, filename), schemas_dir)
@@ -250,10 +264,11 @@ def main():
                 issues_flag = assess_schema_descriptions(schemas_dir, found_schema_files, has_jq)
                 if issues_flag:
                     exit_code = 1
-        logger.info("Assessing RAML files (https://dev.folio.org/guides/raml-cop/):")
-        if not raml_files:
-            logger.error("No RAML files found in %s", ramls_dir)
-            exit_code = 1
+        if not is_schemas_only:
+            logger.info("Assessing RAML files (https://dev.folio.org/guides/raml-cop/):")
+            if not raml_files:
+                logger.error("No RAML files found in %s", ramls_dir)
+                exit_code = 1
         for raml_fn in raml_files:
             if args.file:
                 if os.path.join(docset["directory"], raml_fn) != args.file:
