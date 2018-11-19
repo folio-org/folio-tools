@@ -195,7 +195,7 @@ def main():
                 for raml_name in docset["files"]:
                     raml_fn = "{0}.raml".format(raml_name)
                     configured_raml_files.append(raml_fn)
-        exclude_list = ["raml-util", "rtypes", "traits", "examples", "bindings", "node_modules"]
+        exclude_list = ["raml-util", "rtypes", "traits", "examples", "bindings", "node_modules", ".git"]
         try:
             exclude_list.extend(docset["excludes"])
         except KeyError:
@@ -227,17 +227,17 @@ def main():
                 logger.warning("See FOLIO-903. Update entry in api.yml")
                 logger.warning("Attempting default.")
                 schemas_dir = os.path.join(input_dir, docset["directory"])
+        logger.info("Looking for JSON schema files: %s", docset["schemasDirectory"])
         if docset["label"] == "shared":
             # If this is the top-level of the shared space, then do not descend
             pattern = os.path.join(schemas_dir, "*.schema")
-            logger.info("Looking for JSON schema files: %s", docset["schemasDirectory"])
             for schema_fn in glob.glob(pattern):
                 schema_pn = os.path.relpath(schema_fn, schemas_dir)
                 found_schema_files.append(schema_pn)
         else:
             for root, dirs, files in os.walk(schemas_dir, topdown=True):
                 dirs[:] = [d for d in dirs if d not in excludes]
-                logger.info("Looking for JSON schema files: %s", root)
+                logger.debug("Looking for JSON schema files: %s", root)
                 for filename in files:
                     if filename.endswith((".json", ".schema")):
                         schema_pn = os.path.relpath(os.path.join(root, filename), schemas_dir)
