@@ -10,14 +10,14 @@
 - yarn
 - [raml2html v3](https://github.com/raml2html/raml2html) (version 3 for RAML-0.8)
 - [raml2html](https://github.com/raml2html/raml2html) (for RAML-1.0)
-- [raml-fleece](https://github.com/janrain/raml-fleece) (only for RAML-0.8)
+- [raml2html-plain-theme](https://github.com/a7b0/raml2html-plain-theme) (for RAML-1.0 view-2)
 
 ## Method
 
 - On merge to master, Jenkins calls 'generate_api_docs.py -r repo_name'.
 - Loads configuration data.
 - For each RAML file, determine input RAML version,
-  call 'raml2html' and 'raml-fleece'
+  call the relevant version of 'raml2html'
   and generate html to output_directory.
 - Deploy to AWS.
 
