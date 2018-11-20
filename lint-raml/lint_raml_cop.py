@@ -161,14 +161,6 @@ def main():
                 logger.warning("The specified 'raml-util' directory not found: %s", os.path.join(repo_name, docset["ramlutil"]))
                 logger.warning("See FOLIO-903. Update entry in api.yml")
             else:
-                if docset["ramlutil"] != ".":
-                    try:
-                        rev_object = "@:./{0}".format(docset["ramlutil"])
-                        util_id = sh.git("rev-parse", rev_object, _cwd=input_dir).stdout.decode().strip()
-                    except sh.ErrorReturnCode as err:
-                        logger.critical("Trouble doing 'git rev-parse': %s", err.stderr.decode())
-                    else:
-                        logger.info("Using submodule %s at %s", docset["ramlutil"], util_id)
                 # Detect if new raml-util
                 auth_trait_pn = os.path.join(input_dir, docset["ramlutil"], "traits/auth.raml")
                 if os.path.exists(auth_trait_pn):
