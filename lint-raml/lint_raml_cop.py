@@ -227,7 +227,7 @@ def main():
                 logger.warning("See FOLIO-903. Update entry in api.yml")
                 logger.warning("Attempting default.")
                 schemas_dir = os.path.join(input_dir, docset["directory"])
-        logger.info("Looking for JSON schema files: %s", docset["schemasDirectory"])
+        logger.info("Looking for JSON schema files: %s", schemas_dir)
         if docset["label"] == "shared":
             # If this is the top-level of the shared space, then do not descend
             pattern = os.path.join(schemas_dir, "*.schema")
