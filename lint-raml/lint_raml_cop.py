@@ -219,7 +219,6 @@ def main():
                 logger.warning("See FOLIO-903. Update entry in api.yml")
                 logger.warning("Attempting default.")
                 schemas_dir = os.path.join(input_dir, docset["directory"])
-        logger.info("Looking for JSON schema files: %s", schemas_dir)
         if docset["label"] == "shared":
             # If this is the top-level of the shared space, then do not descend
             pattern = os.path.join(schemas_dir, "*.schema")
@@ -485,6 +484,7 @@ def assess_schema_descriptions(schemas_dir, schema_files, has_jq):
     """
     logger = logging.getLogger("lint-raml-cop")
     logger.info("Assessing schema files (https://dev.folio.org/guides/describe-schema/):")
+    logger.info("Found %s JSON schema files under directory '%s'", len(schema_files), schemas_dir)
     issues = False
     props_skipped = ["id", "metadata", "resultInfo", "tags", "totalRecords"]
     for schema_fn in schema_files:
