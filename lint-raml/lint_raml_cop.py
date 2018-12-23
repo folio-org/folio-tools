@@ -49,6 +49,8 @@ def main():
                         help="Limit to this particular pathname, e.g. ramls/item-storage.raml (Default: '' so all files)")
     parser.add_argument("-v", "--validate-only", action="store_true",
                         help="Just assess the RAML files. No schema assessment. (Default: False)")
+    parser.add_argument("-j", "--json-only", action="store_true",
+                        help="Just assess the JSON schema files. No RAML assessment. (Default: False)")
     parser.add_argument("-l", "--loglevel",
                         choices=["debug", "info", "warning", "error", "critical"],
                         default="info",
@@ -142,7 +144,7 @@ def main():
     exit_code = 0 # Continue processing to detect various issues, then return the result.
     input_dir = git_input_dir
     for docset in config[repo_name]:
-        logger.info("Investigating %s", os.path.join(repo_name, docset["directory"]))
+        logger.info("Investigating and determining configuration: %s", os.path.join(repo_name, docset["directory"]))
         ramls_dir = os.path.join(input_dir, docset["directory"])
         logger.debug("ramls_dir=%s", ramls_dir)
         version_ramlutil_v1 = True
@@ -250,11 +252,14 @@ def main():
         logger.debug("raml_files: %s", raml_files)
         if found_schema_files:
             if args.validate_only:
-                logger.warning("Not assessing schema descriptions, as per option '--validate-only'.")
+                logger.info("Not assessing schema descriptions, as per option '--validate-only'.")
             else:
                 issues_flag = assess_schema_descriptions(schemas_dir, found_schema_files, has_jq)
                 if issues_flag:
                     exit_code = 1
+        if args.json_only:
+            logger.info("Not assessing RAML/Schema or examples against schema, as per option '--json-only'.")
+            continue
         if not is_schemas_only:
             logger.info("Assessing RAML files (https://dev.folio.org/guides/raml-cop/):")
             if not raml_files:
