@@ -1,36 +1,7 @@
-FROM alpine:3.5
+FROM fabric8/java-alpine-openjdk8-jre:latest
 
-USER root
-
-RUN mkdir -p /usr/verticles
-
-# JAVA_APP_DIR is used by run-java.sh for finding the binaries
 ENV JAVA_APP_DIR /usr/verticles
-ENV AGENT_BOND_VERSION 1.0.2
-
-RUN apk add --update \
-    curl \
-    bash \
-    openjdk8 \
- && rm /var/cache/apk/* \
- && echo "securerandom.source=file:/dev/urandom" >> /usr/lib/jvm/default-jvm/jre/lib/security/java.security
-
-# Agent bond including Jolokia and jmx_exporter
-ADD agent-bond-opts /opt/run-java-options
-RUN mkdir -p /opt/agent-bond \
- && curl http://central.maven.org/maven2/io/fabric8/agent-bond-agent/${AGENT_BOND_VERSION}/agent-bond-agent-${AGENT_BOND_VERSION}.jar \
-          -o /opt/agent-bond/agent-bond.jar \
- && chmod 444 /opt/agent-bond/agent-bond.jar \
- && chmod 755 /opt/run-java-options
-ADD jmx_exporter_config.yml /opt/agent-bond/
-EXPOSE 8778 9779
-
-# Add run script as JAVA_APP_DIR/run-java.sh and make it executable
-COPY run-java.sh debug-options container-limits java-default-options ${JAVA_APP_DIR}/
-RUN chmod 755 ${JAVA_APP_DIR}/run-java.sh \
-    ${JAVA_APP_DIR}/java-default-options \
-    ${JAVA_APP_DIR}/container-limits \
-    ${JAVA_APP_DIR}/debug-options
+RUN mv /deployments $JAVA_APP_DIR
 
 # Create user/group 'folio'
 RUN addgroup folio && \
