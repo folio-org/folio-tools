@@ -1,8 +1,8 @@
-#CQL Log Parse
+# CQL Log Parse
 
 A Python utility to create a CSV file containing CQL to SQL conversions from the Okapi log files, as well as the time taken for the request.
 
-##Requires
+## Requires
 python3.x
 
 ## Usage
