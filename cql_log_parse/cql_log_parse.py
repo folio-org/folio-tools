@@ -2,6 +2,8 @@ import re
 import csv
 import argparse
 import sys
+from itertools import groupby
+from operator import itemgetter
 
 cql_to_sql_reg_pairs = ( \
         (r".*CQL query:\s+(.+)", ( r".*SQL generated from CQL:\s+(.*)",) ),
@@ -37,7 +39,18 @@ def get_sql(sql_reg_list, log_handle, max_lines=4):
         line = log_handle.readline()
     return None
 
-def get_queries_from_logfile(log_handle, max_lines=4):
+def get_dedup_list(original_seq):
+    original_list = list(original_seq)
+    original_list.sort(key = itemgetter(1))
+    groups = groupby(original_list, itemgetter(1))
+    grouped_list = [[item for item in data] for (key, data) in groups]
+    new_list = []
+    for entry in grouped_list:
+        new_list.append(max(entry, key=lambda x: x[0]))
+    return new_list
+
+
+def get_queries_from_logfile(log_handle, max_lines=4, dedup=False):
     log_reg = r"(?P<date>\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d,\d+)\s+(?P<level>\S+)\s+(?P<class>\S+)\s+(?P<module>\S+)\s(?P<body>.*)" #Match the major pieces of a log entry
     result_list = []
     line = log_handle.readline()
@@ -56,12 +69,13 @@ def get_queries_from_logfile(log_handle, max_lines=4):
                     if time:
                         result_list.append( (time, cql_match.group(1), sql) )
         line = log_handle.readline()
-
+    if dedup:
+        result_list = get_dedup_list(result_list)
     return result_list
 
-def get_query_csv(log_file_path, csv_file_path, max_lines=4):
+def get_query_csv(log_file_path, csv_file_path, max_lines=4, dedup=False):
     with open(log_file_path, 'r') as log_handle:
-        result_list = get_queries_from_logfile(log_handle, max_lines)
+        result_list = get_queries_from_logfile(log_handle, max_lines, dedup)
         with open(csv_file_path, 'w', newline='') as csv_handle:
             csv_writer = csv.writer(csv_handle)
             for entry in result_list:
@@ -73,12 +87,13 @@ if __name__ == "__main__":
     parser.add_argument('--max-sql-scan-lines', type=int, action='store',\
             default=4, help="The number of lines to scan for SQL following finding CQL")
     parser.add_argument('--debug', type=bool, action='store', default=False, help="Debug mode")
+    parser.add_argument('--dedup', type=bool, action='store', default=False, help="Remove duplicate CQL entries")
     parser.add_argument('logfile', help="The path to the Okapi logfile")
     parser.add_argument('csvfile', help="A path to write the csv output to")
 
     args = parser.parse_args()
     try:
-        get_query_csv(args.logfile, args.csvfile, args.max_sql_scan_lines)
+        get_query_csv(args.logfile, args.csvfile, args.max_sql_scan_lines, args.dedup)
     except Exception as e:
         if(args.debug):
             raise e
