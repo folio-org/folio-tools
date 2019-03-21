@@ -10,3 +10,8 @@ python3.x
 python cql_log_parse.py <path_to_log file> <path_to_csv_output>
 ```
 
+### Options
+```
+--debug=True Enables debugging messages
+--dedup=True Removes duplicate CQL entries (keeps highest execution times)
+
