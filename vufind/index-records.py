@@ -1,7 +1,7 @@
 #
 # usage: python3 index-records.py -o https://folio-snapshot-core-okapi.aws.indexdata.com
 #
-# with @Rebeca Moura
+# based on work by Rebeca Moura
 #
 
 import argparse
@@ -19,7 +19,7 @@ def main():
     args = parse_command_line_args()
     print(args)
     token = get_token(args.okapi_url, args.user_name, args.password, args.tenant)
-    for instance in gen_instance_storage_records(token):
+    for instance in gen_instance_storage_records(token, args.okapi_url, args.tenant):
         vufind_doc = map_record(instance)
         print("Indexing instance: " + vufind_doc['id'])
         print(index_record(vufind_doc, args.solr_url))
@@ -62,12 +62,12 @@ def index_record(document, solr_url):
     
     return r.status_code
 
-def gen_instance_storage_records(token):
+def gen_instance_storage_records(token, okapi, tenant):
     count = 0
     limit = 50
     page_count = 0
     headers = {
-        "X-Okapi-Tenant" : TENANT,
+        "X-Okapi-Tenant" : tenant,
         "X-Okapi-Token" : token,
         "Accept" : "application/json"
     }
@@ -75,7 +75,7 @@ def gen_instance_storage_records(token):
         "offset" : 0,
         "limit" : limit
     }
-    r = requests.get(OKAPI + '/instance-storage/instances',
+    r = requests.get(okapi + '/instance-storage/instances',
                      headers=headers,
                      params=params)
     total_records = r.json()['totalRecords']
