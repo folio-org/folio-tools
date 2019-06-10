@@ -12,8 +12,11 @@ import requests
 instance_id = jmespath.compile('id')
 instance_title = jmespath.compile('title')
 instance_short_title = jmespath.compile('indexTitle')
-instance_contributor = jmespath.compile('contributors[0].name')
+instance_contributor = jmespath.compile('contributors[*].name')
 instance_subjects = jmespath.compile('subjects')
+instance_edition = jmespath.compile('editions')
+instance_series = jmespath.compile('series')
+instance_language = jmespath.compile('languages')
 
 def main():
     args = parse_command_line_args()
@@ -48,6 +51,9 @@ def map_record(instance_record):
     vufind_document['title_full'] = instance_title.search(instance_record)
     vufind_document['author'] = instance_contributor.search(instance_record)
     vufind_document['topic'] = instance_subjects.search(instance_record)
+    vufind_document['edition'] = instance_edition.search(instance_record)
+    vufind_document['series'] = instance_series.search(instance_record)
+    vufind_document['language'] =instance_language.search(instance_record)
 
     return vufind_document
 
@@ -90,7 +96,7 @@ def gen_instance_storage_records(token, okapi, tenant):
         if page_count == page_size and params['offset'] + limit < total_records:
             page_count = 0
             params['offset'] += limit
-            r = requests.get(OKAPI + '/instance-storage/instances',
+            r = requests.get(okapi + '/instance-storage/instances',
                              headers=headers,
                              params=params)
         yield instances_json['instances'][instance_index]
