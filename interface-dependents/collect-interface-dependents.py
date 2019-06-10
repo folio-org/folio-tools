@@ -23,7 +23,7 @@ def main():
 
     parser.add_argument("--snapshot",
                         action='store_const',
-                        const='http://folio-snapshot-latest.aws.indexdata.com:9130',
+                        const='https://folio-snapshot-okapi.aws.indexdata.com',
                         help="Use snapshot environment")
 
     parser.add_argument("-t", "--tenant",
