@@ -65,7 +65,9 @@ def main():
     loglevel = LOGLEVELS.get(args.loglevel.lower(), logging.NOTSET)
     # Need stdout to enable Jenkins to redirect into an output file
     logging.basicConfig(stream=sys.stdout, format="%(levelname)s: %(name)s: %(message)s", level=loglevel)
-    logger = logging.getLogger("lint-raml-cop")
+    logger1 = logging.getLogger("lint-raml")
+    logger2 = logging.getLogger("lint-raml-cop")
+    logger3 = logging.getLogger("lint-raml-schema")
     logging.getLogger("sh").setLevel(logging.ERROR)
     logging.getLogger("requests").setLevel(logging.ERROR)
 
@@ -75,27 +77,27 @@ def main():
     else:
         git_input_dir = args.input
     if not os.path.exists(git_input_dir):
-        logger.critical("Specified input directory of git clone (-i) not found: %s", git_input_dir)
+        logger1.critical("Specified input directory of git clone (-i) not found: %s", git_input_dir)
         return 2
 
     # Ensure that commands are available
     if sh.which("jq"):
         has_jq = True
     else:
-        logger.warning("'jq' is not available. So will not do extra JSON assessment.")
+        logger1.warning("'jq' is not available. So will not do extra JSON assessment.")
         has_jq = False
     bin_raml_cop = os.path.join(sys.path[0], "node_modules", ".bin", "raml-cop")
     if not os.path.exists(bin_raml_cop):
-        logger.critical("'raml-cop' is not available.")
-        logger.critical("Do 'yarn install' in folio-tools/lint-raml directory.")
+        logger1.critical("'raml-cop' is not available.")
+        logger1.critical("Do 'yarn install' in folio-tools/lint-raml directory.")
         return 2
 
     # Get the repository name
     try:
         repo_url = sh.git.config("--get", "remote.origin.url", _cwd=git_input_dir).stdout.decode().strip()
     except sh.ErrorReturnCode as err:
-        logger.critical("Trouble doing 'git config': %s", err.stderr.decode())
-        logger.critical("Could not determine remote.origin.url of git clone in specified input directory: %s", git_input_dir)
+        logger1.critical("Trouble doing 'git config': %s", err.stderr.decode())
+        logger1.critical("Could not determine remote.origin.url of git clone in specified input directory: %s", git_input_dir)
         return 2
     else:
         repo_name = os.path.splitext(os.path.basename(repo_url))[0]
@@ -103,8 +105,8 @@ def main():
     if args.file:
         specific_raml_file_pn = os.path.join(git_input_dir, args.file)
         if not os.path.exists(specific_raml_file_pn):
-            logger.critical("Specific RAML file '%s' does not exist in '%s'", specific_raml_file_pn, repo_name)
-            logger.critical("Needs to be pathname relative to top-level, e.g. ramls/item-storage.raml")
+            logger1.critical("Specific RAML file '%s' does not exist in '%s'", specific_raml_file_pn, repo_name)
+            logger1.critical("Needs to be pathname relative to top-level, e.g. ramls/item-storage.raml")
             return 2
 
     # Get the configuration metadata for all repositories that are known to have RAML
@@ -118,17 +120,17 @@ def main():
         config = yaml.safe_load(http_response.text)
     else:
         if not os.path.exists(config_local_pn):
-            logger.critical("Development mode specified (-d) but config file (-c) not found: %s", config_local_pn)
+            logger1.critical("Development mode specified (-d) but config file (-c) not found: %s", config_local_pn)
             return 2
         with open(config_local_pn) as input_fh:
             config = yaml.safe_load(input_fh)
     if config is None:
-        logger.critical("Configuration data was not loaded.")
+        logger1.critical("Configuration data was not loaded.")
         return 2
     if repo_name not in config:
-        logger.warning("No configuration found for repository '%s'", repo_name)
-        logger.warning("See FOLIO-903. Add an entry to api.yml")
-        logger.warning("Attempting default configuration.")
+        logger1.warning("No configuration found for repository '%s'", repo_name)
+        logger1.warning("See FOLIO-903. Add an entry to api.yml")
+        logger1.warning("Attempting default configuration.")
         config[repo_name] = config["default"]
         config[repo_name][0]["files"].remove("dummy")
 
@@ -144,24 +146,24 @@ def main():
     exit_code = 0 # Continue processing to detect various issues, then return the result.
     input_dir = git_input_dir
     for docset in config[repo_name]:
-        logger.info("Investigating and determining configuration: %s", os.path.join(repo_name, docset["directory"]))
+        logger1.info("Investigating and determining configuration: %s", os.path.join(repo_name, docset["directory"]))
         ramls_dir = os.path.join(input_dir, docset["directory"])
-        logger.debug("ramls_dir=%s", ramls_dir)
+        logger1.debug("ramls_dir=%s", ramls_dir)
         version_ramlutil_v1 = True
         if not os.path.exists(ramls_dir):
-            logger.warning("The specified 'ramls' directory not found: %s", os.path.join(repo_name, docset["directory"]))
-            logger.warning("See FOLIO-903. Update entry in api.yml")
-            logger.warning("Attempting default.")
+            logger1.warning("The specified 'ramls' directory not found: %s", os.path.join(repo_name, docset["directory"]))
+            logger1.warning("See FOLIO-903. Update entry in api.yml")
+            logger1.warning("Attempting default.")
             docset["directory"] = config["default"][0]["directory"]
             ramls_dir = os.path.join(input_dir, docset["directory"])
             if not os.path.exists(ramls_dir):
-                logger.critical("The default 'ramls' directory not found: %s/%s", repo_name, docset["directory"])
+                logger1.critical("The default 'ramls' directory not found: %s/%s", repo_name, docset["directory"])
                 return 2
         if docset["ramlutil"] is not None:
             ramlutil_dir = os.path.join(input_dir, docset["ramlutil"])
             if not os.path.exists(ramlutil_dir):
-                logger.warning("The specified 'raml-util' directory not found: %s", os.path.join(repo_name, docset["ramlutil"]))
-                logger.warning("See FOLIO-903. Update entry in api.yml")
+                logger1.warning("The specified 'raml-util' directory not found: %s", os.path.join(repo_name, docset["ramlutil"]))
+                logger1.warning("See FOLIO-903. Update entry in api.yml")
             else:
                 # Detect if new raml-util
                 auth_trait_pn = os.path.join(input_dir, docset["ramlutil"], "traits/auth.raml")
@@ -217,9 +219,9 @@ def main():
             schemas_dir = os.path.join(input_dir, docset["directory"])
         else:
             if not os.path.exists(schemas_dir):
-                logger.warning("The specified 'schemasDirectory' not found: %s", os.path.join(repo_name, docset["schemasDirectory"]))
-                logger.warning("See FOLIO-903. Update entry in api.yml")
-                logger.warning("Attempting default.")
+                logger1.warning("The specified 'schemasDirectory' not found: %s", os.path.join(repo_name, docset["schemasDirectory"]))
+                logger1.warning("See FOLIO-903. Update entry in api.yml")
+                logger1.warning("Attempting default.")
                 schemas_dir = os.path.join(input_dir, docset["directory"])
         if docset["label"] == "shared":
             # If this is the top-level of the shared space, then do not descend
@@ -230,50 +232,50 @@ def main():
         else:
             for root, dirs, files in os.walk(schemas_dir, topdown=True):
                 dirs[:] = [d for d in dirs if d not in excludes]
-                logger.debug("Looking for JSON schema files: %s", root)
+                logger1.debug("Looking for JSON schema files: %s", root)
                 for filename in files:
                     if filename.endswith((".json", ".schema")):
                         schema_pn = os.path.relpath(os.path.join(root, filename), schemas_dir)
                         found_schema_files.append(schema_pn)
-        logger.debug("found_schema_files: %s", found_schema_files)
+        logger1.debug("found_schema_files: %s", found_schema_files)
         for raml_fn in configured_raml_files:
             if raml_fn not in found_raml_files:
-                logger.warning("Configured file not found: %s", raml_fn)
-                logger.warning("Configuration needs to be updated (FOLIO-903).")
+                logger1.warning("Configured file not found: %s", raml_fn)
+                logger1.warning("Configuration needs to be updated (FOLIO-903).")
             else:
                 raml_files.append(raml_fn)
         for raml_fn in found_raml_files:
             if raml_fn not in configured_raml_files:
                 raml_files.append(raml_fn)
-                logger.warning("Missing from configuration: %s", raml_fn)
-                logger.warning("Configuration needs to be updated (FOLIO-903).")
-        logger.debug("configured_raml_files: %s", configured_raml_files)
-        logger.debug("found_raml_files: %s", found_raml_files)
-        logger.debug("raml_files: %s", raml_files)
+                logger1.warning("Missing from configuration: %s", raml_fn)
+                logger1.warning("Configuration needs to be updated (FOLIO-903).")
+        logger1.debug("configured_raml_files: %s", configured_raml_files)
+        logger1.debug("found_raml_files: %s", found_raml_files)
+        logger1.debug("raml_files: %s", raml_files)
         if found_schema_files:
             if args.validate_only:
-                logger.info("Not assessing schema descriptions, as per option '--validate-only'.")
+                logger1.info("Not assessing schema descriptions, as per option '--validate-only'.")
             else:
                 issues_flag = assess_schema_descriptions(schemas_dir, found_schema_files, has_jq)
                 if issues_flag:
                     exit_code = 1
         if args.json_only:
-            logger.info("Not assessing RAML/Schema or examples against schema, as per option '--json-only'.")
+            logger1.info("Not assessing RAML/Schema or examples against schema, as per option '--json-only'.")
             continue
         if not is_schemas_only:
-            logger.info("Assessing RAML files (https://dev.folio.org/guides/raml-cop/):")
+            logger1.info("Assessing RAML files (https://dev.folio.org/guides/raml-cop/):")
             if not raml_files:
-                logger.error("No RAML files found in %s", ramls_dir)
+                logger1.error("No RAML files found in %s", ramls_dir)
                 exit_code = 1
         for raml_fn in raml_files:
             if args.file:
                 if os.path.join(docset["directory"], raml_fn) != args.file:
-                    logger.info("Skipping RAML file: %s", raml_fn)
+                    logger1.info("Skipping RAML file: %s", raml_fn)
                     continue
             input_pn = os.path.join(ramls_dir, raml_fn)
             if not os.path.exists(input_pn):
-                logger.warning("Missing configured input file '%s'", os.path.join(repo_name, raml_fn))
-                logger.warning("Configuration needs to be updated (FOLIO-903).")
+                logger1.warning("Missing configured input file '%s'", os.path.join(repo_name, raml_fn))
+                logger1.warning("Configuration needs to be updated (FOLIO-903).")
                 continue
             # Determine raml version
             version_value = None
@@ -284,18 +286,18 @@ def main():
                         version_value = match.group(1)
                         break
             if not version_value:
-                logger.error("Could not determine RAML version for file '%s' so skipping.", raml_fn)
+                logger1.error("Could not determine RAML version for file '%s' so skipping.", raml_fn)
                 exit_code = 1
                 continue
-            logger.info("Processing RAML v%s file: %s", version_value, raml_fn)
+            logger2.info("Processing RAML v%s file: %s", version_value, raml_fn)
             if version_value != "0.8" and not version_ramlutil_v1:
-                logger.error("The raml-util is not RAML-1.0 version. Update git submodule.")
+                logger1.error("The raml-util is not RAML-1.0 version. Update git submodule.")
                 exit_code = 2
                 continue
             # Now process this RAML file
             # First load the content to extract some details.
             (schemas, issues_flag) = gather_declarations(input_pn, raml_fn, version_value, is_rmb, input_dir, docset["directory"])
-            logger.debug("Found %s declared schemas or types files.", len(schemas))
+            logger1.debug("Found %s declared schemas or types files.", len(schemas))
             if issues_flag:
                 exit_code = 1
             # Ensure each $ref referenced schema file exists, is useable, and is declared in the RAML
@@ -311,30 +313,30 @@ def main():
                     match = re.search(schema_ref_re, line)
                     if match:
                         ref_value = match.group(2)
-                        logger.debug("Found schema $ref '%s' in schema file '%s'", ref_value, schemas[schema])
+                        logger1.debug("Found schema $ref '%s' in schema file '%s'", ref_value, schemas[schema])
                         relative_schema_ref_fn = os.path.normpath(os.path.join(os.path.dirname(schemas[schema]), ref_value))
-                        logger.debug("    relative_schema_ref_fn=%s", relative_schema_ref_fn)
+                        logger1.debug("    relative_schema_ref_fn=%s", relative_schema_ref_fn)
                         relative_schema_ref_pn = os.path.normpath(os.path.join(ramls_dir, relative_schema_ref_fn))
                         if not is_rmb:
-                            logger.debug("Not RMB type, so just report if file not found.")
+                            logger1.debug("Not RMB type, so just report if file not found.")
                             if not os.path.exists(relative_schema_ref_pn):
-                                logger.error("File not found: %s", relative_schema_ref_pn)
-                                logger.error("  via schema $ref '%s' in schema file '%s'", ref_value, schemas[schema])
+                                logger1.error("File not found: %s", relative_schema_ref_pn)
+                                logger1.error("  via schema $ref '%s' in schema file '%s'", ref_value, schemas[schema])
                                 exit_code = 1
                         else:
                             if version_value != "0.8":
-                                #logger.debug("Is RMB >= v20 and 1.0, so report if file not found.")
+                                #logger1.debug("Is RMB >= v20 and 1.0, so report if file not found.")
                                 if not os.path.exists(relative_schema_ref_pn):
-                                    logger.error("File not found: %s", relative_schema_ref_pn)
-                                    logger.error("  via schema $ref '%s' in schema file '%s'", ref_value, schemas[schema])
+                                    logger1.error("File not found: %s", relative_schema_ref_pn)
+                                    logger1.error("  via schema $ref '%s' in schema file '%s'", ref_value, schemas[schema])
                                     exit_code = 1
                             else:
-                                #logger.debug("Is RMB < v20 and 0.8, so report if file not found, and ensure declaration.")
+                                #logger1.debug("Is RMB < v20 and 0.8, so report if file not found, and ensure declaration.")
                                 # RMB < v20 enables $ref in schema to be a pathname, if the position in the filesystem
                                 # and its use in the RAML meets strict conditions.
                                 if not os.path.exists(relative_schema_ref_pn):
-                                    logger.error("File not found: %s", relative_schema_ref_pn)
-                                    logger.error("  via schema $ref '%s' in schema file '%s'", ref_value, schemas[schema])
+                                    logger1.error("File not found: %s", relative_schema_ref_pn)
+                                    logger1.error("  via schema $ref '%s' in schema file '%s'", ref_value, schemas[schema])
                                     exit_code = 1
                                 else:
                                     # This RMB version has an extra bit of weirdness.
@@ -346,36 +348,36 @@ def main():
                                     if "../" in ref_value:
                                         rel_ref_value = ref_value
                                         for x in range(0, schema.count("/")):
-                                            logger.debug("      dot-dot count x=%s", x+1)
+                                            logger1.debug("      dot-dot count x=%s", x+1)
                                             rel_ref_value = re.sub("\.\./", "", rel_ref_value, count=1)
-                                        logger.debug("      rel_ref_value=%s", rel_ref_value)
+                                        logger1.debug("      rel_ref_value=%s", rel_ref_value)
                                         try:
                                             schemas[rel_ref_value]
                                         except KeyError:
-                                            logger.error("The schema reference '%s' defined in '%s' needs to be declared as '%s' in RAML file.", ref_value, schemas[schema], rel_ref_value)
+                                            logger1.error("The schema reference '%s' defined in '%s' needs to be declared as '%s' in RAML file.", ref_value, schemas[schema], rel_ref_value)
                                             exit_code = 1
                                     else:
                                         try:
                                             schemas[ref_value]
                                         except KeyError:
-                                            logger.error("The schema reference '%s' defined in '%s' is not declared in RAML file.", ref_value, schemas[schema])
+                                            logger1.error("The schema reference '%s' defined in '%s' is not declared in RAML file.", ref_value, schemas[schema])
                                             exit_code = 1
             # Sool raml-cop onto it.
             cmd_raml_cop = sh.Command(bin_raml_cop)
             try:
                 cmd_raml_cop(input_pn, no_color=True)
             except sh.ErrorReturnCode_1 as err:
-                logger.error("  raml-cop detected errors with %s:\n%s", raml_fn, err.stdout.decode())
+                logger2.error("  raml-cop detected errors with %s:\n%s", raml_fn, err.stdout.decode())
                 exit_code = 1
             else:
-                logger.info("  raml-cop did not detect any errors with %s", raml_fn)
+                logger2.info("  raml-cop did not detect any errors with %s", raml_fn)
     # Report the outcome
     if exit_code == 1:
-        logger.error("There were processing errors. See list above.")
+        logger1.error("There were processing errors. See list above.")
     elif exit_code == 2:
-        logger.error("There were processing errors. See list above.")
+        logger1.error("There were processing errors. See list above.")
     else:
-        logger.info("Did not detect any errors.")
+        logger1.info("Did not detect any errors.")
     logging.shutdown()
     return exit_code
 
@@ -396,8 +398,8 @@ def gather_declarations(raml_input_pn, raml_input_fn, raml_version, is_rmb, inpu
     with open(raml_input_pn) as input_fh:
         try:
             raml_content = yaml.load(input_fh)
-        except yaml.scanner.ScannerError:
-            logger.critical("Trouble scanning RAML file '%s'", raml_input_fn)
+        except yaml.YAMLError as err:
+            logger.critical("Trouble parsing as YAML file '%s': %s", raml_input_fn, err)
             issues = True
             return (schemas, issues)
         # Handling of content is different for 0.8 and 1.0 raml.
@@ -487,7 +489,7 @@ def assess_schema_descriptions(schemas_dir, schema_files, has_jq):
     """
     Ensure top-level "description" and for each property.
     """
-    logger = logging.getLogger("lint-raml-cop")
+    logger = logging.getLogger("lint-raml-schema")
     logger.info("Assessing schema files (https://dev.folio.org/guides/describe-schema/):")
     logger.info("Found %s JSON schema files under directory '%s'", len(schema_files), schemas_dir)
     issues = False
