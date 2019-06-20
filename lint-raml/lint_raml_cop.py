@@ -396,8 +396,8 @@ def gather_declarations(raml_input_pn, raml_input_fn, raml_version, is_rmb, inpu
     with open(raml_input_pn) as input_fh:
         try:
             raml_content = yaml.load(input_fh)
-        except yaml.scanner.ScannerError:
-            logger.critical("Trouble scanning RAML file '%s'", raml_input_fn)
+        except yaml.YAMLError as err:
+            logger.critical("Trouble parsing as YAML file '%s': %s", raml_input_fn, err)
             issues = True
             return (schemas, issues)
         # Handling of content is different for 0.8 and 1.0 raml.
