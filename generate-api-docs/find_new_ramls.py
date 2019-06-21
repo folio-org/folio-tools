@@ -71,7 +71,7 @@ def main():
     # FIXME: This script does not handle the ones that are only "raml-util", e.g. mod-codex-*
     # So just add them to the detected list.
     # But any missing from config are detected when the "raml" repo is assessed, so okay.
-    detected_extras = ["mod-codex-ekb", "mod-codex-inventory", "mod-codex-mux", "mod-codex-mock", "mod-permissions"]
+    detected_extras = ["mod-codex-ekb", "mod-codex-inventory", "mod-codex-mux"]
     repos_raml1_detected.update(detected_extras)
 
     raml_version_re = re.compile(r"^#%RAML ([0-9.]+)")
@@ -115,6 +115,9 @@ def main():
     excludes = set(['raml-util', 'okapi-debian', 'rtypes', 'traits', 'target', 'apidocs', 'node_modules'])
     # There are some peculiar paths to be excluded
     exclude_paths = [
+      "mod-login/mod-users",
+      "mod-inventory-storage/mod-users",
+      "mod-permissions/mod-users",
       "mod-data-loader/ramls/inventory",
       "raml-module-builder/domain-models-interface-extensions",
       "raml-module-builder/sample"
@@ -175,6 +178,8 @@ def main():
     print(", ".join(sorted(repos_raml1_detected.difference(repos_raml1_known))))
     print("{0} are not yet raml1:".format(len(repos_raml08)))
     print(", ".join(sorted(repos_raml08)))
+    # FIXME: See note above and MODCXMOCK-17
+    print("(and mod-codex-mock)")
 
 if __name__ == '__main__':
     main()

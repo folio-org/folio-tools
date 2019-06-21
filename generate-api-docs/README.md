@@ -8,9 +8,9 @@
 - pip3 install sh
 - git
 - yarn
-- [raml2html v3](https://github.com/raml2html/raml2html) (version 3 for RAML-0.8)
-- [raml2html](https://github.com/raml2html/raml2html) (for RAML-1.0)
-- [raml2html-plain-theme](https://github.com/a7b0/raml2html-plain-theme) (for RAML-1.0 view-2)
+- [raml2html v3](https://github.com/raml2html/raml2html) (old version 3, for RAML-0.8)
+- [raml2html](https://github.com/raml2html/raml2html) (current version, for RAML-1.0)
+- [raml2html-plain-theme](https://github.com/a7b0/raml2html-plain-theme) (for RAML-1.0 view-2) using our fork see package.json
 
 ## Method
 
