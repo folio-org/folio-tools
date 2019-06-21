@@ -97,15 +97,31 @@ def main():
     else:
         config_local_pn = args.config
     if args.dev is False:
-        http_response = requests.get(CONFIG_FILE)
-        http_response.raise_for_status()
-        metadata = yaml.safe_load(http_response.text)
+        try:
+            http_response = requests.get(CONFIG_FILE)
+            http_response.raise_for_status()
+        except requests.exceptions.HTTPError as err:
+            logger.critical("HTTP error retrieving configuration file: %s", err)
+            return 2
+        except Exception as err:
+            logger.critical("Error retrieving configuration file: %s", err)
+            return 2
+        else:
+            try:
+                metadata = yaml.safe_load(http_response.text)
+            except yaml.YAMLError as err:
+                logger.critical("Trouble parsing YAML configuration file '%s': %s", CONFIG_FILE, err)
+                return 2
     else:
         if not os.path.exists(config_local_pn):
             logger.critical("Development mode specified (-d) but config file (-c) not found: %s", config_local_pn)
             return 2
         with open(config_local_pn) as input_fh:
-            metadata = yaml.safe_load(input_fh)
+            try:
+                metadata = yaml.safe_load(input_fh)
+            except yaml.YAMLError as err:
+                logger.critical("Trouble parsing YAML configuration file '%s': %s", config_local_pn, err)
+                return 2
     if metadata is None:
         logger.critical("Configuration data was not loaded.")
         return 2
