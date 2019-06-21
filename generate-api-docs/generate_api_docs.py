@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""Generate API docs from RAML using raml2html and raml-fleece.
+"""Generate API docs from RAML using raml2html and using themes.
 
    Returns:
        0: Success.
