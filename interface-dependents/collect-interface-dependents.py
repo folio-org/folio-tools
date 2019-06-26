@@ -46,7 +46,8 @@ def main():
 
     print(f'Fetching modules dependent upon {args.interface} from {okapi_address} for {tenant_id}')
 
-    pprint(get_dependents(interface, okapi_address, tenant_id))
+    for module in get_dependents(interface, okapi_address, tenant_id):
+        print(module)
 
 def get_dependents(interface, okapi_address, tenant_id):
     descriptors = get_module_descriptors(
