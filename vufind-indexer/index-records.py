@@ -26,13 +26,16 @@ instance_isbn = jmespath.compile('identifiers[?identifierTypeId == `8261054f-be7
 instance_issn = jmespath.compile('identifiers[?identifierTypeId == `913300b2-03ed-469a-8179-c1092c991227`].value')
 instance_lccn = jmespath.compile('identifiers[?identifierTypeId == `c858e4f2-2b6b-4385-842b-60732ee14abb`].value')
 instance_oclc = jmespath.compile('identifiers[?identifierTypeId == `439bfbae-75bc-4f74-9fc7-b2a2d47ce3ef`].value')
+instance_formats = jmespath.compile('instanceFormatIds | [0]')
 
 def main():
     args = parse_command_line_args()
     print(args)
     token = get_token(args.okapi_url, args.user_name, args.password, args.tenant)
+    formats = get_instance_formats(token, args.okapi_url, args.tenant)
     for instance in gen_instance_storage_records(token, args.okapi_url, args.tenant):
         vufind_doc = map_record(instance)
+        format_record(vufind_doc, formats)
         print("Indexing instance: " + vufind_doc['id'])
         print(index_record(vufind_doc, args.solr_url))
 
@@ -72,8 +75,15 @@ def map_record(instance_record):
     vufind_document['issn'] = instance_issn.search(instance_record)
     vufind_document['lccn'] = instance_lccn.search(instance_record)
     vufind_document['oclc_num'] = instance_oclc.search(instance_record)
+    vufind_document['format'] = instance_formats.search(instance_record)
 
     return vufind_document
+
+def format_record(document, formats):
+    if document['format'] is not None:
+        document['format'] = formats[document['format']]
+
+    return document
 
 def index_record(document, solr_url):
     params = {
@@ -119,7 +129,27 @@ def gen_instance_storage_records(token, okapi, tenant):
                              params=params)
         yield instances_json['instances'][instance_index]
 
-
+def get_instance_formats(token, okapi, tenant):
+    headers = {
+        "X-Okapi-Tenant" : tenant,
+        "X-Okapi-Token" : token,
+        "Accept" : "application/json"
+    }
+    params = {
+        "offset" : 0,
+        "limit" : 100
+    }
+    r = requests.get(okapi + '/instance-formats',
+                     headers=headers,
+                     params=params)
+    list = r.json()['instanceFormats']
+    instance_formats = {}
+    for i in range(len(list)):
+        name = list[i]['name']
+        id = list[i]['id']
+        instance_formats[id] = name
+    return instance_formats
+  
 def get_token(okapi, username, password, tenant):
     headers = {"X-Okapi-Tenant": tenant}
     payload = {
