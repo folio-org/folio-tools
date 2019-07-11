@@ -120,6 +120,7 @@ def main():
       "mod-permissions/mod-users",
       "mod-data-loader/ramls/inventory",
       "raml-module-builder/domain-models-interface-extensions",
+      "raml-module-builder/domain-models-runtime-it",
       "raml-module-builder/sample"
     ]
     for root, dirs, files in os.walk(base_dir, topdown=True):
