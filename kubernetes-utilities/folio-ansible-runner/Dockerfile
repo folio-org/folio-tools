@@ -3,6 +3,7 @@ FROM python:3-alpine
 # ansible settings
 ENV ANSIBLE_REPO_URL=https://github.com/folio-org/folio-ansible.git
 ENV ANSIBLE_REPO=folio-ansible
+ENV ANSIBLE_REPO_BRANCH=master
 ENV ANSIBLE_VERSION=2.7.7
 ENV SINGLE_SERVER=localhost
 ENV SINGLE_SERVER_GROUP=all
@@ -12,6 +13,7 @@ ENV KUBERNETES_USER=''
 ENV KUBERNETES_TOKEN=''
 
 # folio secrets
+ENV PG_ADMIN_USER=''
 ENV PG_ADMIN_PASS=''
 
 # add dependencies
@@ -30,6 +32,7 @@ RUN apk --update --no-cache add \
 # install python deps
 RUN pip3 install --upgrade pip
 RUN pip3 install ansible==$ANSIBLE_VERSION \
+  jmespath \
   openshift \
   psycopg2-binary
 
