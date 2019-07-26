@@ -32,6 +32,7 @@ RUN apk --update --no-cache add \
 # install python deps
 RUN pip3 install --upgrade pip
 RUN pip3 install ansible==$ANSIBLE_VERSION \
+  jmespath \
   openshift \
   psycopg2-binary
 
