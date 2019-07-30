@@ -153,7 +153,7 @@ def main():
 
     # The yaml parser gags on the "!include".
     # http://stackoverflow.com/questions/13280978/pyyaml-errors-on-in-a-string
-    yaml.add_constructor(u"!include", construct_raml_include)
+    yaml.add_constructor(u"!include", construct_raml_include, Loader=yaml.SafeLoader)
 
     # Detect any schema $ref
     schema_ref_re = re.compile(r'( +"\$ref"[ :]+")([^"]+)(".*)')
@@ -414,7 +414,7 @@ def gather_declarations(raml_input_pn, raml_input_fn, raml_version, is_rmb, inpu
     issues = False
     with open(raml_input_pn) as input_fh:
         try:
-            raml_content = yaml.load(input_fh)
+            raml_content = yaml.safe_load(input_fh)
         except yaml.YAMLError as err:
             logger.critical("Trouble parsing as YAML file '%s': %s", raml_input_fn, err)
             issues = True
