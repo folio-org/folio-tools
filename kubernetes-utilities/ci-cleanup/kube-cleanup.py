@@ -1,33 +1,52 @@
+import argparse
 from kubernetes import client, config
-import re
 import requests
 import sys
 
-NAMESPACE = 'folio-default'
-OKAPI_URL = 'https://okapi-default.ci.folio.org'
 def main():
+    args = parse_command_line_args()
     config.load_kube_config()
-    tenants = get_tenants(OKAPI_URL)
-    enabled_modules = get_enabled_modules(OKAPI_URL, tenants)
+    tenants = get_tenants(args.okapi_url)
+    enabled_modules = get_enabled_modules(args.okapi_url, tenants)
     backend_pods = filter_pods_for_backend_mods(
-        get_all_pods(client, NAMESPACE)
+        get_all_pods(client, args.namespace)
     )
     for p in backend_pods:
         if "SNAPSHOT" in p["app"]:
             backend_pods_filtered = [
                 m for m in backend_pods if "SNAPSHOT" in m["app"]
             ]
+            retain = args.snapshot_retention
         else:
             backend_pods_filtered = [
                 m for m in backend_pods if "SNAPSHOT" not in m["app"]
             ]
+            retain = args.release_retention
         is_enabled = test_is_enabled(enabled_modules, p)
-        is_expired = test_is_expired(p, backend_pods_filtered)
+        is_expired = test_is_expired(p, backend_pods_filtered, retain)
         if not is_enabled and is_expired:
             print(p["app"] + " is not enabled, and is expired")
-            delete_app(client, p["app"], NAMESPACE)
+            if args.dry_run == False:
+                delete_app(client, p["app"], args.namespace)
+            else:
+                print("Dry run, no action taken")
 
+def parse_command_line_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-d', '--dry-run', help='Dry run: do not do deletion, print app names to be deleted only',
+                        action='store_true', required=False)
+    parser.add_argument('-n', '--namespace', help='kubernetes namespace to cleanup',
+                        default='folio-default', required=False)
+    parser.add_argument('-o', '--okapi-url', help='okapi url check for tenants and enabled modules',
+                        default='http://okapi:9130', required=False)
+    parser.add_argument('-s', '--snapshot-retention', type=int, help='copies of snapshot modules to retain',
+                        default=2, required=False)
+    parser.add_argument('-r', '--release-retention', type=int, help='copies of released modules to retain',
+                        default=3, required=False)
 
+    args = parser.parse_args()
+
+    return args
 
 def okapi_get(okapi_url, interface, params=None,
               tenant="supertenant", token=""):
@@ -104,8 +123,7 @@ def test_is_expired(test_pod, all_pods, retention_limit=1):
             instances.append(p['app'])
         
     instances.sort(reverse=True)
-    if instances.index(test_pod["app"]) >=1:
-        print("WILL DELETE --> {}".format(test_pod["app"]))
+    if instances.index(test_pod["app"]) >= retention_limit:
         is_expired = True
     return is_expired
 
@@ -118,19 +136,27 @@ def delete_app(client, app, namespace):
         app,
         namespace
     )
-    print(deployment_result.status)
+    deployment_message = deployment_result.status
+    print(deployment_message)
     # delete service
     print("deleting service...")
     v1Core = client.CoreV1Api()
-    service_result = v1Core.delete_namespaced_service(
-        app,
-        namespace
-    )
-    print(service_result.status)
+    try:
+        service_result = v1Core.delete_namespaced_service(
+            app,
+            namespace
+        )
+        service_message = service_result.status
+    except client.rest.ApiException as e:
+        if e.status == 404:
+            service_message = "{} service {}, skipping...".format(app, e.reason)
+        else:
+            sys.exit(e)
+    print(service_message)
     return {
         "app": app, 
-        "deployment_deleted" : service_result.status,
-        "service_deleted" : service_result.status
+        "deployment_deleted" : deployment_message,
+        "service_deleted" : service_message
     }
 
 if __name__ == "__main__":
