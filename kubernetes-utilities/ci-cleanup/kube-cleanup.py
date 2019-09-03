@@ -5,7 +5,22 @@ import sys
 
 def main():
     args = parse_command_line_args()
-    config.load_kube_config()
+    # load config
+    # initial condition
+    config_from_file = False
+    try:
+        # try loading cluster config if we're in k8s
+        config.load_incluster_config()
+    except config.ConfigException:
+        config_from_file = True
+        
+    if config_from_file:
+        try:
+            config.load_kube_config()
+        except TypeError:
+            print("Could not load kube config from cluster or file")
+            sys.exit()
+            
     tenants = get_tenants(args.okapi_url)
     enabled_modules = get_enabled_modules(args.okapi_url, tenants)
     backend_pods = filter_pods_for_backend_mods(
