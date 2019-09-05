@@ -1,0 +1,46 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ md.id.replace('.','-').lower() }}
+  labels:
+    app: {{ md.id.replace('.','-').lower() }}
+    module: {{ md.name }}
+    folio_role: backend-module
+  namespace: {{ namespace }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ md.id.replace('.','-').lower() }}
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: {{ md.id.replace('.','-').lower() }}
+    spec:
+      containers:
+        - name: {{ md.name }}
+          image: {{ md.launchDescriptor.dockerImage }}
+          {% if db_from_secret -%}
+          envFrom:
+          - secretRef:
+              name: {{ db_from_secret }}
+          {% endif -%}
+          env:
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          {% for var in md['launchDescriptor']['env'] -%}
+          - name: {{ var['name'] }}
+            value: {{ var['value'] }}
+          {% endfor -%}
+          args:
+          {% for arg in md['launchDescriptor']['dockerCMD'] -%}
+            - {{ arg }}
+          {% endfor -%}
+          ports:
+          {% for key, value in md.launchDescriptor.dockerArgs.HostConfig.PortBindings.items() %}{%- set ports = key.split('/') -%}
+          - containerPort: {{ ports[0] }}
+            protocol: TCP
+          {% endfor %}
