@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 import argparse
 import json
+import re
 import requests
 import sys
 from jinja2 import Environment, FileSystemLoader, Template
@@ -18,10 +19,10 @@ def main():
         
     if args.remove_db_env is True:
         md = filter_db_secrets(md)
-    deployment_yaml = render_template(md, 'folio-default',
+    deployment_yaml = render_template(md, args.namespace,
                                       'module-deployment.yml.j2')
     if args.include_service == True:
-        service_yaml = render_template(md, 'folio-default',
+        service_yaml = render_template(md, args.namespace,
                                        'module-service.yml.j2')
         config_yaml = '\n'.join([deployment_yaml, service_yaml])
     else:
@@ -32,6 +33,8 @@ def parse_command_line_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('-f', '--file', help='Module Descriptor file to parse',
                         default=False, required=False)
+    parser.add_argument('-n', '--namespace', help="Kubernetes namespace to deploy to",
+                        default='folio-default')
     parser.add_argument('-u', '--url', help='URL for Module Descriptor to parse',
                         default=False, required=False)
     parser.add_argument('-r', '--remove-db-env',help='Remove database configuration variables' 
@@ -85,11 +88,14 @@ def filter_db_secrets(md):
 
 def render_template(md, namespace, template,
                     env_from_secret=False):
+
+    module_name = re.split("-\d", md['id'])[0] 
     j2loader = FileSystemLoader('templates')
     j2env = Environment(loader=j2loader)
     t = j2env.get_template(template)
  
     result = t.render(md=md,
+                      module_name=module_name,
                       namespace=namespace,
                       env_from_secret=env_from_secret)
 

@@ -5,7 +5,7 @@ metadata:
   name: {{ md.id.replace('.','-').lower() }}
   labels:
     app: {{ md.id.replace('.','-').lower() }}
-    module: {{ md.name }}
+    module: {{ module_name }}
     folio_role: backend-module
   namespace: {{ namespace }}
 spec:
@@ -19,8 +19,11 @@ spec:
         app: {{ md.id.replace('.','-').lower() }}
     spec:
       containers:
-        - name: {{ md.name }}
+        - name: {{ module_name }}
           image: {{ md.launchDescriptor.dockerImage }}
+          resources:
+            limits:
+              memory: {{ md.launchDescriptor.dockerArgs.HostConfig.memory | default(268435456, true) }}
           {% if db_from_secret -%}
           envFrom:
           - secretRef:

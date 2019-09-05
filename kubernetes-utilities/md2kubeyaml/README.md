@@ -4,17 +4,19 @@ This utility takes a module descriptor as input and provides example Kubernetes 
 ## Examples
 Generate Kubernetes Deployment YAML from a file
 ```bash
-python3 md2kubernetes -f ModuleDescriptor.json > deployment-yaml.yml
+python3 md2kubernetes -n my-namespace -f ModuleDescriptor.json > deployment-yaml.yml
 ```
 Take input from a web resource
 ```bash
 python3 md2kubernetes -u \
  http://folio-registry.aws.indexdata.com/_/proxy/modules/mod-login-6.0.0 \
+ - n my-namespace \
  > deployment-yaml.yml
 ```
 Run from the docker container, Take input from stdin
 ```bash
 cat ModuleDescriptor.json | docker run -i \
+  -n my-namespace \
   folioci/md2kubeyaml > deployment-yaml
 ```
 Note that when using the Docker container, to take input from stdin, you must use the `-i` interactive flag. Input from stdin or url is preferable over reading a file on disk when using the Docker container because the container will not have access to your filesystem.
@@ -29,11 +31,14 @@ Its common practice to keep DB connection information in a Kubernetes secret. Us
 
 ## Usage
 ```
-usage: md2kubeyaml.py [-h] [-f FILE] [-u URL] [-r] [-s] [-e ENV_FROM_SECRET]
+usage: md2kubeyaml.py [-h] [-f FILE] [-n NAMESPACE] [-u URL] [-r] [-s]
+                      [-e ENV_FROM_SECRET]
 
 optional arguments:
   -h, --help            show this help message and exit
   -f FILE, --file FILE  Module Descriptor file to parse
+  -n NAMESPACE, --namespace NAMESPACE
+                        Kubernetes namespace to deploy to
   -u URL, --url URL     URL for Module Descriptor to parse
   -r, --remove-db-env   Remove database configuration variables(use with
                         --env-from-secret option to provide db connection info
