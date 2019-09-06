@@ -20,10 +20,12 @@ def main():
     if args.remove_db_env is True:
         md = filter_db_secrets(md)
     deployment_yaml = render_template(md, args.namespace,
-                                      'module-deployment.yml.j2')
+                                      'module-deployment.yml.j2',
+                                      env_from_secret=args.env_from_secret)
     if args.include_service == True:
         service_yaml = render_template(md, args.namespace,
-                                       'module-service.yml.j2')
+                                       'module-service.yml.j2',
+                                       env_from_secret=args.env_from_secret)
         config_yaml = '\n'.join([deployment_yaml, service_yaml])
     else:
         config_yaml = deployment_yaml
@@ -87,7 +89,7 @@ def filter_db_secrets(md):
     return md
 
 def render_template(md, namespace, template,
-                    env_from_secret=False):
+                    env_from_secret):
 
     module_name = re.split("-\d", md['id'])[0]
     j2loader = FileSystemLoader('templates')

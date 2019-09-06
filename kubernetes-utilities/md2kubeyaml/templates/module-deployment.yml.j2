@@ -24,10 +24,10 @@ spec:
           resources:
             limits:
               memory: {{ md.launchDescriptor.dockerArgs.HostConfig.Memory | default(268435456, true) }}
-          {% if db_from_secret -%}
+          {% if env_from_secret -%}
           envFrom:
           - secretRef:
-              name: {{ db_from_secret }}
+              name: {{ env_from_secret }}
           {% endif -%}
           env:
           - name: POD_NAME
