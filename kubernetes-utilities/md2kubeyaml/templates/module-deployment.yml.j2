@@ -23,7 +23,7 @@ spec:
           image: {{ md.launchDescriptor.dockerImage }}
           resources:
             limits:
-              memory: {{ md.launchDescriptor.dockerArgs.HostConfig.memory | default(268435456, true) }}
+              memory: {{ md.launchDescriptor.dockerArgs.HostConfig.Memory | default(268435456, true) }}
           {% if db_from_secret -%}
           envFrom:
           - secretRef:
