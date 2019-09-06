@@ -38,7 +38,7 @@ def parse_command_line_args():
     parser.add_argument('-u', '--url', help='URL for Module Descriptor to parse',
                         default=False, required=False)
     parser.add_argument('-r', '--remove-db-env',help='Remove database configuration variables'
-                        '(use with --env-from-secret option to provide db connection info as secret)',
+                        ' (use with --env-from-secret option to provide db connection info as secret)',
                         action='store_true', required=False)
     parser.add_argument('-s', '--include-service', help='Include a service in deployment YAML',
                         action='store_true', required=False)

@@ -10,14 +10,14 @@ Take input from a web resource
 ```bash
 python3 md2kubernetes -u \
  http://folio-registry.aws.indexdata.com/_/proxy/modules/mod-login-6.0.0 \
- - n my-namespace \
+ -n my-namespace \
  > deployment-yaml.yml
 ```
 Run from the docker container, Take input from stdin
 ```bash
 cat ModuleDescriptor.json | docker run -i \
-  -n my-namespace \
-  folioci/md2kubeyaml > deployment-yaml
+  folioci/md2kubeyaml \
+  -n my-namespace > deployment-yaml.yml
 ```
 Note that when using the Docker container, to take input from stdin, you must use the `-i` interactive flag. Input from stdin or url is preferable over reading a file on disk when using the Docker container because the container will not have access to your filesystem.
 
@@ -25,7 +25,7 @@ Specify a kubernetes secret to load environment variables from, and remove DB co
 ```bash
 cat ModuleDescriptor.json | docker run -i \
   folioci/md2kubeyaml --env-from-secret db-connect \
-  --remove-db-env > deployment-yaml
+  --remove-db-env > deployment-yaml.yml
 ```
 Its common practice to keep DB connection information in a Kubernetes secret. Use the above options to omit DB connection information from the deployment YAML, and to include an existing Kubernetes secret instead.
 
@@ -40,7 +40,7 @@ optional arguments:
   -n NAMESPACE, --namespace NAMESPACE
                         Kubernetes namespace to deploy to
   -u URL, --url URL     URL for Module Descriptor to parse
-  -r, --remove-db-env   Remove database configuration variables(use with
+  -r, --remove-db-env   Remove database configuration variables (use with
                         --env-from-secret option to provide db connection info
                         as secret)
   -s, --include-service
