@@ -16,7 +16,7 @@ def main():
         md = parse_from_stdin()
     else:
         sys.exit("no input specified")
-        
+
     if args.remove_db_env is True:
         md = filter_db_secrets(md)
     deployment_yaml = render_template(md, args.namespace,
@@ -37,7 +37,7 @@ def parse_command_line_args():
                         default='folio-default')
     parser.add_argument('-u', '--url', help='URL for Module Descriptor to parse',
                         default=False, required=False)
-    parser.add_argument('-r', '--remove-db-env',help='Remove database configuration variables' 
+    parser.add_argument('-r', '--remove-db-env',help='Remove database configuration variables'
                         '(use with --env-from-secret option to provide db connection info as secret)',
                         action='store_true', required=False)
     parser.add_argument('-s', '--include-service', help='Include a service in deployment YAML',
@@ -76,24 +76,24 @@ def parse_from_stdin():
         md = json.loads(data)
     except json.decoder.JSONDecodeError:
         sys.exit("Could not decode JSON")
-    
+
     return md
 
 def filter_db_secrets(md):
     if 'env' in md['launchDescriptor']:
-        env = [var for var in md['launchDescriptor']['env'] 
-               if var['name'][:3] != "DB_"] 
+        env = [var for var in md['launchDescriptor']['env']
+               if var['name'][:3] != "DB_"]
         md['launchDescriptor']['env'] = env
     return md
 
 def render_template(md, namespace, template,
                     env_from_secret=False):
 
-    module_name = re.split("-\d", md['id'])[0] 
+    module_name = re.split("-\d", md['id'])[0]
     j2loader = FileSystemLoader('templates')
     j2env = Environment(loader=j2loader)
     t = j2env.get_template(template)
- 
+
     result = t.render(md=md,
                       module_name=module_name,
                       namespace=namespace,

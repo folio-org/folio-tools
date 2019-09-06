@@ -53,7 +53,7 @@ optional arguments:
 ### Docker
 Run from the docker container, for example:
 ```bash
-cat ModuleDescriptor.json | docker run -i folioci/md2kubeyaml 
+cat ModuleDescriptor.json | docker run -i folioci/md2kubeyaml
 ```
 
 ### Python
