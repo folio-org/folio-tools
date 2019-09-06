@@ -57,7 +57,7 @@ cat ModuleDescriptor.json | docker run -i folioci/md2kubeyaml
 ```
 
 ### Python
-You can also run the python script. Use python3's `venv` module to set up a virtual environemnt if you do not want to install dependencies on the system python:
+You can also run the python script. Use python3's `venv` module to set up a virtual environment if you do not want to install dependencies on the system python:
 ```bash
 sudo apt install -y python3-venv
 python3 -m venv venv
