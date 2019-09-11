@@ -5,7 +5,7 @@ metadata:
   name: {{ md.id.replace(".","-").lower() }}
   namespace: {{ namespace }}
 spec:
-  type: {{ service_type }}
+  type: ClusterIP
   selector:
     app: {{ md.id.replace(".","-").lower() }}
   ports: {% for key, value in md.launchDescriptor.dockerArgs.HostConfig.PortBindings.items() -%}
