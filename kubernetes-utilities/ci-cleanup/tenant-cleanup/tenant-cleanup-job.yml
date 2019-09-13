@@ -1,0 +1,20 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: tenant-cleanup
+  labels:
+    app: tenant-cleanup
+  namespace: folio-default
+spec:
+  schedule: "21 0 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: tenant-cleanup
+              image: folioci/tenant-cleanup:latest
+              envFrom:
+                - secretRef:
+                  name: tenant-cleanup-env
