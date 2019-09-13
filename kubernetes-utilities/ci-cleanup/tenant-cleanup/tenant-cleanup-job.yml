@@ -17,4 +17,4 @@ spec:
               image: folioci/tenant-cleanup:latest
               envFrom:
                 - secretRef:
-                  name: tenant-cleanup-env
+                    name: tenant-cleanup-env
