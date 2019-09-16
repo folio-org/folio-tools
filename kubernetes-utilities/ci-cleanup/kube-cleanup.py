@@ -27,9 +27,9 @@ def main():
         get_all_pods(client, args.namespace)
     )
     for p in backend_pods:
-        if "SNAPSHOT" in p["app"]:
+        if "snapshot" in p["app"]:
             backend_pods_filtered = [
-                m for m in backend_pods if "SNAPSHOT" in m["app"]
+                m for m in backend_pods if "snapshot" in m["app"]
             ]
             retain = args.snapshot_retention
         else:
