@@ -12,7 +12,6 @@ ENV CLEANUP_AWS_SECRET=""
 # install python deps
 RUN pip3 install --upgrade pip
 RUN pip3 install boto3 \
-  PyGithub \
   requests
 
 # copy and run entrypoint

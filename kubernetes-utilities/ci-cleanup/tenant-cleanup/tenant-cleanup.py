@@ -1,6 +1,5 @@
 import boto3
 from botocore.exceptions import ClientError
-import github
 import os
 import re
 import requests
@@ -8,7 +7,6 @@ import sys
 
 OKAPI = os.getenv('CLEANUP_OKAPI', 'http://okapi:9130')
 ORGANIZATION = os.getenv('CLEANUP_ORGANIZATION', 'folio-org') 
-GH_TOKEN = os.getenv('CLEANUP_GH_TOKEN', None)
 OKAPI_USER = os.getenv('CLEANUP_OKAPI_USER', 'okapi_default_admin')
 OKAPI_PASSWORD = os.getenv('CLEANUP_OKAPI_PASSWORD', None)
 TENANT = os.getenv('CLEANUP_TENANT', 'supertenant')
@@ -18,9 +16,8 @@ AWS_ACCESS_KEY_SECRET = os.getenv('CLEANUP_AWS_SECRET', None)
 def main():
     # exit if unconfigured
     configs = [
-        OKAPI, ORGANIZATION, GH_TOKEN, OKAPI_USER,
-        OKAPI_PASSWORD, TENANT, AWS_ACCESS_KEY_ID,
-        AWS_ACCESS_KEY_SECRET
+        OKAPI, ORGANIZATION, OKAPI_USER, OKAPI_PASSWORD,
+        TENANT, AWS_ACCESS_KEY_ID, AWS_ACCESS_KEY_SECRET
     ]
     for config in configs:
         if not config:
@@ -28,14 +25,14 @@ def main():
     token = okapi_auth(
                 OKAPI, OKAPI_USER, OKAPI_PASSWORD, TENANT
             )
-    tenants = get_tenants("https://okapi-default.ci.folio.org")
+    tenants = get_tenants(OKAPI)
     for t in tenants:
         tenant_split = t.rsplit('_',2)
         if tenant_split[0][:9] == 'platform_':
             pr_number = t.rsplit('_', 2)[1]
             pr_repo = t.rsplit('_', 2)[0].replace("_", "-")
             repo = "{}/{}".format(ORGANIZATION, pr_repo)
-            print("Checkin pr for tenant: {}".format(t))
+            print("Checking pr for tenant: {}".format(t))
             closed = check_pr(repo, pr_number)
             if closed == True:
                 delete_tenant(OKAPI, t, token)
@@ -51,6 +48,7 @@ def get_tenants(okapi_url):
     return tenants
 
 def delete_tenant(okapi_url, tenant, token):
+    print("delete tenant function")
     deleted = False
     headers = {
         "x-okapi-tenant" : "supertenant",
@@ -96,18 +94,18 @@ def delete_bucket(bucket_name):
 
 def check_pr(repository, pr_number):
     closed = False
-    pr_number = int(pr_number)
-    gh = github.Github(GH_TOKEN)
-    repo = gh.get_repo(repository)
-    pulls = [x.number for x in repo.get_pulls()]
-    if pr_number in pulls:
-        pr = repo.get_pull(pr_number)
-        if pr.closed_at:
-            closed = True
-        else:
-            print(
-                "Pull request {} on {} is open, skipping..."
-                .format(str(pr.number), repository))
+    pr_number = str(pr_number)
+    r = requests.get(
+            "https://api.github.com/repos/{}/pulls/{}"
+            .format(repository, pr_number)
+        )
+    r.raise_for_status()
+    if r.json()['state'] == 'closed':
+        closed = True
+    else:
+        print(
+            "Pull request {} on {} is open, skipping..."
+            .format(pr_number, repository))
             
     return closed
 
