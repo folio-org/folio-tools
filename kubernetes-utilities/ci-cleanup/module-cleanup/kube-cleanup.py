@@ -34,7 +34,7 @@ def main():
             retain = args.snapshot_retention
         else:
             backend_pods_filtered = [
-                m for m in backend_pods if "SNAPSHOT" not in m["app"]
+                m for m in backend_pods if "snapshot" not in m["app"]
             ]
             retain = args.release_retention
         is_enabled = test_is_enabled(enabled_modules, p)
