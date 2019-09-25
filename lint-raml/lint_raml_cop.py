@@ -284,7 +284,7 @@ def main():
             if not raml_files:
                 logger1.error("No RAML files found in %s", ramls_dir)
                 exit_code = 1
-        for raml_fn in raml_files:
+        for raml_fn in sorted(raml_files):
             if args.file:
                 if os.path.join(docset["directory"], raml_fn) != args.file:
                     logger1.info("Skipping RAML file: %s", raml_fn)
@@ -511,7 +511,7 @@ def assess_schema_descriptions(schemas_dir, schema_files, has_jq):
     logger.info("Found %s JSON schema files under directory '%s'", len(schema_files), schemas_dir)
     issues = False
     props_skipped = ["id", "metadata", "resultInfo", "tags", "totalRecords"]
-    for schema_fn in schema_files:
+    for schema_fn in sorted(schema_files):
         schema_pn = os.path.join(schemas_dir, schema_fn)
         with open(schema_pn, "r") as schema_fh:
             try:
