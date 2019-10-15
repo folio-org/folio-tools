@@ -573,7 +573,7 @@ def assess_schema_descriptions(schemas_dir, schema_files, has_jq):
                         logger.error('%s: Missing "description" for: %s', schema_fn, ', '.join(sorted(desc_missing)))
                         issues = True
                     else:
-                        logger.info('%s: Each property "description" is present.', schema_fn)
+                        logger.debug('%s: Each property "description" is present.', schema_fn)
         else:
             logger.warning("No 'jq' so not assessing schema file.")
     return issues
