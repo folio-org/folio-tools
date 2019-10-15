@@ -3,9 +3,9 @@
 
 
 "@types/node@^10.0.3":
-  version "10.14.13"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-10.14.13.tgz#ac786d623860adf39a3f51d629480aacd6a6eec7"
-  integrity sha512-yN/FNNW1UYsRR1wwAoyOwqvDuLDtVXnaJTZ898XIw/Q5cCaeVAlVwvsmXLX5PuiScBYwZsZU4JYSHB3TvfdwvQ==
+  version "10.14.21"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-10.14.21.tgz#4a9db7ef1d1671c0015e632c5fa3d46c86c58c1e"
+  integrity sha512-nuFlRdBiqbF+PJIEVxm2jLFcQWN7q7iWEJGsBV4n7v1dbI9qXB8im2pMMKMCUZe092sQb5SQft2DHfuQGK5hqQ==
 
 amdefine@~0.0.4:
   version "0.0.8"
@@ -18,9 +18,9 @@ bignumber.js@9.0.0:
   integrity sha512-t/OYhhJ2SD+YGBQcjY8GzzDHEk9f3nerxjtfa6tlMXfe7frs/WozhvCNoGvpM0P3bNf3Gq5ZRMlGr5f3r4/N8A==
 
 bluebird@^3.4.6:
-  version "3.5.5"
-  resolved "https://registry.yarnpkg.com/bluebird/-/bluebird-3.5.5.tgz#a8d0afd73251effbbd5fe384a77d73003c17a71f"
-  integrity sha512-5am6HnnfN+urzt4yfg7IgTbotDjIT/u8AJpEt0sIU9FtXfVeezXAPKswrG+xKUCOYAINpSdgZVDU6QFh+cuH3w==
+  version "3.7.0"
+  resolved "https://registry.yarnpkg.com/bluebird/-/bluebird-3.7.0.tgz#56a6a886e03f6ae577cffedeb524f8f2450293cf"
+  integrity sha512-aBQ1FxIa7kSWCcmKHlcHFlT2jt6J/l4FzC7KcPELkOJOsPOb/bccdhmIrKDfXhwFrmc7vDoDrrepFvGqjyXGJg==
 
 camel-case@^3.0.0:
   version "3.0.0"
@@ -55,14 +55,14 @@ change-case@3.1.0:
     upper-case-first "^1.1.0"
 
 colors@^1.1.2:
-  version "1.3.3"
-  resolved "https://registry.yarnpkg.com/colors/-/colors-1.3.3.tgz#39e005d546afe01e01f9c4ca8fa50f686a01205d"
-  integrity sha512-mmGt/1pZqYRjMxB1axhTo16/snVZ5krrKkcmMeVKxzECMMXoCgnvTPp10QgHfcbQZw8Dq2jMNG6je4JlWU0gWg==
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/colors/-/colors-1.4.0.tgz#c50491479d4c1bdaed2c9ced32cf7c7dc2360f78"
+  integrity sha512-a+UqTh4kgZg/SlGvfbzDHpgRu7AAQOmmqRHJnxhRZICKFUT91brVhNNt58CMWU9PsBbv3PDCZUHbVxuDiH2mtA==
 
 commander@^2.7.1, commander@^2.9.0:
-  version "2.20.0"
-  resolved "https://registry.yarnpkg.com/commander/-/commander-2.20.0.tgz#d58bb2b5c1ee8f87b0d340027e9e94e222c5a422"
-  integrity sha512-7j2y+40w61zy6YC2iRNpUe/NwhNyoXrYpHMrSunaMG64nRnaf96zO/KMQR4OyN/UnE5KLyEBnKHd4aG3rskjpQ==
+  version "2.20.3"
+  resolved "https://registry.yarnpkg.com/commander/-/commander-2.20.3.tgz#fd485e84c03eb4881c20722ba48035e8531aeb33"
+  integrity sha512-GpVkmM8vF2vQUkj2LvZmD35JxeJOLCwJ9cUkugyk2nuhbv3+mJvpLYYt+0+USMxE+oj+ey/lJEnhZw75x/OMcQ==
 
 constant-case@^2.0.0:
   version "2.0.0"
@@ -72,10 +72,10 @@ constant-case@^2.0.0:
     snake-case "^2.1.0"
     upper-case "^1.1.1"
 
-core-js@^2.5.7:
-  version "2.6.9"
-  resolved "https://registry.yarnpkg.com/core-js/-/core-js-2.6.9.tgz#6b4b214620c834152e179323727fc19741b084f2"
-  integrity sha512-HOpZf6eXmnl7la+cUdMnLvUxKNqLUzJvgIziQ0DiF3JwSImNphIqdGqzj6hIKyX04MmV0poclQ7+wjWvxQyR2A==
+core-js@^3.2.1:
+  version "3.3.2"
+  resolved "https://registry.yarnpkg.com/core-js/-/core-js-3.3.2.tgz#cd42da1d7b0bb33ef11326be3a721934277ceb42"
+  integrity sha512-S1FfZpeBchkhyoY76YAdFzKS4zz9aOK7EeFaNA2aJlyXyA+sgqz6xdxmLPGXEAf0nF44MVN1kSjrA9Kt3ATDQg==
 
 date-and-time@0.7.0:
   version "0.7.0"
@@ -104,9 +104,9 @@ fs-extra@8.1.0:
     universalify "^0.1.0"
 
 graceful-fs@^4.1.6, graceful-fs@^4.2.0:
-  version "4.2.0"
-  resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.2.0.tgz#8d8fdc73977cb04104721cb53666c1ca64cd328b"
-  integrity sha512-jpSvDPV4Cq/bgtpndIWbI5hmYxhQGHPC4d4cqBPb4DLniCfhJokdXhwhaDuLBGLQdvvRum/UiX6ECVIPvDXqdg==
+  version "4.2.2"
+  resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.2.2.tgz#6f0952605d0140c1cfdb138ed005775b92d67b02"
+  integrity sha512-IItsdsea19BoLC7ELy13q1iJFNmd7ofZH5+X/pJr90/nRoPEX0DJo1dHDbgtYWOhJhcCgMDTOw84RZ72q6lB+Q==
 
 header-case@^1.0.0:
   version "1.0.1"
@@ -298,9 +298,9 @@ q@1.5.1:
   integrity sha1-fjL3W0E4EpHQRhHxvxQQmsAGUdc=
 
 raml-1-parser@^1.1.15:
-  version "1.1.56"
-  resolved "https://registry.yarnpkg.com/raml-1-parser/-/raml-1-parser-1.1.56.tgz#e13aa32b8bb3d8a4b9743a3f3e7fe5ffc7a4e059"
-  integrity sha512-t3KsHjtUKusuDXxTd6OVrJNZDFUxo54xTUrMlQoaHmkVPtyUxftw50aO5Z0sTASvTb7ry/vAXNW6KU9HAa1ctg==
+  version "1.1.57"
+  resolved "https://registry.yarnpkg.com/raml-1-parser/-/raml-1-parser-1.1.57.tgz#d58711b511cd58433c35a12d552d7eef9e30d0ac"
+  integrity sha512-/jivWwcMnLUrST3tsQQwWJsS2WdiOFVtD0epMTSdEpi/R41pLhzJNYPyI/eI18mIClGAonCwb2bMRrKxsXFWPA==
   dependencies:
     change-case "3.1.0"
     fs-extra "8.1.0"
@@ -319,12 +319,12 @@ raml-1-parser@^1.1.15:
     raml-definition-system "0.0.90"
     ts-model "0.0.18"
     underscore "1.9.1"
-    urlsafe-base64 "^1.0.0"
+    urlsafe-base64 "1.0.0"
     xhr2 "0.2.0"
     xmldom "0.1.27"
     xmlhttprequest "1.8.0"
     yaml-ast-parser "0.0.43"
-    z-schema "4.1.0"
+    z-schema "4.1.1"
 
 raml-cop@^5.0.0:
   version "5.0.0"
@@ -448,15 +448,20 @@ upper-case@^1.0.3, upper-case@^1.1.0, upper-case@^1.1.1, upper-case@^1.1.3:
   resolved "https://registry.yarnpkg.com/upper-case/-/upper-case-1.1.3.tgz#f6b4501c2ec4cdd26ba78be7222961de77621598"
   integrity sha1-9rRQHC7EzdJrp4vnIilh3ndiFZg=
 
-urlsafe-base64@^1.0.0:
+urlsafe-base64@1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/urlsafe-base64/-/urlsafe-base64-1.0.0.tgz#23f89069a6c62f46cf3a1d3b00169cefb90be0c6"
   integrity sha1-I/iQaabGL0bPOh07ABac77kL4MY=
 
-validator@^10.0.0, validator@^10.11.0:
+validator@^10.0.0:
   version "10.11.0"
   resolved "https://registry.yarnpkg.com/validator/-/validator-10.11.0.tgz#003108ea6e9a9874d31ccc9e5006856ccd76b228"
   integrity sha512-X/p3UZerAIsbBfN/IwahhYaBbY68EN/UQBWHtsbXGT5bfrH/p4NQzUCG1kF/rtKaNpnJ7jAu6NGTdSNtyNIXMw==
+
+validator@^11.0.0:
+  version "11.1.0"
+  resolved "https://registry.yarnpkg.com/validator/-/validator-11.1.0.tgz#ac18cac42e0aa5902b603d7a5d9b7827e2346ac4"
+  integrity sha512-qiQ5ktdO7CD6C/5/mYV4jku/7qnqzjrxb3C/Q5wR3vGGinHTgJZN/TdFT3ZX4vXhX2R1PXx42fB1cn5W+uJ4lg==
 
 xhr2@0.2.0:
   version "0.2.0"
@@ -507,14 +512,14 @@ z-schema@3.21.0:
   optionalDependencies:
     commander "^2.7.1"
 
-z-schema@4.1.0:
-  version "4.1.0"
-  resolved "https://registry.yarnpkg.com/z-schema/-/z-schema-4.1.0.tgz#8f824eabffdf018875cbcfa9b92dc3a348140b76"
-  integrity sha512-C4In7uaih70TVnpCDtfnMeCjGRIkaikT8Yxqgz0GZrLJ3nkI5TsdRPOOjEYaebRnxGlbX68qeBSOBdbCufaqjQ==
+z-schema@4.1.1:
+  version "4.1.1"
+  resolved "https://registry.yarnpkg.com/z-schema/-/z-schema-4.1.1.tgz#f987f52142de54943bd85bb6f6d63bf44807fb6c"
+  integrity sha512-0aKvR9FgrghUXXndYNDmAEazl8jykuHSkqkmPw2ZSuTWuLcEscn1zUTbR3LEfyxHl5EEHpqqOpF+Sd7wZvuDxw==
   dependencies:
-    core-js "^2.5.7"
+    core-js "^3.2.1"
     lodash.get "^4.4.2"
     lodash.isequal "^4.5.0"
-    validator "^10.11.0"
+    validator "^11.0.0"
   optionalDependencies:
     commander "^2.7.1"
