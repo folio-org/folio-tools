@@ -1,5 +1,6 @@
 import boto3
 from botocore.exceptions import ClientError
+from collections import defaultdict
 import os
 import re
 import requests
@@ -26,18 +27,36 @@ def main():
                 OKAPI, OKAPI_USER, OKAPI_PASSWORD, TENANT
             )
     tenants = get_tenants(OKAPI)
+    tenants_on_open_prs = defaultdict(list)
+    print("Checking for tenants leftover from closed PRs")
     for t in tenants:
         tenant_split = t.rsplit('_',2)
         if tenant_split[0][:9] == 'platform_':
+            build_number = t.rsplit('_', 1)[1]
             pr_number = t.rsplit('_', 2)[1]
             pr_repo = t.rsplit('_', 2)[0].replace("_", "-")
             repo = "{}/{}".format(ORGANIZATION, pr_repo)
             print("Checking pr for tenant: {}".format(t))
             closed = check_pr(repo, pr_number)
             if closed == True:
+                print("CLOSED " + t)
                 delete_tenant(OKAPI, t, token)
                 delete_bucket("-".join([pr_repo, pr_number]))
-
+            elif closed == False:
+                tenants_on_open_prs[pr_number].append(
+                    {
+                     'id':t,
+                     'build':int(build_number)
+                    }
+                )
+    print("Checking for expired tenants on open PRs")
+    for pr in tenants_on_open_prs:
+        latest_build = max([t['build'] for t in tenants_on_open_prs[pr]])
+        for tenant in tenants_on_open_prs[pr]:
+            if tenant['build'] != latest_build:
+                print("latest build is {}".format(str(latest_build)))
+                print(tenant['id'] + " is not the latest build, deleting...")
+                delete_tenant(OKAPI, tenant['id'], token)
 
 def get_tenants(okapi_url):
     tenants = []
