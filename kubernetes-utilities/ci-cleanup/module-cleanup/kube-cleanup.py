@@ -22,7 +22,7 @@ def main():
             sys.exit()
 
     token = okapi_auth(
-                args.okapi_url, arts.username, args.password, 'supertenant'
+                args.okapi_url, args.username, args.password, 'supertenant'
             )
 
     tenants = get_tenants(args.okapi_url)
@@ -205,7 +205,7 @@ def delete_deployment(svcid, okapi_url, token):
             headers = headers)
     try:
         r.raise_for_status()
-        print("deleted deploymentwith srvcId: {}".format(svcid))
+        print("deleted deployment with srvcId: {}".format(svcid))
     except requests.exceptions.HTTPError:
         print("deployment with id: {} not foud, skipping...".format(svcid))
 
