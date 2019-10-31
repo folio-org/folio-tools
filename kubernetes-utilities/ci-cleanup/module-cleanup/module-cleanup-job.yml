@@ -1,9 +1,9 @@
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: cleanup-test
+  name: module-cleanup
   labels:
-    app: cleanup-test
+    app: module-cleanup
   namespace: folio-default
 spec:
   schedule: "41 0 * * *"
@@ -14,6 +14,21 @@ spec:
           restartPolicy: Never
           serviceAccountName: controller-service-account
           containers:
-            - name: cleanup-test
-              image: folioci/folioci-cleanup:0.1.1
-              args: ["-o", "https://okapi-default.ci.folio.org", "-r", "1"]
+            - name: module-cleanup
+              image: folioci/folioci-cleanup:latest
+              envFrom:
+              - secretRef:
+                  name: tenant-cleanup-env
+              args: 
+                - "-o"
+                - "https://okapi-default.ci.folio.org"
+                - "-r"
+                - "3"
+                - "-s"
+                - "2"
+                - "-u"
+                - "username"
+                - "$(CLEANUP_OKAPI_USER)"
+                - "-p"
+                - "$(CLEANUP_OKAPI_PASSWORD)"
+
