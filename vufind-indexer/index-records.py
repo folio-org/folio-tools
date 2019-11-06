@@ -30,7 +30,6 @@ instance_formats = jmespath.compile('instanceFormatIds | [0]')
 
 def main():
     args = parse_command_line_args()
-    print(args)
     token = get_token(args.okapi_url, args.user_name, args.password, args.tenant)
     formats = get_instance_formats(token, args.okapi_url, args.tenant)
     for instance in gen_instance_storage_records(token, args.okapi_url, args.tenant):
@@ -81,8 +80,10 @@ def map_record(instance_record):
 
 def format_record(document, formats):
     if document['format'] is not None:
-        document['format'] = formats[document['format']]
-
+        try:
+            document['format'] = formats[document['format']]
+        except KeyError:
+            document['format'] = None
     return document
 
 def index_record(document, solr_url):
