@@ -16,3 +16,11 @@ source venv/bin/activate
 pip install jmespath requests
 python3 index-records.py -o https://folio-snapshot-okapi.aws.indexdata.com
 ```
+
+Index records using container
+```
+docker build -t index-records .
+docker run --rm \
+  --network host \
+  index-records -o https://folio-snapshot-okapi.aws.indexdata.com
+```
