@@ -1,5 +1,6 @@
 import argparse
 from kubernetes import client, config
+from natsort import natsorted
 import requests
 import sys
 
@@ -38,7 +39,7 @@ def main():
             retain = args.snapshot_retention
         else:
             backend_pods_filtered = [
-                m for m in backend_pods if "SNAPSHOT" not in m["app"]
+                m for m in backend_pods if "snapshot" not in m["app"]
             ]
             retain = args.release_retention
         is_enabled = test_is_enabled(enabled_modules, p)
@@ -160,8 +161,8 @@ def test_is_expired(test_pod, all_pods, retention_limit=1):
         if p['module'] == test_pod['module']:
             instances.append(p['app'])
 
-    instances.sort(reverse=True)
-    if instances.index(test_pod["app"]) >= retention_limit:
+    instances_sorted = natsorted(instances, reverse=True)
+    if instances_sorted.index(test_pod["app"]) >= retention_limit:
         is_expired = True
     return is_expired
 
