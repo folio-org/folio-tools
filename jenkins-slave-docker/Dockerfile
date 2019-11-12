@@ -28,7 +28,7 @@ ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 
 # Install Nodejs
-ENV NODEJS_VERSION 8
+ENV NODEJS_VERSION 10
 RUN wget -q --no-check-certificate --no-cookies \
     https://deb.nodesource.com/setup_${NODEJS_VERSION}.x -O /tmp/node.sh  && \
     chmod +x /tmp/node.sh && \

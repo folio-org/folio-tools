@@ -1,4 +1,3 @@
-
 Dockerfile and configs for Docker images consisting of development and build 
 tools needed to build and deploy FOLIO artifacts for https://github.com/folio-org.  
 The image can be deployed as either Jenkins slave instances or as personal development 
@@ -35,3 +34,10 @@ Example build and run commands for the image:
    -e "JENKINS_SLAVE_SSH_PUBKEY=<YOUR PUBLIC SSH KEY HERE>" \
    jenkins-slave-all'
 ```
+
+## Upgrading this image
+* Pick a new version number (Check NEWS.md or hub.docker.com for the latest tag)
+* List changes in the NEWS.md file
+* Build and tag the new image with the new version tag and "latest". Jenkins will pull the image tagged "latest".
+
+If it's necessary to revert to an older image, use docker pull to get an older version, tag it as latest and push it back up.
