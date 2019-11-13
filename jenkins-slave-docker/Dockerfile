@@ -95,18 +95,20 @@ RUN cd /tmp && \
     ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws && \
     rm -rf /tmp/awscli-bundle*
 
-# Ansible
+# Ansible 2.7.5 (from pip)
 RUN apt-get -q update && \
     DEBIAN_FRONTEND="noninteractive" apt-get -q install -y \
     -o Dpkg::Options::="--force-confnew"  --no-install-recommends \
     software-properties-common && \
-    apt-add-repository -y ppa:ansible/ansible && \
-    apt-get -q update && \
+    #apt-add-repository -y ppa:ansible/ansible-2.7 && \
+    #apt-get -q update && \
     DEBIAN_FRONTEND="noninteractive" apt-get -q install -y \
     -o Dpkg::Options::="--force-confnew"  --no-install-recommends \
-    ansible python-jmespath && \
+    #ansible python-jmespath && \
+    python-setuptools python-jmespath && \
     pip install boto && \
-    pip install boto3
+    pip install boto3 && \
+    pip install ansible==2.7.5
    
 
 # ruby/rvm
