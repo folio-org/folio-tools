@@ -10,7 +10,7 @@ ENV JAVA_APP_DIR /usr/verticles
 RUN apk add --update \
     curl \
     bash \
-    openjdk8 \
+    openjdk8-jre \
  && rm /var/cache/apk/* \
  && echo "securerandom.source=file:/dev/urandom" >> /usr/lib/jvm/default-jvm/jre/lib/security/java.security
 
