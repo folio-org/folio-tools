@@ -15,10 +15,9 @@ RUN apk add --update \
  && echo "securerandom.source=file:/dev/urandom" >> /usr/lib/jvm/default-jvm/jre/lib/security/java.security
 
 # Add run script as JAVA_APP_DIR/run-java.sh and make it executable
-COPY run-java.sh debug-options container-limits java-default-options ${JAVA_APP_DIR}/
+COPY run-java.sh debug-options java-default-options ${JAVA_APP_DIR}/
 RUN chmod 755 ${JAVA_APP_DIR}/run-java.sh \
     ${JAVA_APP_DIR}/java-default-options \
-    ${JAVA_APP_DIR}/container-limits \
     ${JAVA_APP_DIR}/debug-options
 
 # Create user/group 'folio'
