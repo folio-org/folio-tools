@@ -1,6 +1,16 @@
 
-This directory contains configuration files to build Docker images for openjdk-8-jre-based 
-FOLIO applications.  Most of the work contained in this directory is based on the previous
+This directory contains configuration files to build Docker images for openjdk-8-jre-based
+FOLIO applications.
+
+**NOTE**: Only use the "folioci/alpine-jre-openjdk8" Docker image.
+
+The older base images (openjdk8-jre-alpine and openjdk8-jre) are deprecated, having reached end-of-life.
+
+The remainder of this document needs adjustment, as much is out-of-date.
+
+---
+
+Most of the work contained in this directory is based on the previous
 work by Fabric8 to properly support running Java applications in a Docker container. It
 includes the following features:
 
