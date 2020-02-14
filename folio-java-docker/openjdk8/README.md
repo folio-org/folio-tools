@@ -5,6 +5,7 @@ FOLIO applications.
 **NOTE**: Only use the "folioci/alpine-jre-openjdk8" Docker image.
 
 The older base images (openjdk8-jre-alpine and openjdk8-jre) are deprecated, having reached end-of-life.
+They will be removed after 2020-04-30.
 
 The remainder of this document needs adjustment, as much is out-of-date.
 
