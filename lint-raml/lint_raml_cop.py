@@ -158,6 +158,9 @@ def main():
     # Detect any schema $ref
     schema_ref_re = re.compile(r'( +"\$ref"[ :]+")([^"]+)(".*)')
 
+    # Handle issue messages of parser
+    message_avoid_re = re.compile(r'^(\[[^]]+\]) ([^:]+):(.*)$')
+
     # Process each configured set of RAML files
     version_re = re.compile(r"^#%RAML ([0-9.]+)")
     exit_code = 0 # Continue processing to detect various issues, then return the result.
@@ -384,8 +387,13 @@ def main():
             try:
                 cmd_raml_cop(input_pn, no_color=True)
             except sh.ErrorReturnCode_1 as err:
-                logger2.error("  raml-cop detected errors with %s:\n%s", raml_fn, err.stdout.decode())
-                exit_code = 1
+                (issues_list, errors_remain) = avoid_specific_errors(repo_name, err.stdout.decode().split(os.linesep), message_avoid_re)
+                if errors_remain:
+                    logger2.error("  raml-cop detected errors with %s:\n%s", raml_fn, '\n'.join(issues_list))
+                    exit_code = 1
+                else:
+                    logger2.warning("  raml-cop detected warnings with %s:\n%s", raml_fn, '\n'.join(issues_list))
+                    exit_code = 0
             else:
                 logger2.info("  raml-cop did not detect any errors with %s", raml_fn)
     # Report the outcome
@@ -577,6 +585,48 @@ def assess_schema_descriptions(schemas_dir, schema_files, has_jq):
         else:
             logger.warning("No 'jq' so not assessing schema file.")
     return issues
+
+def avoid_specific_errors (repo_name, message_list, message_avoid_re):
+    """
+    Avoid certain specific errors by demoting to warnings.
+    Messages can be matched for a list of repos, or for all repos.
+    """
+    avoids = {
+      "ERROR JSON schema contains circular references": [
+          "mod-data-import-converter-storage"
+      ],
+      "ERROR foo bar": [
+          "all"
+      ]
+    }
+    errors_remain = False
+    issues_list = []
+    for message in message_list:
+        if message == "":
+            continue
+        # Assist regex by adding colon to end-of-line,
+        # because some one-line messages are not so terminated.
+        temp_message = message + ':'
+        match = re.search(message_avoid_re, temp_message)
+        if match:
+            file_position = match.group(1)
+            issue_message = match.group(2)
+            issue_content = match.group(3)
+            for avoid_key, avoid_repos in avoids.items():
+                if avoid_key == issue_message:
+                    for repo in avoid_repos:
+                        if (repo == "all") or (repo == repo_name):
+                            issue_message = re.sub(r'^ERROR', r'WARNING', issue_message)
+            if re.match(r'^ERROR', issue_message):
+                errors_remain = True
+            if issue_content:
+                new_message = file_position + ' ' + issue_message + ':' + issue_content[:-1]
+            else:
+                new_message = file_position + ' ' + issue_message
+            issues_list.append(new_message)
+        else:
+            issues_list.append(message)
+    return (issues_list, errors_remain)
 
 if __name__ == "__main__":
     sys.exit(main())
