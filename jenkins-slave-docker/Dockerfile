@@ -50,11 +50,11 @@ RUN wget -q --no-check-certificate --no-cookies -O - \
 
 # Disabled for now.  repository is too unstable.
 # Install Ubuntuzilla/Firefox repo for firefox-esr
-#RUN apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 2667CA5C && \ 
+#RUN apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 2667CA5C && \
 # echo "deb http://downloads.sourceforge.net/project/ubuntuzilla/mozilla/apt all main" \
-#    > /etc/apt/sources.list.d/ubuntuzilla.list 
+#    > /etc/apt/sources.list.d/ubuntuzilla.list
 
-# Install  packages for our build environment. 
+# Install  packages for our build environment.
 RUN apt-get -q update && \
     DEBIAN_FRONTEND="noninteractive" apt-get -q install -y \
     -o Dpkg::Options::="--force-confnew"  --no-install-recommends \
@@ -109,7 +109,7 @@ RUN apt-get -q update && \
     pip install boto && \
     pip install boto3 && \
     pip install ansible==2.7.5
-   
+
 
 # ruby/rvm
 RUN apt-get -q update && \
@@ -125,7 +125,7 @@ RUN apt-get -q update && \
     rvm install 2.4.2 && \
     rvm install 2.4.3' && \
     groupadd -g 1010 rvm
-    
+
 
 # Install generate_api_docs from folio-org/folio-tools
 RUN cd /usr/local && \
