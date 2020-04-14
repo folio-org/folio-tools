@@ -70,7 +70,7 @@ RUN apt-get -q update && \
     npm install -g raml2html@3.0.1 && \
     npm install -g npm-snapshot
 
-ENV YARN_VERSION 1.15.2-1
+ENV YARN_VERSION 1.22.4-1
 RUN wget -O - https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
     sh -c 'echo "deb https://dl.yarnpkg.com/debian/ stable main" \
     >> /etc/apt/sources.list.d/yarn.list' && \
