@@ -28,7 +28,7 @@ ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 
 # Install Nodejs
-ENV NODEJS_VERSION 10
+ENV NODEJS_VERSION 12
 RUN wget -q --no-check-certificate --no-cookies \
     https://deb.nodesource.com/setup_${NODEJS_VERSION}.x -O /tmp/node.sh  && \
     chmod +x /tmp/node.sh && \
@@ -50,11 +50,11 @@ RUN wget -q --no-check-certificate --no-cookies -O - \
 
 # Disabled for now.  repository is too unstable.
 # Install Ubuntuzilla/Firefox repo for firefox-esr
-#RUN apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 2667CA5C && \ 
+#RUN apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 2667CA5C && \
 # echo "deb http://downloads.sourceforge.net/project/ubuntuzilla/mozilla/apt all main" \
-#    > /etc/apt/sources.list.d/ubuntuzilla.list 
+#    > /etc/apt/sources.list.d/ubuntuzilla.list
 
-# Install  packages for our build environment. 
+# Install  packages for our build environment.
 RUN apt-get -q update && \
     DEBIAN_FRONTEND="noninteractive" apt-get -q install -y \
     -o Dpkg::Options::="--force-confnew"  --no-install-recommends \
@@ -70,7 +70,7 @@ RUN apt-get -q update && \
     npm install -g raml2html@3.0.1 && \
     npm install -g npm-snapshot
 
-ENV YARN_VERSION 1.15.2-1
+ENV YARN_VERSION 1.22.4-1
 RUN wget -O - https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
     sh -c 'echo "deb https://dl.yarnpkg.com/debian/ stable main" \
     >> /etc/apt/sources.list.d/yarn.list' && \
@@ -109,7 +109,7 @@ RUN apt-get -q update && \
     pip install boto && \
     pip install boto3 && \
     pip install ansible==2.7.5
-   
+
 
 # ruby/rvm
 RUN apt-get -q update && \
@@ -125,7 +125,7 @@ RUN apt-get -q update && \
     rvm install 2.4.2 && \
     rvm install 2.4.3' && \
     groupadd -g 1010 rvm
-    
+
 
 # Install generate_api_docs from folio-org/folio-tools
 RUN cd /usr/local && \
