@@ -28,6 +28,8 @@ import requests
 import sh
 import yaml
 
+SCRIPT_VERSION = "1.4.2"
+
 CONFIG_FILE = "https://raw.githubusercontent.com/folio-org/folio-org.github.io/master/_data/api.yml"
 
 LOGLEVELS = {
@@ -70,6 +72,9 @@ def main():
     logger3 = logging.getLogger("lint-raml-schema")
     logging.getLogger("sh").setLevel(logging.ERROR)
     logging.getLogger("requests").setLevel(logging.ERROR)
+
+    # Display a version string
+    logger1.info("Using lint-raml version: %s", SCRIPT_VERSION)
 
     # Process and validate the input parameters
     if args.input.startswith("~"):
