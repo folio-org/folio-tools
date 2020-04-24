@@ -1,3 +1,7 @@
+## 1.2.1 2020-04-24
+
+* Utilise new stripes-cli v1.15.1 FOLIO-2572,STCLI-148
+
 ## 1.2.0 2020-04-14
 
 * Upgrade Node to v12 (now v12.16.2 was v10.17.0)
