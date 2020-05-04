@@ -1,13 +1,12 @@
 
-This directory contains configuration files to build Docker images for openjdk-8-jre-based
+This directory contains configuration files to build the Docker image for openjdk-8-jre-based
 FOLIO applications.
 
-**NOTE**: Only use the "folioci/alpine-jre-openjdk8" Docker image.
+The image is deployed to [folioci/alpine-jre-openjdk8](https://hub.docker.com/r/folioci/alpine-jre-openjdk8)
 
-The older base images (openjdk8-jre-alpine and openjdk8-jre) are deprecated, having reached end-of-life.
-They will be removed after 2020-04-30.
+The remainder of this document is mostly out-of-date. The document and the accompanying resources were utlised from the Fabric8 work (2017-12-20).
 
-The remainder of this document needs adjustment, as much is out-of-date.
+With [FOLIO-2334](https://issues.folio.org/browse/FOLIO-2334) we now only use some portions, namely the `run-java.sh` and `java-default-options` and `debug-options`. (The `agent-bond-opts` and `container-limits` are now not used.)
 
 ---
 
