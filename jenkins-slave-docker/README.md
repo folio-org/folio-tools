@@ -1,15 +1,16 @@
-Dockerfile and configs for Docker images consisting of development and build 
-tools needed to build and deploy FOLIO artifacts for https://github.com/folio-org.  
-The image can be deployed as either Jenkins slave instances or as personal development 
+Dockerfile and configs for Docker images consisting of development and build
+tools needed to build and deploy FOLIO artifacts for https://github.com/folio-org
+
+The image can be deployed as either Jenkins slave instances or as personal development
 environments for FOLIO.  The image is primarily used by FOLIO CI and is available
 in the FOLIO CI repository at Docker Hub - https://hub.docker.com/u/folioci/dashboard/
 
-Th image is based on the jenkinsci/ssh-slave images including authentication support
-using a SSH key pair and as well as use of the entrypoint script, 'setup-ssh' from the 
+The image is based on the jenkinsci/ssh-slave images including authentication support
+using a SSH key pair and as well as use of the entrypoint script, 'setup-ssh' from the
 https://github.com/jenkinsci/docker-ssh-slave repository.
 
 'Dockerfile' builds an image consisting of a full development environment for any
-folio-org FOLIO module or component.  
+folio-org FOLIO module or component.
 
 The following build args and their default values are defined in the Dockerfiles
 in this directory.  The default values match the current FOLIO CI Jenkins environment,
