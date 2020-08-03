@@ -21,8 +21,11 @@ FROM folioci/alpine-jre-openjdk11:latest
 
 ENV VERTICLE_FILE mod-inventory-storage-fat.jar
 
+# Set the location of the verticles
+ENV VERTICLE_HOME /usr/verticles
+
 # Copy your fat jar to the container
-COPY target/${VERTICLE_FILE} ${JAVA_APP_DIR}/${VERTICLE_FILE}
+COPY target/${VERTICLE_FILE} ${VERTICLE_HOME}/${VERTICLE_FILE}
 
 # Expose this port locally in the container.
 EXPOSE 8081
@@ -30,7 +33,7 @@ EXPOSE 8081
 
 ### Upgrading from alpine-jre-openjdk8
 
-Most modules don't add own shell scripts to the container. Those that do need to
+Most modules do not add their own shell scripts to the container. Those that do, will need to
 change `#!/bin/bash` to `#!/bin/sh` to use the Almquist shell that is the default
 non-interactive shell in Alpine, Ubuntu, Debian, and other distributions because
 of efficiency: speed of execution, disk space, RAM, CPU, and security.
