@@ -30,7 +30,7 @@ EXPOSE 8081
 
 ### Upgrading from alpine-jre-openjdk8
 
-Most modules don't add own shell scripts to the container. Those that do need to
+Most modules do not add their own shell scripts to the container. Those that do, will need to
 change `#!/bin/bash` to `#!/bin/sh` to use the Almquist shell that is the default
 non-interactive shell in Alpine, Ubuntu, Debian, and other distributions because
 of efficiency: speed of execution, disk space, RAM, CPU, and security.
