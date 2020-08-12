@@ -1,4 +1,4 @@
-FROM ubuntu:xenial
+FROM ubuntu:focal
 
 # setup SSH server
 RUN apt-get update \
@@ -15,7 +15,7 @@ RUN sed -i 's/#PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config && \
 #  Add utility packages to image
 RUN DEBIAN_FRONTEND="noninteractive" apt-get -q install -y \
     -o Dpkg::Options::="--force-confnew"  --no-install-recommends \
-    locales tzdata vim-tiny curl wget unzip lsb-release sudo git && \
+    apt-utils ca-certificates locales gnupg2 tzdata vim-tiny curl wget unzip lsb-release sudo git && \
     apt-get -q autoremove && \
     apt-get -q clean -y && rm -rf /var/lib/apt/lists/* && \
     rm -f /var/cache/apt/*.bin && \
@@ -27,13 +27,9 @@ ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 
-# Install Nodejs
+## Install Nodejs
 ENV NODEJS_VERSION 12
-RUN wget -q --no-check-certificate --no-cookies \
-    https://deb.nodesource.com/setup_${NODEJS_VERSION}.x -O /tmp/node.sh  && \
-    chmod +x /tmp/node.sh && \
-    sh -c "/tmp/node.sh" && \
-    rm -f /tmp/node.sh 
+RUN curl -sL https://deb.nodesource.com/setup_${NODEJS_VERSION}.x | bash -
 
 # Install Postgres repo
 ENV POSTGRES_VERSION 10
@@ -48,27 +44,22 @@ RUN wget -q --no-check-certificate --no-cookies -O - \
     echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" \
     > /etc/apt/sources.list.d/google.list
 
-# Disabled for now.  repository is too unstable.
-# Install Ubuntuzilla/Firefox repo for firefox-esr
-#RUN apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 2667CA5C && \
-# echo "deb http://downloads.sourceforge.net/project/ubuntuzilla/mozilla/apt all main" \
-#    > /etc/apt/sources.list.d/ubuntuzilla.list
-
 # Install  packages for our build environment.
 RUN apt-get -q update && \
     DEBIAN_FRONTEND="noninteractive" apt-get -q install -y \
     -o Dpkg::Options::="--force-confnew"  --no-install-recommends \
-    openjdk-8-jdk build-essential debhelper lintian fakeroot devscripts jq maven python python-pip  \
+    openjdk-11-jdk build-essential debhelper lintian fakeroot devscripts jq maven python3 \
     python3-pip python3-setuptools python3-wheel python3-yaml python3-requests python3-sh nodejs \
     postgresql-client-${POSTGRES_VERSION} xvfb libgtk2.0-0 libxtst6 libxss1 libgconf-2-4 libnss3 \
     libnspr4 libasound2 firefox google-chrome-stable libaio1 zip && \
     #libnspr4 libasound2 firefox firefox-esr-mozilla-build google-chrome-stable && \
     #apt-get -q clean -y && rm -rf /var/lib/apt/lists/* && \
     #rm -f /var/cache/apt/*.bin && \
-    rm -f /tmp/node.sh && \
-    rm -f /etc/apt/sources.list.d/google.list && \
-    npm install -g raml2html@3.0.1 && \
-    npm install -g npm-snapshot
+    #rm -f /tmp/node.sh && \
+    rm -f /etc/apt/sources.list.d/google.list
+
+RUN npm install -g raml2html@3.0.1 && \
+  npm install -g npm-snapshot
 
 ENV YARN_VERSION 1.22.4-1
 RUN wget -O - https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
@@ -88,28 +79,15 @@ RUN wget -q --no-check-certificate --no-cookies \
     rm -rf /tmp/docker*
 
 # Install AWS cli tools
-RUN cd /tmp && \
-    wget -q --no-check-certificate --no-cookies \
-    https://s3.amazonaws.com/aws-cli/awscli-bundle.zip -O /tmp/awscli-bundle.zip && \
-    unzip /tmp/awscli-bundle.zip && \
-    ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws && \
-    rm -rf /tmp/awscli-bundle*
+RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
+  unzip ./awscliv2.zip -d /tmp && /tmp/aws/install && \
+  rm -rf /tmp/aws && rm ./awscliv2.zip
 
 # Ansible 2.7.5 (from pip)
-RUN apt-get -q update && \
-    DEBIAN_FRONTEND="noninteractive" apt-get -q install -y \
-    -o Dpkg::Options::="--force-confnew"  --no-install-recommends \
-    software-properties-common && \
-    #apt-add-repository -y ppa:ansible/ansible-2.7 && \
-    #apt-get -q update && \
-    DEBIAN_FRONTEND="noninteractive" apt-get -q install -y \
-    -o Dpkg::Options::="--force-confnew"  --no-install-recommends \
-    #ansible python-jmespath && \
-    python-setuptools python-jmespath && \
-    pip install boto && \
-    pip install boto3 && \
-    pip install ansible==2.7.5
-
+RUN pip3 install boto && \
+    pip3 install boto3 && \
+    pip3 install jmespath && \
+    pip3 install ansible==2.7.18
 
 # ruby/rvm
 RUN apt-get -q update && \
@@ -125,7 +103,6 @@ RUN apt-get -q update && \
     rvm install 2.4.2 && \
     rvm install 2.4.3' && \
     groupadd -g 1010 rvm
-
 
 # Install generate_api_docs from folio-org/folio-tools
 RUN cd /usr/local && \
