@@ -14,7 +14,7 @@ Index records from folio-snapshot to Solr running on localhost.
 python3 -m venv venv
 source venv/bin/activate
 pip install jmespath requests
-python3 index-records.py -o https://folio-snapshot-okapi.aws.indexdata.com
+python3 index-records.py -o https://folio-snapshot-okapi.dev.folio.org
 ```
 
 Index records using container
@@ -22,5 +22,5 @@ Index records using container
 docker build -t index-records .
 docker run --rm \
   --network host \
-  index-records -o https://folio-snapshot-okapi.aws.indexdata.com
+  index-records -o https://folio-snapshot-okapi.dev.folio.org
 ```
