@@ -11,6 +11,7 @@ ENV JAVA_APP_DIR=/usr/verticles \
 # /dev/urandom is used as random source, which is perfectly safe
 # according to http://www.2uo.de/myths-about-urandom/
 RUN apk add --no-cache \
+    bash \
     curl \
     openjdk11-jre-headless \
  && echo "securerandom.source=file:/dev/urandom" >> /usr/lib/jvm/default-jvm/jre/lib/security/java.security
