@@ -1,5 +1,5 @@
 #
-# usage: python3 index-records.py -o https://folio-snapshot-core-okapi.aws.indexdata.com
+# usage: python3 index-records.py -o https://folio-snapshot-core-okapi.dev.folio.org
 #
 # based on work by Rebeca Moura
 #

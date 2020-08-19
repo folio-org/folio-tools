@@ -18,12 +18,12 @@ def main():
 
     parser.add_argument("--testing",
                         action='store_const',
-                        const='http://folio-testing-okapi.aws.indexdata.com',
+                        const='http://folio-testing-okapi.dev.folio.org',
                         help="Use folio-testing environment")
 
     parser.add_argument("--snapshot",
                         action='store_const',
-                        const='https://folio-snapshot-okapi.aws.indexdata.com',
+                        const='https://folio-snapshot-okapi.dev.folio.org',
                         help="Use folio-snapshot environment")
 
     parser.add_argument("-t", "--tenant",
