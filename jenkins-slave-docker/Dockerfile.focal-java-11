@@ -28,11 +28,11 @@ ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 
 ## Install Nodejs
-ENV NODEJS_VERSION 12
+ARG NODEJS_VERSION=12
 RUN curl -sL https://deb.nodesource.com/setup_${NODEJS_VERSION}.x | bash -
 
 # Install Postgres repo
-ENV POSTGRES_VERSION 10
+ARG POSTGRES_VERSION=10
 RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -cs`-pgdg main" \
      > /etc/apt/sources.list.d/pgdg.list && \
     wget -q --no-check-certificate --no-cookies -O - \
@@ -51,7 +51,7 @@ RUN apt-get -q update && \
     openjdk-11-jdk build-essential debhelper lintian fakeroot devscripts jq maven python3 \
     python3-pip python3-setuptools python3-wheel python3-yaml python3-requests python3-sh nodejs \
     postgresql-client-${POSTGRES_VERSION} xvfb libgtk2.0-0 libxtst6 libxss1 libgconf-2-4 libnss3 \
-    libnspr4 libasound2 firefox google-chrome-stable libaio1 zip && \
+    libnspr4 libasound2 firefox google-chrome-stable libaio1 zip python-is-python3 && \
     #libnspr4 libasound2 firefox firefox-esr-mozilla-build google-chrome-stable && \
     #apt-get -q clean -y && rm -rf /var/lib/apt/lists/* && \
     #rm -f /var/cache/apt/*.bin && \
@@ -61,7 +61,7 @@ RUN apt-get -q update && \
 RUN npm install -g raml2html@3.0.1 && \
   npm install -g npm-snapshot
 
-ENV YARN_VERSION 1.22.4-1
+ARG YARN_VERSION=1.22.4-1
 RUN wget -O - https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
     sh -c 'echo "deb https://dl.yarnpkg.com/debian/ stable main" \
     >> /etc/apt/sources.list.d/yarn.list' && \
@@ -70,7 +70,7 @@ RUN wget -O - https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
     yarn global add @folio/stripes-cli --prefix /usr/local
 
 # Install Docker cli
-ENV DOCKER_VERSION 17.09.0-ce
+ARG DOCKER_VERSION=19.03.9
 RUN wget -q --no-check-certificate --no-cookies \
     https://download.docker.com/linux/static/stable/x86_64/docker-${DOCKER_VERSION}.tgz \
     -O /tmp/docker.tgz && \
@@ -84,10 +84,11 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2
   rm -rf /tmp/aws && rm ./awscliv2.zip
 
 # Ansible 2.7.5 (from pip)
+ARG ANSIBLE_VER=2.9.13
 RUN pip3 install boto && \
     pip3 install boto3 && \
     pip3 install jmespath && \
-    pip3 install ansible==2.7.18
+    pip3 install ansible==${ANSIBLE_VER}
 
 # ruby/rvm
 RUN apt-get -q update && \
@@ -149,7 +150,7 @@ RUN groupadd -g ${gid} ${group} \
 # Run as user, $user,to install sdkman for Gradle
 RUN su - ${user} -s /bin/bash -c 'curl -s "https://get.sdkman.io" | bash \
     && source "/home/jenkins/.sdkman/bin/sdkman-init.sh" \
-    && sdk install gradle 4.9'
+    && sdk install gradle 6.6.1'
 
 COPY setup-sshd /usr/local/bin/setup-sshd
 
