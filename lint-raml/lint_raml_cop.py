@@ -28,7 +28,7 @@ import requests
 import sh
 import yaml
 
-SCRIPT_VERSION = "1.4.2"
+SCRIPT_VERSION = "1.4.3"
 
 CONFIG_FILE = "https://raw.githubusercontent.com/folio-org/folio-org.github.io/master/_data/api.yml"
 
@@ -598,7 +598,8 @@ def avoid_specific_errors (repo_name, message_list, message_avoid_re):
     """
     avoids = {
       "ERROR JSON schema contains circular references": [
-          "mod-data-import-converter-storage"
+          "mod-data-import-converter-storage",
+          "mod-source-record-storage"
       ],
       "ERROR foo bar": [
           "all"
