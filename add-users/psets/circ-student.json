@@ -1,0 +1,21 @@
+[
+  "Check in: All permissions",
+  "Check out: Check out circulating items",
+  "Fast add: Create",
+  "Inventory: View instances, holdings, and items",
+  "Notes: Can assign and unassign a note",
+  "Notes: Can create a note",
+  "Notes: Can view a note",
+  "Requests: View, create",
+  "Tags on records: View only",
+  "UI: ui-notes module is enabled",
+  "Users: Can pay fee/fine",
+  "Users: Can view fees/fines",
+  "Users: Can view permissions assigned to users",
+  "Users: Can view proxies assigned to users",
+  "Users: Can view service points assigned to users",
+  "Users: Can view user profile",
+  "Users: User loans renew",
+  "Users: User loans view",
+  "Users: View requests"
+]
