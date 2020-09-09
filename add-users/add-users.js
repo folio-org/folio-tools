@@ -27,23 +27,14 @@ const util = require('util');
  * TODO: if a pset already exists, remove existing permissions.
  */
 
-const credentials = {
-  tenant: 'diku',
-  username: 'diku_admin',
-  password: 'admin',
-};
-
-//
-// nothing to configure below
-//
-
-// HTTP request defaults
+/**
+ * HTTP request config
+ */
 const options = {
   "method": "POST",
   "hostname": "",
   "path": "",
   "headers": {
-    "x-okapi-tenant": credentials.tenant,
     "Content-type": "application/json",
     "cache-control": "no-cache",
     "accept": "application/json"
@@ -229,7 +220,7 @@ const getOrCreatePset = async (name, filename, permissions) => {
     if (permissions[d]) {
       subPermissions.push(permissions[d]);
     } else {
-      console.error(`Could not find the permissions "${d}".`);
+      console.error(`Could not find the permission "${d}".`);
     }
   });
 
@@ -324,6 +315,48 @@ const getPermissions = async () => {
 };
 
 /**
+ * processArgs
+ * parse the CLI; throw if a required arg is missing
+ *
+ * @arg [] args CLI arguments
+ * @return {} object shaped like { username, password, hostname, tenant, pesets }
+ */
+const processArgs = (args) => {
+  const config = {
+    username: null,
+    password: null,
+    hostname: null,
+    tenant: null,
+    psets: null,
+  };
+
+  // start at 2 because we get called like "node script.js --foo bar --bat baz"
+  // search for pairs of the form
+  //   --key value
+  // and populate the config object with them
+  for (let i = 2; i < args.length; i++) {
+    let key;
+    if (args[i].indexOf('--') === 0) {
+      key = args[i].substr(2);
+      if (key in config && i + 1 < args.length) {
+        config[key] = args[i + 1]; // capture the key-value pair ...
+        i++;                       // ... and skip to the next potential key
+        continue;
+      }
+    }
+  }
+
+  // make sure all config values are non-empty
+  if (Object.values(config).filter(v => v).length == Object.keys(config).length) {
+    return config;
+  }
+
+  console.log("Usage: node " + __filename + " --username <u> --password <p> --tenant <t> --hostname <h> --psets <p>");
+
+  throw `A required argument was not present; missing one of: ${Object.keys(config).join(', ')}.`;
+};
+
+/**
  * eachPromise
  * iterate through an array of items IN SERIES, applying the given async
  * function to each.
@@ -335,7 +368,6 @@ const eachPromise = (arr, fn) => {
   if (!Array.isArray(arr)) return Promise.reject(new Error('Array not found'));
   return arr.reduce((prev, cur) => (prev.then(() => fn(cur))), Promise.resolve());
 };
-
 
 /**
  * main:
@@ -351,25 +383,23 @@ const eachPromise = (arr, fn) => {
  *     assign pset to user
  */
 async function main() {
-  // were we called correctly?
-  if (process.argv.length !== 4) {
-    console.log("Usage: node " + __filename + " <okapi-url> <path/to/directory>");
-    process.exit(1);
-  }
-
-  credentials.url = process.argv[2];  // okapi URL
-  const path = process.argv[3];       // dir containing psets
-  options.hostname = credentials.url;
-
-  // login and cache the token
-  const loginCreds = {
-    username: credentials.username,
-    password: credentials.password,
-  };
-  const res = await okapiPost('/authn/login', loginCreds)
-  options.headers['x-okapi-token'] = res.headers['x-okapi-token'];
-
   try {
+    // process CLI args; throws if we weren't called correctly
+    config = processArgs(process.argv);
+
+    options.hostname = config.hostname;
+    options.headers["x-okapi-tenant"] = config.tenant;
+
+    // login and cache the token
+    const loginCreds = {
+      username: config.username,
+      password: config.password,
+    };
+    const res = await okapiPost('/authn/login', loginCreds)
+    options.headers['x-okapi-token'] = res.headers['x-okapi-token'];
+
+    const path = config.psets;
+
     const permissions = await getPermissions();
     const psets = fs.readdirSync(path);
     if (psets.length) {
