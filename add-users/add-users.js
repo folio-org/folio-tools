@@ -5,8 +5,8 @@ const util = require('util');
 
 /**
  * create users with permissions read from local files
- * usage: node $0 some-url some-directory
- * e.g. node add-users.js folio-snapshot-okapi.dev.folio.org ./psets
+ * 
+ * usage: node $0 --username <u> --password <p> --tenant <t> --hostname <h> --psets <p>
  *
  * given a directory containing a list of json files containing a single array
  * of strings representing permission set display names,
