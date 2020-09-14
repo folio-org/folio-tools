@@ -1,0 +1,13 @@
+[
+  "Check in: All permissions",
+  "Check out: Check out circulating items",
+  "Inventory: View instances, holdings, and items",
+  "Notes: Can view a note",
+  "Users: Can view fees/fines",
+  "Users: Can view patron blocks",
+  "Users: Can view proxies assigned to users",
+  "Users: Can view service points assigned to users",
+  "Users: Can view user profile",
+  "Users: User loans view",
+  "Users: View requests"
+]
