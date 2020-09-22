@@ -5,7 +5,7 @@ const util = require('util');
 
 /**
  * create users with permissions read from local files
- * 
+ *
  * usage: node $0 --username <u> --password <p> --tenant <t> --hostname <h> --psets <p>
  *
  * given a directory containing a list of json files containing a single array
@@ -239,6 +239,7 @@ const getOrCreatePset = async (name, filename, permissions) => {
     return res.json;
   } else {
     console.log(`  created pset ${name}`)
+    pset.permissionName = name;
     const res = await okapiPost('/perms/permissions', pset);
     return res.json;
   }
@@ -246,27 +247,24 @@ const getOrCreatePset = async (name, filename, permissions) => {
 
 /**
  * assignPermissions
- * assign the permissions in the given pset to the given user, one by one,
- * in series.
+ * assign the given pset to the given user.
  * @arg object user
  * @arg object pset
  */
 const assignPermissions = (user, pset) => {
-  eachPromise(pset.subPermissions, (p) => {
-    const up = {
-      permissionName: p,
-    };
-    console.log(`  granting ${p} to ${user.username}`)
-    okapiPost(`/perms/users/${user.id}/permissions?indexField=userId`, up)
-    .catch(err => {
-      try {
-        const e = JSON.parse(err.body)
-        console.error(e.errors[0].message)
-      }
-      catch(e) {
-        console.error(e.body);
-      }
-    });
+  const up = {
+    permissionName: pset.permissionName,
+  };
+  console.log(`  granting ${pset.permissionName} to ${user.username}`)
+  okapiPost(`/perms/users/${user.id}/permissions?indexField=userId`, up)
+  .catch(err => {
+    try {
+      const e = JSON.parse(err.body)
+      console.error(e.errors[0].message)
+    }
+    catch(e) {
+      console.error(e.body);
+    }
   });
 };
 
