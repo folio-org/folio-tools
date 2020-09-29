@@ -14,13 +14,14 @@ const util = require('util');
  *   create a user named for the pset
  *     create a corresponding permissions user
  *     set the password to match the username
+ *     assign a service point to the user
  *   create a pset named for the pset
  *     add its permissions to the pset
- *     assign its permissions to the user
+ *     assign it to the user
  *
  * this script is idempotent; you can run it multiple times.
- * if a user already exists, its password and permissions will be
- * overwritten.
+ * if a user already exists, its password will be overwritten and its
+ * permissions augmented.
  * if a pset already exists, the permissions it contains will be augmented.
  *
  * TODO: if a user already exists, remove existing permissions.
@@ -209,6 +210,28 @@ const assignCredentials = async (user) => {
 }
 
 /**
+ * assignServicePoint
+ * assign service points to a user if none are already assigned
+ * @arg user object
+ * @arg array list of service points
+ */
+const assignServicePoint = async (user, servicePoints) => {
+  const sps = {
+    userId: user.id,
+    servicePointsIds: servicePoints.map(sp => sp.id),
+    defaultServicePointId : servicePoints[0].id,
+  }
+
+  const assignedServicePoints = await okapiGet(`service-points-users?query=userId==${user.id}`);
+  if (assignedServicePoints.json.totalRecords === 0) {
+    console.log('  assigning service points')
+    await okapiPost('/service-points-users', sps);
+  } else {
+    console.log(`${user.username} already has service points`)
+  }
+}
+
+/**
  * getOrCreatePset
  */
 const getOrCreatePset = async (name, filename, permissions) => {
@@ -217,8 +240,8 @@ const getOrCreatePset = async (name, filename, permissions) => {
   const contents = JSON.parse(fs.readFileSync(filename, { encoding: 'UTF-8'}));
   const subPermissions = [];
   contents.forEach(d => {
-    if (permissions[d]) {
-      subPermissions.push(permissions[d]);
+    if (permissions[d.toLowerCase()]) {
+      subPermissions.push(permissions[d.toLowerCase()]);
     } else {
       console.error(`Could not find the permission "${d}".`);
     }
@@ -234,7 +257,7 @@ const getOrCreatePset = async (name, filename, permissions) => {
   if (psets.json.totalRecords === 1) {
     console.log(`  found pset ${name}`)
     pset.id = psets.json.permissions[0].id;
-    pset.permissionName = psets.json.permissions[0].id;
+    pset.permissionName = psets.json.permissions[0].permissionName;
     const res = await okapiPut(`/perms/permissions/${pset.id}`, pset);
     return res.json;
   } else {
@@ -279,14 +302,16 @@ const assignPermissions = (user, pset) => {
  * @arg string p, name of a file to read, e.g. some-user.json
  * @arg string path, path to directory containing p, e.g. ./foo/bar
  * @arg object permissions, map from displayName => permissionName
+ * @arg array servicePoints, array of service points
  */
-const configureUser = async (p, path, permissions) => {
+const configureUser = async (p, path, permissions, servicePoints) => {
   try {
     const username = p.match(/(.*)\.json/)[1];
 
     const user = await getOrCreateUser(username);
     await assignPermissionsUser(user);
     await assignCredentials(user);
+    await assignServicePoint(user, servicePoints);
     const pset = await getOrCreatePset(username, `${path}/${p}`, permissions);
     await assignPermissions(user, pset);
   }
@@ -304,10 +329,34 @@ const getPermissions = async () => {
   if (res.json.totalRecords) {
     const hash = {};
     res.json.permissions.forEach(p => {
-      hash[p.displayName] = p.permissionName;
+      try {
+        if (p.displayName) {
+          hash[p.displayName.toLowerCase()] = p.permissionName;
+        }
+        else {
+          throw `${p.permissionName} does not have a defined 'displayName'`;
+        }
+      }
+      catch (e) {
+        console.error(e);
+      }
     });
 
     return hash;
+  }
+  throw "Could not retrieve permissions";
+};
+
+/**
+ * getServicePoints
+ * retrieve all service points. Return an array of objects.
+ *
+ * @return [] objects shaped like { id, name, code, ...}
+ */
+const getServicePoints = async () => {
+  const res = await okapiGet('/service-points?limit=2000');
+  if (res.json.totalRecords) {
+    return res.json.servicepoints;
   }
   throw "Could not retrieve permissions";
 };
@@ -398,10 +447,11 @@ async function main() {
 
     const path = config.psets;
 
+    const servicePoints = await getServicePoints();
     const permissions = await getPermissions();
     const psets = fs.readdirSync(path);
     if (psets.length) {
-      eachPromise(psets, (p) => configureUser(p, path, permissions));
+      eachPromise(psets, (p) => configureUser(p, path, permissions, servicePoints));
     } else {
       console.error(`Found ${path} but it was empty :(`)
       process.exit(1);
