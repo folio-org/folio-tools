@@ -1,4 +1,5 @@
 const https = require('https');
+const http = require('http');
 const fs = require('fs');
 const util = require('util');
 
@@ -6,7 +7,9 @@ const util = require('util');
 /**
  * create users with permissions read from local files
  *
- * usage: node $0 --username <u> --password <p> --tenant <t> --hostname <h> --psets <p>
+ * usage: node $0 --username <u> --password <p> --tenant <t> --okapi <o> --psets <p>
+ *
+ * e.g. node $0 --username admin --password secret --tenant cornell --okapi https://okapi.cornell.edu --psets ./my-psets
  *
  * given a directory containing a list of json files containing a single array
  * of strings representing permission set display names,
@@ -31,14 +34,43 @@ const util = require('util');
 /**
  * HTTP request config
  */
-const options = {
-  "method": "POST",
-  "hostname": "",
-  "path": "",
-  "headers": {
-    "Content-type": "application/json",
-    "cache-control": "no-cache",
-    "accept": "application/json"
+const requestOptions = {
+  "options": {
+    "method": "POST",
+    "hostname": "",
+    "path": "",
+    "headers": {
+      "Content-type": "application/json",
+      "cache-control": "no-cache",
+      "accept": "application/json"
+    },
+  },
+  "handler": undefined,
+};
+
+/**
+ * configureRequestOptions
+ * configure the requestOptions global (which is pretty gross but I don't have
+ * time to refactor now) by setting the hostname and port options as well as
+ * the x-okapi-tenant header. Additionally, chose the request handler (http or
+ * https) based on the URL provided for okapi.
+ *
+ * @arg object, shaped like { username, password, okapi, tenant, pesets }
+ */
+const configureRequestOptions = (config) => {
+  requestOptions.handler = (0 === config.okapi.indexOf('https')) ? https : http;
+
+  const matches = config.okapi.match(/^http[s]?:\/\/([^:/]+):?([0-9]+)?/);
+  if (matches && matches.length >= 2) {
+    requestOptions.options.hostname = matches[1];
+
+    if (matches[2]) {
+      requestOptions.options.port = matches[2];
+    }
+
+    requestOptions.options.headers["x-okapi-tenant"] = config.tenant;
+  } else {
+    throw `"${config.okapi}" does not look like a URL.`;
   }
 };
 
@@ -53,8 +85,8 @@ const options = {
  */
 const okapiRequest = util.promisify((path, body, method, cb) => {
   const thePath = 0 === path.indexOf('/') ? path : `/${path}`;
-  const opts = Object.assign({}, options, { path: thePath, method });
-  let req = https.request(opts, (res) => {
+  const opts = Object.assign({}, requestOptions.options, { path: thePath, method });
+  let req = requestOptions.handler.request(opts, (res) => {
     const chunks = [];
     res.on("data", function (chunk) {
       chunks.push(chunk);
@@ -366,13 +398,13 @@ const getServicePoints = async () => {
  * parse the CLI; throw if a required arg is missing
  *
  * @arg [] args CLI arguments
- * @return {} object shaped like { username, password, hostname, tenant, pesets }
+ * @return {} object shaped like { username, password, okapi, tenant, pesets }
  */
 const processArgs = (args) => {
   const config = {
     username: null,
     password: null,
-    hostname: null,
+    okapi: null,
     tenant: null,
     psets: null,
   };
@@ -398,7 +430,7 @@ const processArgs = (args) => {
     return config;
   }
 
-  console.log("Usage: node " + __filename + " --username <u> --password <p> --tenant <t> --hostname <h> --psets <p>");
+  console.log("Usage: node " + __filename + " --username <u> --password <p> --tenant <t> --okapi <o> --psets <p>");
 
   throw `A required argument was not present; missing one of: ${Object.keys(config).join(', ')}.`;
 };
@@ -434,8 +466,8 @@ async function main() {
     // process CLI args; throws if we weren't called correctly
     config = processArgs(process.argv);
 
-    options.hostname = config.hostname;
-    options.headers["x-okapi-tenant"] = config.tenant;
+    // configure http(s) requestion options; throws if we can't construct a URL
+    configureRequestOptions(config);
 
     // login and cache the token
     const loginCreds = {
@@ -443,7 +475,7 @@ async function main() {
       password: config.password,
     };
     const res = await okapiPost('/authn/login', loginCreds)
-    options.headers['x-okapi-token'] = res.headers['x-okapi-token'];
+    requestOptions.options.headers['x-okapi-token'] = res.headers['x-okapi-token'];
 
     const path = config.psets;
 
@@ -458,7 +490,11 @@ async function main() {
     }
   }
   catch (e) {
-    console.error(e.message);
+    if (e.message) {
+      console.error(e.message);
+    } else {
+      console.error(e);
+    }
     process.exit(1);
   }
 };
