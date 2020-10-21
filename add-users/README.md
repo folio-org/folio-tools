@@ -3,9 +3,14 @@
 ### usage
 ```
 node $0 --username <u> --password <p> --tenant <t> --hostname <h> --psets <p>
+node $0 --username <u> --password <p> --tenant <t> --okapi <http...> --psets <p>
 ```
 where username, password, and tenant are credentials for signing into
-the okapi instance available at hostname.
+the okapi instance available at hostname. Given a hostname via `--hostname`,
+handle all requests over https. Given a URL via `--okapi`, parse the value
+and determine whether to handle requests with http or https based on the
+protocol. psets specifies the path to a directory containing `.json` files,
+each containing an array of permission names to add to a permission-set.
 
 ### details
 given a directory containing a list of json files containing a single
