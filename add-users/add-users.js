@@ -1,4 +1,5 @@
 const https = require('https');
+const http = require('http');
 const fs = require('fs');
 const util = require('util');
 
@@ -6,7 +7,10 @@ const util = require('util');
 /**
  * create users with permissions read from local files
  *
- * usage: node $0 --username <u> --password <p> --tenant <t> --hostname <h> --psets <p>
+ * usage: node $0 --username <u> --password <p> --tenant <t> --okapi http://... --psets <p>
+ * usage: node $0 --username <u> --password <p> --tenant <t> --hostname www.okapi.edu --psets <p>
+ *
+ * e.g. node $0 --username admin --password secret --tenant cornell --okapi https://okapi.cornell.edu --psets ./my-psets
  *
  * given a directory containing a list of json files containing a single array
  * of strings representing permission set display names,
@@ -29,17 +33,21 @@ const util = require('util');
  */
 
 /**
- * HTTP request config
+ * Gross global config object that I have no excuse for. Please don't
+ * tell my CS 101 professor.
  */
-const options = {
-  "method": "POST",
-  "hostname": "",
-  "path": "",
-  "headers": {
-    "Content-type": "application/json",
-    "cache-control": "no-cache",
-    "accept": "application/json"
-  }
+const requestOptions = {
+  "options": {
+    "method": "POST",
+    "hostname": "",
+    "path": "",
+    "headers": {
+      "Content-type": "application/json",
+      "cache-control": "no-cache",
+      "accept": "application/json"
+    },
+  },
+  "handler": undefined,
 };
 
 /**
@@ -53,8 +61,8 @@ const options = {
  */
 const okapiRequest = util.promisify((path, body, method, cb) => {
   const thePath = 0 === path.indexOf('/') ? path : `/${path}`;
-  const opts = Object.assign({}, options, { path: thePath, method });
-  let req = https.request(opts, (res) => {
+  const opts = Object.assign({}, requestOptions.options, { path: thePath, method });
+  let req = requestOptions.handler.request(opts, (res) => {
     const chunks = [];
     res.on("data", function (chunk) {
       chunks.push(chunk);
@@ -361,14 +369,76 @@ const getServicePoints = async () => {
   throw "Could not retrieve permissions";
 };
 
+
+/**
+ * handleHostname
+ * set options.hostname; assume https.
+ * @arg string a hostname such as example.com
+ */
+const handleHostname = (i, config) => {
+  config.hostname = i;
+
+  requestOptions.handler = https;
+  requestOptions.options.hostname = i;
+};
+
+/**
+ * handlePort
+ * set options.port; assume https for 443, http otherwise.
+ * @arg string a string interpretable as a base-10 integer
+ */
+const handlePort = (i, config) => {
+  const v = Number.parseInt(i, 10);
+  if (! isNaN(v)) {
+    requestOptions.options.port = v;
+    requestOptions.handler = (i === "443") ? https : http;
+  } else {
+    throw `The port "${i}" is not a valid number.`;
+  }
+};
+
+/**
+ * handleOkapi
+ * set options.hostname and optionally options.port. Configure the request
+ * handler based on the URL prefix (http or https), but note this will
+ * overriden by the port handler if a port is present.
+ * @arg string a URL, e.g. https://www.example.edu
+ */
+const handleOkapi = (i, config) => {
+  requestOptions.handler = (0 === i.indexOf('https')) ? https : http;
+
+  const matches = i.match(/^http[s]?:\/\/([^:/]+):?([0-9]+)?/);
+  if (matches && matches.length >= 2) {
+    config.hostname = matches[1];
+    requestOptions.options.hostname = matches[1];
+    if (matches[2]) {
+      handlePort(matches[2], config);
+    }
+  } else {
+    throw `"${i}" does not look like a URL. Did you forget the http... prefix?`;
+  }
+};
+
+/**
+ * handleTenant
+ * set options.headers[x-okapi-tenant]
+ * @arg string
+ */
+const handleTenant = (i, config) => {
+  config.tenant = i;
+  requestOptions.options.headers["x-okapi-tenant"] = i;
+};
+
 /**
  * processArgs
  * parse the CLI; throw if a required arg is missing
  *
  * @arg [] args CLI arguments
- * @return {} object shaped like { username, password, hostname, tenant, pesets }
+ * @return {} object shaped like { username, password, okapi, tenant, pesets }
  */
 const processArgs = (args) => {
+  // I don't really want the hostname and tenant in here any more now that
+  // argument parsing has handler functions, but it's not worth refactoring.
   const config = {
     username: null,
     password: null,
@@ -377,18 +447,27 @@ const processArgs = (args) => {
     psets: null,
   };
 
+  // argument handlers
+  const handlers = {
+    username: (i, config) => { config.username = i; },
+    password: (i, config) => { config.password = i; },
+    psets:    (i, config) => { config.psets = i; },
+    tenant:   handleTenant,
+    hostname: handleHostname,
+    port:     handlePort,
+    okapi:    handleOkapi,
+  };
+
   // start at 2 because we get called like "node script.js --foo bar --bat baz"
   // search for pairs of the form
   //   --key value
-  // and populate the config object with them
+  // when a key matches a config-key, call its handlers function
   for (let i = 2; i < args.length; i++) {
     let key;
     if (args[i].indexOf('--') === 0) {
       key = args[i].substr(2);
-      if (key in config && i + 1 < args.length) {
-        config[key] = args[i + 1]; // capture the key-value pair ...
-        i++;                       // ... and skip to the next potential key
-        continue;
+      if (key in handlers && i + 1 < args.length) {
+        handlers[key](args[++i], config);
       }
     }
   }
@@ -399,9 +478,12 @@ const processArgs = (args) => {
   }
 
   console.log("Usage: node " + __filename + " --username <u> --password <p> --tenant <t> --hostname <h> --psets <p>");
+  console.log("Usage: node " + __filename + " --username <u> --password <p> --tenant <t> --okapi <o> --psets <p>");
+  console.log("An Okapi URL will parse to values for --hostname and --port.")
 
   throw `A required argument was not present; missing one of: ${Object.keys(config).join(', ')}.`;
 };
+
 
 /**
  * eachPromise
@@ -434,16 +516,13 @@ async function main() {
     // process CLI args; throws if we weren't called correctly
     config = processArgs(process.argv);
 
-    options.hostname = config.hostname;
-    options.headers["x-okapi-tenant"] = config.tenant;
-
     // login and cache the token
     const loginCreds = {
       username: config.username,
       password: config.password,
     };
     const res = await okapiPost('/authn/login', loginCreds)
-    options.headers['x-okapi-token'] = res.headers['x-okapi-token'];
+    requestOptions.options.headers['x-okapi-token'] = res.headers['x-okapi-token'];
 
     const path = config.psets;
 
@@ -458,7 +537,11 @@ async function main() {
     }
   }
   catch (e) {
-    console.error(e.message);
+    if (e.message) {
+      console.error(e.message);
+    } else {
+      console.error(e);
+    }
     process.exit(1);
   }
 };
