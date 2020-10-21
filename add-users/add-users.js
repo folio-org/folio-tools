@@ -7,7 +7,8 @@ const util = require('util');
 /**
  * create users with permissions read from local files
  *
- * usage: node $0 --username <u> --password <p> --tenant <t> --okapi <o> --psets <p>
+ * usage: node $0 --username <u> --password <p> --tenant <t> --okapi http://... --psets <p>
+ * usage: node $0 --username <u> --password <p> --tenant <t> --hostname www.okapi.edu --psets <p>
  *
  * e.g. node $0 --username admin --password secret --tenant cornell --okapi https://okapi.cornell.edu --psets ./my-psets
  *
@@ -32,7 +33,8 @@ const util = require('util');
  */
 
 /**
- * HTTP request config
+ * Gross global config object that I have no excuse for. Please don't
+ * tell my CS 101 professor.
  */
 const requestOptions = {
   "options": {
@@ -46,32 +48,6 @@ const requestOptions = {
     },
   },
   "handler": undefined,
-};
-
-/**
- * configureRequestOptions
- * configure the requestOptions global (which is pretty gross but I don't have
- * time to refactor now) by setting the hostname and port options as well as
- * the x-okapi-tenant header. Additionally, chose the request handler (http or
- * https) based on the URL provided for okapi.
- *
- * @arg object, shaped like { username, password, okapi, tenant, pesets }
- */
-const configureRequestOptions = (config) => {
-  requestOptions.handler = (0 === config.okapi.indexOf('https')) ? https : http;
-
-  const matches = config.okapi.match(/^http[s]?:\/\/([^:/]+):?([0-9]+)?/);
-  if (matches && matches.length >= 2) {
-    requestOptions.options.hostname = matches[1];
-
-    if (matches[2]) {
-      requestOptions.options.port = matches[2];
-    }
-
-    requestOptions.options.headers["x-okapi-tenant"] = config.tenant;
-  } else {
-    throw `"${config.okapi}" does not look like a URL.`;
-  }
 };
 
 /**
@@ -393,6 +369,66 @@ const getServicePoints = async () => {
   throw "Could not retrieve permissions";
 };
 
+
+/**
+ * handleHostname
+ * set options.hostname; assume https.
+ * @arg string a hostname such as example.com
+ */
+const handleHostname = (i, config) => {
+  config.hostname = i;
+
+  requestOptions.handler = https;
+  requestOptions.options.hostname = i;
+};
+
+/**
+ * handlePort
+ * set options.port; assume https for 443, http otherwise.
+ * @arg string a string interpretable as a base-10 integer
+ */
+const handlePort = (i, config) => {
+  const v = Number.parseInt(i, 10);
+  if (! isNaN(v)) {
+    requestOptions.options.port = v;
+    requestOptions.handler = (i === "443") ? https : http;
+  } else {
+    throw `The port "${i}" is not a valid number.`;
+  }
+};
+
+/**
+ * handleOkapi
+ * set options.hostname and optionally options.port. Configure the request
+ * handler based on the URL prefix (http or https), but note this will
+ * overriden by the port handler if a port is present.
+ * @arg string a URL, e.g. https://www.example.edu
+ */
+const handleOkapi = (i, config) => {
+  requestOptions.handler = (0 === i.indexOf('https')) ? https : http;
+
+  const matches = i.match(/^http[s]?:\/\/([^:/]+):?([0-9]+)?/);
+  if (matches && matches.length >= 2) {
+    config.hostname = matches[1];
+    requestOptions.options.hostname = matches[1];
+    if (matches[2]) {
+      handlePort(matches[2], config);
+    }
+  } else {
+    throw `"${i}" does not look like a URL. Did you forget the http... prefix?`;
+  }
+};
+
+/**
+ * handleTenant
+ * set options.headers[x-okapi-tenant]
+ * @arg string
+ */
+const handleTenant = (i, config) => {
+  config.tenant = i;
+  requestOptions.options.headers["x-okapi-tenant"] = i;
+};
+
 /**
  * processArgs
  * parse the CLI; throw if a required arg is missing
@@ -401,26 +437,37 @@ const getServicePoints = async () => {
  * @return {} object shaped like { username, password, okapi, tenant, pesets }
  */
 const processArgs = (args) => {
+  // I don't really want the hostname and tenant in here any more now that
+  // argument parsing has handler functions, but it's not worth refactoring.
   const config = {
     username: null,
     password: null,
-    okapi: null,
+    hostname: null,
     tenant: null,
     psets: null,
+  };
+
+  // argument handlers
+  const handlers = {
+    username: (i, config) => { config.username = i; },
+    password: (i, config) => { config.password = i; },
+    psets:    (i, config) => { config.psets = i; },
+    tenant:   handleTenant,
+    hostname: handleHostname,
+    port:     handlePort,
+    okapi:    handleOkapi,
   };
 
   // start at 2 because we get called like "node script.js --foo bar --bat baz"
   // search for pairs of the form
   //   --key value
-  // and populate the config object with them
+  // when a key matches a config-key, call its handlers function
   for (let i = 2; i < args.length; i++) {
     let key;
     if (args[i].indexOf('--') === 0) {
       key = args[i].substr(2);
-      if (key in config && i + 1 < args.length) {
-        config[key] = args[i + 1]; // capture the key-value pair ...
-        i++;                       // ... and skip to the next potential key
-        continue;
+      if (key in handlers && i + 1 < args.length) {
+        handlers[key](args[++i], config);
       }
     }
   }
@@ -430,10 +477,13 @@ const processArgs = (args) => {
     return config;
   }
 
+  console.log("Usage: node " + __filename + " --username <u> --password <p> --tenant <t> --hostname <h> --psets <p>");
   console.log("Usage: node " + __filename + " --username <u> --password <p> --tenant <t> --okapi <o> --psets <p>");
+  console.log("An Okapi URL will parse to values for --hostname and --port.")
 
   throw `A required argument was not present; missing one of: ${Object.keys(config).join(', ')}.`;
 };
+
 
 /**
  * eachPromise
@@ -465,9 +515,6 @@ async function main() {
   try {
     // process CLI args; throws if we weren't called correctly
     config = processArgs(process.argv);
-
-    // configure http(s) requestion options; throws if we can't construct a URL
-    configureRequestOptions(config);
 
     // login and cache the token
     const loginCreds = {
