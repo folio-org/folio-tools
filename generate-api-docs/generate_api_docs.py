@@ -28,6 +28,8 @@ import yaml
 if sys.version_info[0] < 3:
     raise RuntimeError("Python 3 or above is required.")
 
+SCRIPT_VERSION = "1.2.0"
+
 CONFIG_FILE = "https://raw.githubusercontent.com/folio-org/folio-org.github.io/master/_data/api.yml"
 
 LOGLEVELS = {
@@ -77,6 +79,9 @@ def main():
     logger = logging.getLogger("generate-api-docs")
     logging.getLogger("sh").setLevel(logging.ERROR)
     logging.getLogger("requests").setLevel(logging.ERROR)
+
+    # Display a version string
+    logger.info("Using generate-api-docs version: %s", SCRIPT_VERSION)
 
     if args.output.startswith("~"):
         output_home_dir = os.path.expanduser(args.output)
