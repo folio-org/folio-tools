@@ -6,6 +6,8 @@
        0: Success.
        1: One or more failures with processing.
        2: Configuration issues.
+
+Note: Makes no attempt to ensure valid RAML/JSON. The lint-raml should have already been done.
 """
 
 import argparse
@@ -169,6 +171,10 @@ def main():
         if git_dir != "":
             logger.critical("The specified input directory is not the top-level of the git clone: %s", input_dir)
             return 2
+
+    # The yaml parser gags on the "!include".
+    # http://stackoverflow.com/questions/13280978/pyyaml-errors-on-in-a-string
+    yaml.add_constructor(u"!include", construct_raml_include, Loader=yaml.SafeLoader)
 
     # Get the software version.
     # Try first with MD. If not then POM.
@@ -352,6 +358,12 @@ def main():
                     logger.error("Input '%s' RAML version missing or not valid: %s", raml_fn, raml_version_value)
                     exit_code = 1
                     continue
+                # Now process this RAML file
+                # First try to dereference and flatten schema files that are declared in the RAML.
+                if raml_version_value != "0.8":
+                    (schemas, issues_flag) = gather_declarations(input_pn, raml_fn, ramls_docset_dir)
+                    if len(schemas) > 0:
+                        logger.debug("Found %s declared schema files.", len(schemas))
                 cmd_name = "raml2html3" if raml_version_value == "0.8" else "raml2html"
                 cmd = sh.Command(os.path.join(sys.path[0], "node_modules", cmd_name, "bin", "raml2html"))
                 logger.info("Doing %s with %s as v%s into %s", cmd_name, raml_fn, raml_version_value, output_1_pn)
@@ -368,7 +380,7 @@ def main():
                             shutil.copyfile(output_1_pn, dest_pn)
                         except:
                             logger.debug("Could not copy %s to %s", output_1_pn, dest_fn)
-    
+
                 # Generate using other templates
                 if raml_version_value != "0.8":
                     # raml2html-plain-theme
@@ -395,6 +407,45 @@ def main():
             output_json_fh.write("\n")
             output_json_fh.close()
     return exit_code
+
+def construct_raml_include(loader, node):
+    "Add a special construct for YAML loader"
+    return loader.construct_yaml_str(node)
+
+def gather_declarations(raml_input_pn, raml_input_fn, input_dir):
+    """
+    Gather the schemas (types) declarations from the RAML file.
+    """
+    logger = logging.getLogger("generate-api-docs")
+    schemas = {}
+    issues = False
+    with open(raml_input_pn) as input_fh:
+        try:
+            raml_content = yaml.safe_load(input_fh)
+        except yaml.YAMLError as err:
+            logger.critical("Trouble parsing as YAML file '%s': %s", raml_input_fn, err)
+            issues = True
+            return (schemas, issues)
+        try:
+            raml_content["types"]
+        except KeyError:
+            logger.debug("No types were declared in '%s'", raml_input_fn)
+        else:
+            for decl in raml_content["types"]:
+                type_fn = raml_content["types"][decl]
+                if isinstance(type_fn, str):
+                    type_pn = os.path.join(input_dir, type_fn)
+                    # The "types" can be other than schema.
+                    file_root, file_extension = os.path.splitext(type_pn)
+                    if not file_extension in [".json", ".schema"]:
+                        continue
+                    # logger.debug("Ensure exists schema file '%s'", type_pn)
+                    if not os.path.exists(type_pn):
+                        logger.warning("Missing schema file '%s'. Declared in the RAML types section.", type_fn)
+                        issues = True
+                    else:
+                        schemas[decl] = type_fn
+        return (schemas, issues)
 
 if __name__ == "__main__":
     sys.exit(main())
