@@ -19,6 +19,7 @@ import os
 import re
 import shutil
 import sys
+import tempfile
 import time
 
 import requests
@@ -315,77 +316,84 @@ def main():
         config_json_packet["files"]["0.8"] = []
         config_json_packet["files"]["1.0"] = []
         config_json["configs"].append(config_json_packet)
-        for raml_fn in raml_files:
-            raml_name = raml_fn[:-5]
-            input_pn = os.path.join(ramls_dir, raml_fn)
-            output_fn = raml_name + ".html"
-            output_1_pn = os.path.join(output_dir, output_fn)
-            output_2_pn = os.path.join(output_2_dir, output_fn)
-            # If there are raml files in sub-directories, then need mkdir
-            output_sub_dirs = os.path.dirname(raml_fn)
-            if output_sub_dirs:
-                os.makedirs(os.path.join(output_dir, output_sub_dirs), exist_ok=True)
-                os.makedirs(os.path.join(output_2_dir, output_sub_dirs), exist_ok=True)
-                if sw_version_value is not None:
-                    os.makedirs(os.path.join(output_version_dir, output_sub_dirs), exist_ok=True)
-                    os.makedirs(os.path.join(output_version_2_dir, output_sub_dirs), exist_ok=True)
-            raml_version_re = re.compile(r"^#%RAML ([0-9.]+)")
-            raml_version_value = None
-            with open(input_pn, "r") as input_fh:
-                for num, line in enumerate(input_fh):
-                    match = re.search(raml_version_re, line)
-                    if match:
-                        raml_version_value = match.group(1)
-                        logger.debug("Input file is RAML version: %s", raml_version_value)
-                        break
-            try:
-                config_json_packet["files"][raml_version_value].append(raml_fn)
-            except KeyError:
-                logger.error("Input '%s' RAML version missing or not valid: %s", raml_fn, raml_version_value)
-                exit_code = 1
-                continue
-            cmd_name = "raml2html3" if raml_version_value == "0.8" else "raml2html"
-            cmd = sh.Command(os.path.join(sys.path[0], "node_modules", cmd_name, "bin", "raml2html"))
-            logger.info("Doing %s with %s as v%s into %s", cmd_name, raml_fn, raml_version_value, output_1_pn)
-            # Generate using the default template
-            try:
-                cmd(i=input_pn, o=output_1_pn)
-            except sh.ErrorReturnCode as err:
-                logger.error("%s: %s", cmd_name, err.stderr.decode())
-                exit_code = 1
-            else:
-                if sw_version_value is not None:
-                    dest_pn = os.path.join(output_version_dir, output_fn)
-                    try:
-                        shutil.copyfile(output_1_pn, dest_pn)
-                    except:
-                        logger.debug("Could not copy %s to %s", output_1_pn, dest_fn)
-
-            # Generate using other templates
-            if raml_version_value != "0.8":
-                # raml2html-plain-theme
-                theme_name = "plain"
-                logger.info("Doing '%s' theme with %s as v%s into %s", theme_name, raml_fn, raml_version_value, output_2_pn)
+        with tempfile.TemporaryDirectory() as temp_dir:
+            # Copy everything to the temp_dir
+            # to flatten the schema files and not mess the git working dir
+            ramls_temp_dir = os.path.join(temp_dir, "repo")
+            shutil.copytree(input_dir, ramls_temp_dir)
+            ramls_docset_dir = os.path.join(ramls_temp_dir, docset["directory"])
+            for raml_fn in raml_files:
+                raml_name = raml_fn[:-5]
+                input_pn = os.path.join(ramls_docset_dir, raml_fn)
+                logger.debug("Temp input file: %s", input_pn)
+                output_fn = raml_name + ".html"
+                output_1_pn = os.path.join(output_dir, output_fn)
+                output_2_pn = os.path.join(output_2_dir, output_fn)
+                # If there are raml files in sub-directories, then need mkdir
+                output_sub_dirs = os.path.dirname(raml_fn)
+                if output_sub_dirs:
+                    os.makedirs(os.path.join(output_dir, output_sub_dirs), exist_ok=True)
+                    os.makedirs(os.path.join(output_2_dir, output_sub_dirs), exist_ok=True)
+                    if sw_version_value is not None:
+                        os.makedirs(os.path.join(output_version_dir, output_sub_dirs), exist_ok=True)
+                        os.makedirs(os.path.join(output_version_2_dir, output_sub_dirs), exist_ok=True)
+                raml_version_re = re.compile(r"^#%RAML ([0-9.]+)")
+                raml_version_value = None
+                with open(input_pn, "r") as input_fh:
+                    for num, line in enumerate(input_fh):
+                        match = re.search(raml_version_re, line)
+                        if match:
+                            raml_version_value = match.group(1)
+                            logger.debug("Input file is RAML version: %s", raml_version_value)
+                            break
                 try:
-                    cmd(input_pn,
-                        theme="raml2html-plain-theme",
-                        i=input_pn,
-                        o=output_2_pn)
+                    config_json_packet["files"][raml_version_value].append(raml_fn)
+                except KeyError:
+                    logger.error("Input '%s' RAML version missing or not valid: %s", raml_fn, raml_version_value)
+                    exit_code = 1
+                    continue
+                cmd_name = "raml2html3" if raml_version_value == "0.8" else "raml2html"
+                cmd = sh.Command(os.path.join(sys.path[0], "node_modules", cmd_name, "bin", "raml2html"))
+                logger.info("Doing %s with %s as v%s into %s", cmd_name, raml_fn, raml_version_value, output_1_pn)
+                # Generate using the default template
+                try:
+                    cmd(i=input_pn, o=output_1_pn)
                 except sh.ErrorReturnCode as err:
                     logger.error("%s: %s", cmd_name, err.stderr.decode())
                     exit_code = 1
                 else:
                     if sw_version_value is not None:
-                        dest_pn = os.path.join(output_version_2_dir, output_fn)
+                        dest_pn = os.path.join(output_version_dir, output_fn)
                         try:
-                            shutil.copyfile(output_2_pn, dest_pn)
+                            shutil.copyfile(output_1_pn, dest_pn)
                         except:
-                            logger.debug("Could not copy %s to %s", output_2_pn, dest_fn)
-        config_pn = os.path.join(output_home_dir, args.repo, "config.json")
-        output_json_fh = open(config_pn, "w")
-        output_json_fh.write(json.dumps(config_json, sort_keys=True, indent=2, separators=(",", ": ")))
-        output_json_fh.write("\n")
-        output_json_fh.close()
+                            logger.debug("Could not copy %s to %s", output_1_pn, dest_fn)
+    
+                # Generate using other templates
+                if raml_version_value != "0.8":
+                    # raml2html-plain-theme
+                    theme_name = "plain"
+                    logger.info("Doing '%s' theme with %s as v%s into %s", theme_name, raml_fn, raml_version_value, output_2_pn)
+                    try:
+                        cmd(input_pn,
+                            theme="raml2html-plain-theme",
+                            i=input_pn,
+                            o=output_2_pn)
+                    except sh.ErrorReturnCode as err:
+                        logger.error("%s: %s", cmd_name, err.stderr.decode())
+                        exit_code = 1
+                    else:
+                        if sw_version_value is not None:
+                            dest_pn = os.path.join(output_version_2_dir, output_fn)
+                            try:
+                                shutil.copyfile(output_2_pn, dest_pn)
+                            except:
+                                logger.debug("Could not copy %s to %s", output_2_pn, dest_fn)
+            config_pn = os.path.join(output_home_dir, args.repo, "config.json")
+            output_json_fh = open(config_pn, "w")
+            output_json_fh.write(json.dumps(config_json, sort_keys=True, indent=2, separators=(",", ": ")))
+            output_json_fh.write("\n")
+            output_json_fh.close()
     return exit_code
 
 if __name__ == "__main__":
