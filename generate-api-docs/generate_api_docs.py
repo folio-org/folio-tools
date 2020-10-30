@@ -331,7 +331,6 @@ def main():
             for raml_fn in raml_files:
                 raml_name = raml_fn[:-5]
                 input_pn = os.path.join(ramls_docset_dir, raml_fn)
-                logger.debug("Temp input file: %s", input_pn)
                 output_fn = raml_name + ".html"
                 output_1_pn = os.path.join(output_dir, output_fn)
                 output_2_pn = os.path.join(output_2_dir, output_fn)
@@ -363,7 +362,7 @@ def main():
                 if raml_version_value != "0.8":
                     (schemas, issues_flag) = gather_declarations(input_pn, raml_fn, ramls_docset_dir)
                     if len(schemas) > 0:
-                        logger.debug("Found %s declared schema files.", len(schemas))
+                        dereference_schemas(ramls_docset_dir, output_dir, schemas)
                 cmd_name = "raml2html3" if raml_version_value == "0.8" else "raml2html"
                 cmd = sh.Command(os.path.join(sys.path[0], "node_modules", cmd_name, "bin", "raml2html"))
                 logger.info("Doing %s with %s as v%s into %s", cmd_name, raml_fn, raml_version_value, output_1_pn)
@@ -446,6 +445,34 @@ def gather_declarations(raml_input_pn, raml_input_fn, input_dir):
                     else:
                         schemas[decl] = type_fn
         return (schemas, issues)
+
+def dereference_schemas(input_dir, output_dir, schemas):
+    """
+    Dereference the parent schema files to resolve the $ref child schema.
+    If successful, then replace the original.
+    """
+    logger = logging.getLogger("generate-api-docs")
+    output_schemas_dir = os.path.join(output_dir, "schemas")
+    os.makedirs(output_schemas_dir, exist_ok=True)
+    script_pn = os.path.join(sys.path[0], "deref-schema.js")
+    logger.debug("Found %s declared schema files.", len(schemas))
+    for decl in schemas:
+        input_pn = os.path.normpath(os.path.join(input_dir, schemas[decl]))
+        output_pn = os.path.join(output_schemas_dir, os.path.basename(input_pn))
+        try:
+            sh.node(script_pn, input_pn, output_pn).stdout.decode().strip()
+        except sh.ErrorReturnCode as err:
+            logger.debug("Trouble doing node: %s", err.stderr.decode())
+            msg = ("Ignore the error, and do not replace the schema. "
+                   "The lint-raml job should have been used beforehand, "
+                   "and would have already handled this.")
+            logger.debug(msg)
+            continue
+        else:
+            try:
+                shutil.copyfile(output_pn, input_pn)
+            except:
+                logger.debug("Could not copy %s to %s", output_pn, input_pn)
 
 if __name__ == "__main__":
     sys.exit(main())
