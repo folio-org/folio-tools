@@ -400,11 +400,18 @@ def main():
                                 shutil.copyfile(output_2_pn, dest_pn)
                             except:
                                 logger.debug("Could not copy %s to %s", output_2_pn, dest_fn)
-            config_pn = os.path.join(output_home_dir, args.repo, "config.json")
-            output_json_fh = open(config_pn, "w")
-            output_json_fh.write(json.dumps(config_json, sort_keys=True, indent=2, separators=(",", ": ")))
-            output_json_fh.write("\n")
-            output_json_fh.close()
+            # Copy any flattened schema files to the versioned docset directory.
+            if sw_version_value is not None:
+                output_schemas_dir = os.path.join(output_dir, "schemas")
+                if os.path.exists(output_schemas_dir):
+                    output_version_schemas_dir = os.path.join(output_version_dir, "schemas")
+                    os.makedirs(output_version_schemas_dir, exist_ok=True)
+                    shutil.copytree(output_schemas_dir, output_version_schemas_dir, dirs_exist_ok=True)
+        config_pn = os.path.join(output_home_dir, args.repo, "config.json")
+        output_json_fh = open(config_pn, "w")
+        output_json_fh.write(json.dumps(config_json, sort_keys=True, indent=2, separators=(",", ": ")))
+        output_json_fh.write("\n")
+        output_json_fh.close()
     return exit_code
 
 def construct_raml_include(loader, node):
