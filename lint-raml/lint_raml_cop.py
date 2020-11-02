@@ -28,7 +28,7 @@ import requests
 import sh
 import yaml
 
-SCRIPT_VERSION = "1.4.3"
+SCRIPT_VERSION = "1.4.4"
 
 CONFIG_FILE = "https://raw.githubusercontent.com/folio-org/folio-org.github.io/master/_data/api.yml"
 

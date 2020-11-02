@@ -3,9 +3,9 @@
 
 
 "@types/node@^10.0.3":
-  version "10.17.29"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-10.17.29.tgz#263b7013f9f4afa53585b199f9a4255d9613b178"
-  integrity sha512-zLo9rjUeQ5+QVhOufDwrb3XKyso31fJBJnk9wUUQIBDExF/O4LryvpOfozfUaxgqifTnlt7FyqsAPXUq5yFZSA==
+  version "10.17.44"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-10.17.44.tgz#3945e6b702cb6403f22b779c8ea9e5c3f44ead40"
+  integrity sha512-vHPAyBX1ffLcy4fQHmDyIUMUb42gHZjPHU66nhvbMzAWJqHnySGZ6STwN3rwrnSd1FHB0DI/RWgGELgKSYRDmw==
 
 amdefine@~0.0.4:
   version "0.0.8"
@@ -391,9 +391,9 @@ ts-structure-model@0.0.1:
   integrity sha512-7hqYQx4kPWUkJXTVsZe++1IMd63jZAjW6O00+kHJf9/DcNaxCJxNjsQhLVcC57HZhK4SUPSxMZd+AnGrLA6Itw==
 
 tslib@^1.10.0:
-  version "1.13.0"
-  resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.13.0.tgz#c881e13cc7015894ed914862d276436fa9a47043"
-  integrity sha512-i/6DQjL8Xf3be4K/E6Wgpekn5Qasl1usyw++dAA35Ue5orEn65VIxOA+YvNNl9HV3qv70T7CNwjODHZrLwvd1Q==
+  version "1.14.1"
+  resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.14.1.tgz#cf2d38bdc34a134bcaf1091c41f6619e2f672d00"
+  integrity sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg==
 
 underscore@1.9.1:
   version "1.9.1"
