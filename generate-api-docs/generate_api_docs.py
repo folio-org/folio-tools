@@ -31,7 +31,7 @@ import yaml
 if sys.version_info[0] < 3:
     raise RuntimeError("Python 3 or above is required.")
 
-SCRIPT_VERSION = "1.2.0"
+SCRIPT_VERSION = "1.2.1"
 
 CONFIG_FILE = "https://raw.githubusercontent.com/folio-org/folio-org.github.io/master/_data/api.yml"
 
@@ -362,7 +362,7 @@ def main():
                 if raml_version_value != "0.8":
                     (schemas, issues_flag) = gather_declarations(input_pn, raml_fn, ramls_docset_dir)
                     if len(schemas) > 0:
-                        dereference_schemas(ramls_docset_dir, output_dir, schemas)
+                        dereference_schemas(ramls_docset_dir, os.path.abspath(output_dir), schemas)
                 cmd_name = "raml2html3" if raml_version_value == "0.8" else "raml2html"
                 cmd = sh.Command(os.path.join(sys.path[0], "node_modules", cmd_name, "bin", "raml2html"))
                 logger.info("Doing %s with %s as v%s into %s", cmd_name, raml_fn, raml_version_value, output_1_pn)
