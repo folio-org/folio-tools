@@ -224,7 +224,8 @@ const assignCredentials = async (user) => {
  * @arg array list of service points
  */
 const assignServicePoint = async (user, servicePoints) => {
-  if(servicePoints.servicePoints.length == 0) {
+  if(servicePoints.length == 0) {
+    console.log("no service points to assign")
     return;
   }
   const sps = {
@@ -336,9 +337,7 @@ const configureUser = async (p, path, permissions, servicePoints, group) => {
  * retrieve all permissions. Return an object mapping displayName => permissionName
  */
 const getPermissions = async () => {
-	console.error('beforerequest')
   const res = await okapiGet('/perms/permissions?query=visible==true%20and%20mutable==false&length=2000');
-  console.error('after request')
   if (res.json.totalRecords) {
     const hash = {};
     res.json.permissions.forEach(p => {
@@ -357,7 +356,7 @@ const getPermissions = async () => {
 
     return hash;
   }
-  throw "Could not retrieve permissions test " + res;
+  throw "Could not retrieve permissions";
 };
 
 /**
@@ -371,9 +370,10 @@ const getServicePoints = async () => {
   if (res.json.totalRecords) {
     return res.json.servicepoints;
   } else {
-    return {servicePoints:[]}
+    console.log("Could not retrieve service points, none present");
+    return []
   }
-  throw "Could not retrieve service points";
+  
 };
 
 
