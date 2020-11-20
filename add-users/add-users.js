@@ -135,8 +135,8 @@ const credentialsExist = async (user) => {
  *
  * @return object
  */
-const createUser = async (username) => {
-  const groups = await okapiGet('/groups?query=group==staff');
+const createUser = async (username,group) => {
+  const groups = await okapiGet('/groups?query=group==' + encodeURI(group));
   if (groups.json.totalRecords === 1) {
     const group = groups.json.usergroups[0];
     const user = {
@@ -164,14 +164,14 @@ const createUser = async (username) => {
  * does not exist.
  * @return object
  */
-const getOrCreateUser = async (username) => {
+const getOrCreateUser = async (username,group) => {
   const res = await okapiGet(`/users?query=username==${username}`);
   if (res.json.totalRecords === 1) {
     console.log(`found ${username}`)
     return toUser(res.json);
   } else {
     console.log(`created ${username}`)
-    return createUser(username);
+    return createUser(username, group);
   }
 }
 
@@ -224,6 +224,10 @@ const assignCredentials = async (user) => {
  * @arg array list of service points
  */
 const assignServicePoint = async (user, servicePoints) => {
+  if(servicePoints.length == 0) {
+    console.log("no service points to assign")
+    return;
+  }
   const sps = {
     userId: user.id,
     servicePointsIds: servicePoints.map(sp => sp.id),
@@ -312,11 +316,11 @@ const assignPermissions = (user, pset) => {
  * @arg object permissions, map from displayName => permissionName
  * @arg array servicePoints, array of service points
  */
-const configureUser = async (p, path, permissions, servicePoints) => {
+const configureUser = async (p, path, permissions, servicePoints, group) => {
   try {
     const username = p.match(/(.*)\.json/)[1];
 
-    const user = await getOrCreateUser(username);
+    const user = await getOrCreateUser(username, group);
     await assignPermissionsUser(user);
     await assignCredentials(user);
     await assignServicePoint(user, servicePoints);
@@ -365,8 +369,11 @@ const getServicePoints = async () => {
   const res = await okapiGet('/service-points?limit=2000');
   if (res.json.totalRecords) {
     return res.json.servicepoints;
+  } else {
+    console.log("Could not retrieve service points, none present");
+    return []
   }
-  throw "Could not retrieve permissions";
+  
 };
 
 
@@ -445,6 +452,7 @@ const processArgs = (args) => {
     hostname: null,
     tenant: null,
     psets: null,
+    group: "staff"
   };
 
   // argument handlers
@@ -452,6 +460,7 @@ const processArgs = (args) => {
     username: (i, config) => { config.username = i; },
     password: (i, config) => { config.password = i; },
     psets:    (i, config) => { config.psets = i; },
+    group:    (i, config) => { config.group = i; },
     tenant:   handleTenant,
     hostname: handleHostname,
     port:     handlePort,
@@ -477,8 +486,8 @@ const processArgs = (args) => {
     return config;
   }
 
-  console.log("Usage: node " + __filename + " --username <u> --password <p> --tenant <t> --hostname <h> --psets <p>");
-  console.log("Usage: node " + __filename + " --username <u> --password <p> --tenant <t> --okapi <o> --psets <p>");
+  console.log("Usage: node " + __filename + " --username <u> --group <g> --password <p> --tenant <t> --hostname <h> --psets <p>");
+  console.log("Usage: node " + __filename + " --username <u> --group <g> --password <p> --tenant <t> --okapi <o> --psets <p>");
   console.log("An Okapi URL will parse to values for --hostname and --port.")
 
   throw `A required argument was not present; missing one of: ${Object.keys(config).join(', ')}.`;
@@ -530,7 +539,7 @@ async function main() {
     const permissions = await getPermissions();
     const psets = fs.readdirSync(path);
     if (psets.length) {
-      eachPromise(psets, (p) => configureUser(p, path, permissions, servicePoints));
+      eachPromise(psets, (p) => configureUser(p, path, permissions, servicePoints, config.group));
     } else {
       console.error(`Found ${path} but it was empty :(`)
       process.exit(1);
