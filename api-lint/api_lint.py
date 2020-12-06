@@ -153,7 +153,11 @@ def main():
             logger.critical("Needs to be pathname relative to top-level, e.g. ramls/item.raml")
             return 2
 
-    # The yaml parser gags on the "!include".
+    version_raml_re = re.compile(r"^#%RAML ([0-9]+)\.([0-9]+)")
+    version_oas_re = re.compile(r"^openapi: ([0-9]+)\.([0-9]+)")
+    exit_code = 0 # Continue processing to detect various issues, then return the result.
+
+    # The yaml parser gags on the RAML "!include".
     # http://stackoverflow.com/questions/13280978/pyyaml-errors-on-in-a-string
     yaml.add_constructor(u"!include", construct_raml_include, Loader=yaml.SafeLoader)
 
@@ -198,9 +202,6 @@ def main():
         else:
             logger.info("The software version could not be determined.")
 
-    version_raml_re = re.compile(r"^#%RAML ([0-9.]+)")
-    exit_code = 0 # Continue processing to detect various issues, then return the result.
-
     # Find and process the relevant files
     raml_files = []
     oas_files = []
@@ -216,8 +217,13 @@ def main():
                         raml_files.append(os.path.relpath(os.path.join(root, api_fn)))
         if raml_files:
             for file_pn in sorted(raml_files):
-                logger.info("Processing %s file: %s", api_type, file_pn)
-                # TODO: do node amf-client-js
+                (api_version, supported) = get_api_version(file_pn, api_type,
+                    version_raml_re, version_oas_re)
+                if supported:
+                    logger.info("Processing %s file: %s", api_version, file_pn)
+                    conforms = do_amf(file_pn, input_dir, api_type, api_version)
+                    if not conforms:
+                        exit_code = 1
         else:
             logger.info("No %s files were found in the configured directories '%s'",
                 api_type, args.directories)
@@ -233,8 +239,13 @@ def main():
                             oas_files.append(os.path.relpath(os.path.join(root, api_fn)))
         if oas_files:
             for file_pn in sorted(oas_files):
-                logger.info("Processing %s file: %s", api_type, file_pn)
-                # TODO: do node amf-client-js
+                (api_version, supported) = get_api_version(file_pn, api_type,
+                    version_raml_re, version_oas_re)
+                if supported:
+                    logger.info("Processing %s file: %s", api_version, file_pn)
+                    conforms = do_amf(file_pn, input_dir, api_type, api_version)
+                    if not conforms:
+                        exit_code = 1
         else:
             logger.info("No %s files were found in the configured directories '%s'",
                 api_type, args.directories)
@@ -252,6 +263,59 @@ def main():
 def construct_raml_include(loader, node):
     "Add a special construct for YAML loader"
     return loader.construct_yaml_str(node)
+
+def get_api_version(file_pn, api_type, version_raml_re, version_oas_re):
+    """Get the version from the api definition file."""
+    logger = logging.getLogger("api-lint")
+    supported_raml = ["RAML 1.0"]
+    supported_oas = ["OAS 3.0"]
+    msg_1 = "API version %s is not supported for file: %s"
+    api_version = None
+    version_supported = False
+    with open(file_pn, "r") as input_fh:
+        for num, line in enumerate(input_fh):
+            if "RAML" in api_type:
+                match = re.search(version_raml_re, line)
+                if match:
+                    api_version = "RAML {}.{}".format(match.group(1), match.group(2))
+                    break
+            if "OAS" in api_type:
+                match = re.search(version_oas_re, line)
+                if match:
+                    api_version = "OAS {}.{}".format(match.group(1), match.group(2))
+                    break
+    if api_version:
+        if "RAML" in api_type:
+            if api_version in supported_raml:
+                version_supported = True
+            else:
+                logger.error(msg_1, api_version, file_pn)
+        if "OAS" in api_type:
+            if api_version in supported_oas:
+                version_supported = True
+            else:
+                logger.error(msg_1, api_version, file_pn)
+    else:
+        msg = "Could not determine %s version for file: %s"
+        logger.error(msg, api_type, file_pn)
+    return api_version, version_supported
+
+def do_amf(file_pn, input_dir, api_type, api_version):
+    """Assess the api definition"""
+    logger = logging.getLogger("api-lint")
+    input_dir_pn = os.path.abspath(input_dir)
+    #logger.debug("input_dir_pn=%s", input_dir_pn)
+    script_pn = os.path.join(sys.path[0], "amf.js")
+    try:
+        # pylint: disable=E1101
+        sh.node(script_pn, file_pn, _cwd=input_dir_pn)
+    except sh.ErrorReturnCode as err:
+        status = False
+        logger.error("%s %s", err.stderr.decode(), err.stdout.decode())
+    else:
+        logger.info("  did not detect any errors")
+        status = True
+    return status
 
 if __name__ == "__main__":
     sys.exit(main())
