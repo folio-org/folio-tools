@@ -219,7 +219,7 @@ def main():
                     version_raml_re, version_oas_re)
                 if supported:
                     logger.info("Processing %s file: %s", api_version, os.path.relpath(file_pn))
-                    conforms = do_amf(file_pn, input_dir, api_type, api_version)
+                    conforms = do_amf(file_pn, input_dir, api_version)
                     if not conforms:
                         exit_code = 1
         else:
@@ -241,7 +241,7 @@ def main():
                     version_raml_re, version_oas_re)
                 if supported:
                     logger.info("Processing %s file: %s", api_version, os.path.relpath(file_pn))
-                    conforms = do_amf(file_pn, input_dir, api_type, api_version)
+                    conforms = do_amf(file_pn, input_dir, api_version)
                     if not conforms:
                         exit_code = 1
         else:
@@ -298,19 +298,19 @@ def get_api_version(file_pn, api_type, version_raml_re, version_oas_re):
         logger.error(msg, api_type, file_pn)
     return api_version, version_supported
 
-def do_amf(file_pn, input_dir, api_type, api_version):
+def do_amf(file_pn, input_dir, api_version):
     """Assess the api definition."""
     logger = logging.getLogger("api-lint")
     input_dir_pn = os.path.abspath(input_dir)
     script_pn = os.path.join(sys.path[0], "amf.js")
     try:
         # pylint: disable=E1101
-        sh.node(script_pn, file_pn, _cwd=input_dir_pn)
+        sh.node(script_pn, api_version, file_pn, _cwd=input_dir_pn)
     except sh.ErrorReturnCode as err:
         status = False
-        logger.error("%s %s", err.stderr.decode(), err.stdout.decode())
+        logger.error("%s\n%s", err.stderr.decode(), err.stdout.decode())
     else:
-        logger.info("  did not detect any errors")
+        logger.info("    did not detect any errors")
         status = True
     return status
 
