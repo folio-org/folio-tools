@@ -55,9 +55,6 @@ def main():
     parser.add_argument("-e", "--excludes",
         nargs="*",
         help="List of additional sub-directories and files to be excluded. Space-delimited.")
-    parser.add_argument("-f", "--file",
-        default="",
-        help="Limit to this particular pathname, e.g. ramls/item.raml (Default: '' so all files)")
     parser.add_argument("-l", "--loglevel",
         choices=["debug", "info", "warning", "error", "critical"],
         default="info",
@@ -141,15 +138,6 @@ def main():
         return 2
     else:
         repo_name = os.path.splitext(os.path.basename(repo_url))[0]
-
-    if args.file:
-        specific_file_pn = os.path.join(input_dir, args.file)
-        if not os.path.exists(specific_file_pn):
-            logger.critical("Specific file '%s' does not exist in '%s'",
-                specific_file_pn, repo_name)
-            msg = "Needs to be pathname relative to top-level, e.g. ramls/item.raml"
-            logger.critical(msg)
-            return 2
 
     version_raml_re = re.compile(r"^#%RAML ([0-9]+)\.([0-9]+)")
     version_oas_re = re.compile(r"^openapi: ([0-9]+)\.([0-9]+)")
