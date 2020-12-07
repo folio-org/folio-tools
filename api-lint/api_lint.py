@@ -10,21 +10,17 @@ Assess a set of API definition files (RAML or OpenAPI OAS) and report their conf
 """
 
 # pylint: disable=C0413
-
 import sys
 if sys.version_info[0] < 3:
     raise RuntimeError("Python 3 or above is required.")
 
 import argparse
 import fnmatch
-import glob
 import json
 import logging
 import os
 import re
-import shutil
 
-import requests
 import sh
 import yaml
 
@@ -74,7 +70,6 @@ def main():
         format="%(levelname)s: %(name)s: %(message)s", level=loglevel)
     logger = logging.getLogger("api-lint")
     logging.getLogger("sh").setLevel(logging.ERROR)
-    logging.getLogger("requests").setLevel(logging.ERROR)
 
     # Display a version string
     logger.info("Using api-lint version: %s", SCRIPT_VERSION)
@@ -89,13 +84,15 @@ def main():
     else:
         input_dir = args.input
     if not os.path.exists(input_dir):
-        logger.critical("Specified input directory of git clone (-i) not found: %s", input_dir)
+        msg = "Specified input directory of git clone (-i) not found: %s"
+        logger.critical(msg, input_dir)
         return 2
 
     # Ensure that api directories exist
     for directory in args.directories:
         if not os.path.exists(os.path.join(input_dir, directory)):
-            logger.critical("Specified API directory does not exist: %s", directory)
+            msg = "Specified API directory does not exist: %s"
+            logger.critical(msg, directory)
             return 2
 
     # Prepare the sets of excludes for os.walk
@@ -107,12 +104,12 @@ def main():
     if args.excludes:
         for exclude in args.excludes:
             if "/" in exclude:
-                msg = ("Specified excludes list must be sub-directories and filenames, "
-                       "not paths: {}".format(args.excludes))
-                logger.critical(msg)
+                msg = ("Specified excludes list must be "
+                       "sub-directories and filenames, not paths: %s")
+                logger.critical(msg, args.excludes)
                 return 2
             if "." in exclude:
-                (name, ext) = os.path.splitext(exclude)
+                ext = os.path.splitext(exclude)[1]
                 if ext in [".raml", ".yaml", ".yml", ".json"]:
                     exclude_files.append(exclude)
                 else:
@@ -150,7 +147,8 @@ def main():
         if not os.path.exists(specific_file_pn):
             logger.critical("Specific file '%s' does not exist in '%s'",
                 specific_file_pn, repo_name)
-            logger.critical("Needs to be pathname relative to top-level, e.g. ramls/item.raml")
+            msg = "Needs to be pathname relative to top-level, e.g. ramls/item.raml"
+            logger.critical(msg)
             return 2
 
     version_raml_re = re.compile(r"^#%RAML ([0-9]+)\.([0-9]+)")
@@ -187,7 +185,7 @@ def main():
             with open(md_pn, "r") as md_fh:
                 md_data = json.load(md_fh)
                 try:
-                    sw_version_data = md_data['id']
+                    sw_version_data = md_data["id"]
                 except KeyError:
                     logger.debug("The 'id' was not found in ModuleDescriptor.json")
                 else:
@@ -195,8 +193,8 @@ def main():
                     if match:
                         sw_version_value = match.group(1)
                     else:
-                        logger.debug("The software version could not be determined from '%s'",
-                            sw_version_data)
+                        msg = "The software version could not be determined from '%s'"
+                        logger.debug(msg, sw_version_data)
         if sw_version_value:
             logger.debug("sw_version_value=%s", sw_version_value)
         else:
@@ -225,8 +223,8 @@ def main():
                     if not conforms:
                         exit_code = 1
         else:
-            logger.info("No %s files were found in the configured directories '%s'",
-                api_type, args.directories)
+            msg = "No RAML files were found in the configured directories: %s"
+            logger.info(msg, ", ".join(args.directories))
     if "OAS" in args.types:
         api_type = "OAS"
         for directory in args.directories:
@@ -247,8 +245,8 @@ def main():
                     if not conforms:
                         exit_code = 1
         else:
-            logger.info("No %s files were found in the configured directories '%s'",
-                api_type, args.directories)
+            msg = "No OAS files were found in the configured directories: %s"
+            logger.info(msg, ", ".join(args.directories))
 
     # Report the outcome
     if exit_code == 1:
@@ -261,7 +259,7 @@ def main():
     return exit_code
 
 def construct_raml_include(loader, node):
-    "Add a special construct for YAML loader"
+    """Add a special construct for YAML loader."""
     return loader.construct_yaml_str(node)
 
 def get_api_version(file_pn, api_type, version_raml_re, version_oas_re):
@@ -301,7 +299,7 @@ def get_api_version(file_pn, api_type, version_raml_re, version_oas_re):
     return api_version, version_supported
 
 def do_amf(file_pn, input_dir, api_type, api_version):
-    """Assess the api definition"""
+    """Assess the api definition."""
     logger = logging.getLogger("api-lint")
     input_dir_pn = os.path.abspath(input_dir)
     #logger.debug("input_dir_pn=%s", input_dir_pn)
