@@ -212,13 +212,13 @@ def main():
                 dirs[:] = [d for d in dirs if d not in exclude_dirs]
                 for api_fn in fnmatch.filter(files, "*.raml"):
                     if not api_fn in exclude_files:
-                        raml_files.append(os.path.relpath(os.path.join(root, api_fn)))
+                        raml_files.append(os.path.join(root, api_fn))
         if raml_files:
             for file_pn in sorted(raml_files):
                 (api_version, supported) = get_api_version(file_pn, api_type,
                     version_raml_re, version_oas_re)
                 if supported:
-                    logger.info("Processing %s file: %s", api_version, file_pn)
+                    logger.info("Processing %s file: %s", api_version, os.path.relpath(file_pn))
                     conforms = do_amf(file_pn, input_dir, api_type, api_version)
                     if not conforms:
                         exit_code = 1
@@ -234,13 +234,13 @@ def main():
                 for extension in ("*.yaml", "*.yml"):
                     for api_fn in fnmatch.filter(files, extension):
                         if not api_fn in exclude_files:
-                            oas_files.append(os.path.relpath(os.path.join(root, api_fn)))
+                            oas_files.append(os.path.join(root, api_fn))
         if oas_files:
             for file_pn in sorted(oas_files):
                 (api_version, supported) = get_api_version(file_pn, api_type,
                     version_raml_re, version_oas_re)
                 if supported:
-                    logger.info("Processing %s file: %s", api_version, file_pn)
+                    logger.info("Processing %s file: %s", api_version, os.path.relpath(file_pn))
                     conforms = do_amf(file_pn, input_dir, api_type, api_version)
                     if not conforms:
                         exit_code = 1
@@ -302,7 +302,6 @@ def do_amf(file_pn, input_dir, api_type, api_version):
     """Assess the api definition."""
     logger = logging.getLogger("api-lint")
     input_dir_pn = os.path.abspath(input_dir)
-    #logger.debug("input_dir_pn=%s", input_dir_pn)
     script_pn = os.path.join(sys.path[0], "amf.js")
     try:
         # pylint: disable=E1101
