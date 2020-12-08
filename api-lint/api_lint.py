@@ -20,6 +20,8 @@ import json
 import logging
 import os
 import re
+import shutil
+import time
 
 import sh
 import yaml
@@ -73,9 +75,9 @@ def main():
 
     # Process and validate the input parameters
     if args.output.startswith("~"):
-        output_dir = os.path.expanduser(args.output)
+        output_home_dir = os.path.expanduser(args.output)
     else:
-        output_dir = args.output
+        output_home_dir = args.output
     if args.input.startswith("~"):
         input_dir = os.path.expanduser(args.input)
     else:
@@ -188,6 +190,23 @@ def main():
         else:
             logger.info("The software version could not be determined.")
 
+    # prepare the output
+    output_dir = os.path.join(output_home_dir, repo_name)
+    os.makedirs(output_dir, exist_ok=True)
+    if sw_version_value is not None:
+        output_version_dir = os.path.join(output_dir, sw_version_value)
+        os.makedirs(output_version_dir, exist_ok=True)
+    config_json = {}
+    config_json["metadata"] = {}
+    config_json["metadata"]["repository"] = repo_name
+    config_json["metadata"]["timestamp"] = int(time.time())
+    config_json["config"] = {
+        "files": {
+            "RAML": [],
+            "OAS": []
+        }
+    }
+
     # Find and process the relevant files
     raml_files = []
     oas_files = []
@@ -207,6 +226,7 @@ def main():
                     version_raml_re, version_oas_re)
                 if supported:
                     logger.info("Processing %s file: %s", api_version, os.path.relpath(file_pn))
+                    config_json["config"]["files"]["RAML"].append(os.path.relpath(file_pn))
                     conforms = do_amf(file_pn, input_dir, api_version)
                     if not conforms:
                         exit_code = 1
@@ -229,6 +249,7 @@ def main():
                     version_raml_re, version_oas_re)
                 if supported:
                     logger.info("Processing %s file: %s", api_version, os.path.relpath(file_pn))
+                    config_json["config"]["files"]["OAS"].append(os.path.relpath(file_pn))
                     conforms = do_amf(file_pn, input_dir, api_version)
                     if not conforms:
                         exit_code = 1
@@ -237,6 +258,18 @@ def main():
             logger.info(msg, ", ".join(args.directories))
 
     # Report the outcome
+    config_pn = os.path.join(output_dir, "config-api.json")
+    config_json_object = json.dumps(config_json, sort_keys=True, indent=2, separators=(",", ": "))
+    with open(config_pn, "w") as output_json_fh:
+        output_json_fh.write(config_json_object)
+        output_json_fh.write("\n")
+    if sw_version_value is not None:
+        dest_pn = os.path.join(output_version_dir, "config-api.json")
+        try:
+            shutil.copyfile(config_pn, dest_pn)
+        except:
+            logger.debug("Could not copy %s to %s", config_pn, dest_pn)
+
     if exit_code == 1:
         logger.error("There were processing errors. See list above.")
     elif exit_code == 2:
