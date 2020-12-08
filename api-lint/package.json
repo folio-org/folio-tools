@@ -1,0 +1,12 @@
+{
+  "license": "Apache-2.0",
+  "dependencies": {
+    "amf-client-js": "^4.5.0",
+    "yargs": "^16.2.0"
+  },
+  "devDependencies": {
+    "eslint": "^7.2.0",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-config-airbnb-base": "latest"
+  }
+}
