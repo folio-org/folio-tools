@@ -1,3 +1,20 @@
+#!/usr/bin/env node
+
+const argv = require('yargs/yargs')(process.argv.slice(2))
+  .usage('Usage: $0 [options]')
+  .example('$0 -t "RAML 1.0" -f $GH_FOLIO/mod-notes/ramls/note.raml')
+  .alias('t', 'type')
+  .nargs('t', 1)
+  .describe('t', 'The API type: "RAML 1.0" or "OAS 3.0"')
+  .alias('f', 'inputFile')
+  .nargs('f', 1)
+  .describe('f', 'The path of the input file to be processed')
+  .demandOption(['t', 'f'])
+  .help('h')
+  .alias('h', 'help')
+  .version("1.0.0")
+  .argv;
+
 const amf = require('amf-client-js');
 const fs = require('fs');
 const path = require('path');
@@ -6,17 +23,14 @@ amf.plugins.document.WebApi.register();
 amf.plugins.document.Vocabularies.register();
 amf.plugins.features.AMFValidation.register();
 
-const amfType = process.argv[2];
-const inputFn = process.argv[3];
-
-if (!fs.existsSync(inputFn)) {
-  console.error(`Input file does not exist: ${inputFn}`);
+if (!fs.existsSync(argv.inputFile)) {
+  console.error(`Input file does not exist: ${argv.inputFile}`);
   process.exit(1);
 }
 
 let validationProfile;
 let messageStyles;
-switch (amfType) {
+switch (argv.type) {
   case 'RAML 1.0':
     validationProfile = amf.ProfileNames.RAML;
     messageStyles = amf.MessageStyles.RAML;
@@ -26,11 +40,11 @@ switch (amfType) {
     messageStyles = amf.MessageStyles.OAS;
     break;
   default:
-    console.error(`Type '${amfType}' must be one of 'RAML 1.0' or 'OAS 3.0'.`);
+    console.error(`Type '${argv.type}' must be one of 'RAML 1.0' or 'OAS 3.0'.`);
     process.exit(1);
 }
 
-const inputExt = path.extname(inputFn);
+const inputExt = path.extname(argv.inputFile);
 let mediaType;
 switch (inputExt) {
   case '.raml':
@@ -50,13 +64,11 @@ switch (inputExt) {
 
 async function main() {
   await amf.AMF.init();
-  const parser = amf.Core.parser(amfType, mediaType);
-  const doc = await parser.parseFileAsync(`file://${inputFn}`);
+  const parser = amf.Core.parser(argv.type, mediaType);
+  const doc = await parser.parseFileAsync(`file://${argv.inputFile}`);
   let report;
   try {
-    report = await amf.AMF.validate(
-      doc, validationProfile, messageStyles,
-    );
+    report = await amf.AMF.validate(doc, validationProfile, messageStyles);
   } catch (e) {
     process.exitCode = 1;
     console.log(e.toString());

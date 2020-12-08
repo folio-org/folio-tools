@@ -326,7 +326,7 @@ def do_amf(file_pn, input_dir, api_version):
     script_pn = os.path.join(sys.path[0], "amf.js")
     try:
         # pylint: disable=E1101
-        sh.node(script_pn, api_version, file_pn, _cwd=input_dir_pn)
+        sh.node(script_pn, "-t", api_version, "-f", file_pn, _cwd=input_dir_pn)
     except sh.ErrorReturnCode as err:
         status = False
         logger.error("%s\n%s", err.stderr.decode(), err.stdout.decode())
