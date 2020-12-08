@@ -24,7 +24,6 @@ import shutil
 import time
 
 import sh
-import yaml
 
 SCRIPT_VERSION = "1.0.0"
 
@@ -144,10 +143,6 @@ def main():
     version_raml_re = re.compile(r"^#%RAML ([0-9]+)\.([0-9]+)")
     version_oas_re = re.compile(r"^openapi: ([0-9]+)\.([0-9]+)")
     exit_code = 0 # Continue processing to detect various issues, then return the result.
-
-    # The yaml parser gags on the RAML "!include".
-    # http://stackoverflow.com/questions/13280978/pyyaml-errors-on-in-a-string
-    yaml.add_constructor(u"!include", construct_raml_include, Loader=yaml.SafeLoader)
 
     # Get the software version.
     # Try first with MD. If not then POM.
@@ -278,10 +273,6 @@ def main():
         logger.info("Did not detect any errors.")
     logging.shutdown()
     return exit_code
-
-def construct_raml_include(loader, node):
-    """Add a special construct for YAML loader."""
-    return loader.construct_yaml_str(node)
 
 def get_api_version(file_pn, api_type, version_raml_re, version_oas_re):
     """Get the version from the api definition file."""
