@@ -32,13 +32,32 @@ pip3 install -r requirements.txt
 
 ## Usage
 
+### Python
+
 The Python script will search the configured directories to find relevant API definition files, and will then call the node script to process each file.
+
+Where the main options are:
+
+* `-t,--types` -- The type of API definition files to search for.
+  Required. Space-separated list.
+  One or more of: `RAML OAS`
+* `-d,--directories` -- The list of directories to be searched.
+  Required. Space-separated list.
+* `-e,--excludes` -- List of additional sub-directories and files to be excluded.
+  Optional. Space-separated list.
+  By default it excludes certain well-known directories (such as `raml-util`).
+  Use the option `--loglevel debug` to report what is being excluded.
+
+See help for the full list:
+
+```
+python3 ../folio-tools/api-lint/api_lint.py --help
+```
 
 Example for RAML:
 
 ```
 cd $GH_FOLIO/mod-notes
-python3 ../folio-tools/api-lint/api_lint.py --help
 python3 ../folio-tools/api-lint/api_lint.py \
   -t RAML \
   -d ramls
@@ -53,10 +72,21 @@ python3 ../folio-tools/api-lint/api_lint.py \
   -d ramls src/main/resources/oas
 ```
 
-Note the option `--excludes` which can be used to exclude specific additional sub-directories and files.
-By default it excludes certain well-known directories (such as `raml-util`).
-Use the option `--loglevel debug` to report what is being excluded.
+### Node
 
 The node script can also be used stand-alone to process a single file.
 See usage notes with: `node amf.js --help`
+
+### Jenkinsfile
+
+To use "api-lint" with FOLIO Continuous Integration, add this configuration to the project's Jenkinsfile:
+
+```
+buildMvn {
+...
+  doApiLint = true
+  apiTypes = 'RAML' // Required. Space-separated list: RAML OAS
+  apiDirectories = 'ramls' // Required. Space-separated list
+  apiExcludes = 'types.raml' // Optional. Space-separated list
+```
 
