@@ -1,3 +1,7 @@
+## 2.4.0 2020-12-09
+
+* Add api-lint
+
 ## 2.3.2 2020-11-06
 
 * add libraries for building LDP
