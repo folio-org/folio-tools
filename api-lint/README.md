@@ -17,6 +17,12 @@ The node script can also be used locally to process a single file.
 
 Refer to additional [notes](https://dev.folio.org/guides/api-lint/).
 
+## Procedure
+
+Each discovered API definition file is provided to the nodejs script.
+
+That utilises the AML Modeling Framework [AMF](https://github.com/aml-org/amf), specifically the `amf-client-js` library, to parse and validate the definition.
+
 ## Requirements
 
 For local use:
