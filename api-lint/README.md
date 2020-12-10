@@ -9,11 +9,13 @@ Version 2.0. See the file "[LICENSE](LICENSE)" for more information.
 
 Process API definition files, either RAML or OpenAPI (OAS), and report the conformance.
 
-The Python script is used in FOLIO CI as the stage "api-lint". See Jenkinsfile configuration usage notes.
+The Python script is used in FOLIO CI as the build stage "API lint". See Jenkinsfile configuration usage notes.
 
 The Python script can also be used locally prior to commit.
 
 The node script can also be used locally to process a single file.
+
+Refer to additional [notes](https://dev.folio.org/guides/api-lint/).
 
 ## Requirements
 
