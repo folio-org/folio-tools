@@ -7,7 +7,7 @@ Version 2.0. See the file "[LICENSE](LICENSE)" for more information.
 
 ## Introduction
 
-Process API definition files, either RAML or OpenAPI (OAS), and report the conformance.
+Process API definition files, either [RAML](https://en.wikipedia.org/wiki/RAML_(software)) or OpenAPI Specification ([OAS](https://en.wikipedia.org/wiki/OpenAPI_Specification)), and report the conformance.
 
 The Python script is used in FOLIO CI as the build stage "API lint". See Jenkinsfile configuration usage notes.
 
