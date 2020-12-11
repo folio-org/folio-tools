@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 const argv = require('yargs/yargs')(process.argv.slice(2))
-  .usage('Usage: $0 [options]')
-  .example('$0 -t "RAML 1.0" -f $GH_FOLIO/mod-notes/ramls/note.raml')
+  .usage('Usage: node $0 [options]')
+  .example('node $0 -t "RAML 1.0" -f $GH_FOLIO/mod-notes/ramls/note.raml')
   .alias('t', 'type')
   .nargs('t', 1)
   .describe('t', 'The API type: "RAML 1.0" or "OAS 3.0"')
