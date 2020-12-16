@@ -7,7 +7,7 @@ Version 2.0. See the file "[LICENSE](LICENSE)" for more information.
 
 ## Introduction
 
-Process API definition files, either [RAML](https://en.wikipedia.org/wiki/RAML_(software)) or OpenAPI Specification ([OAS](https://en.wikipedia.org/wiki/OpenAPI_Specification)), and report the conformance.
+Process API description files, either [RAML](https://en.wikipedia.org/wiki/RAML_(software)) or OpenAPI Specification ([OAS](https://en.wikipedia.org/wiki/OpenAPI_Specification)), and report the conformance.
 
 The Python script is used in FOLIO CI as the build stage "API lint". See Jenkinsfile configuration usage notes.
 
@@ -19,9 +19,9 @@ Refer to additional [notes](https://dev.folio.org/guides/api-lint/).
 
 ## Procedure
 
-Each discovered API definition file is provided to the nodejs script.
+Each discovered API description file is provided to the nodejs script.
 
-That utilises the AML Modeling Framework [AMF](https://github.com/aml-org/amf), specifically the `amf-client-js` library, to parse and validate the definition.
+That utilises the AML Modeling Framework [AMF](https://github.com/aml-org/amf), specifically the `amf-client-js` library, to parse and validate the description.
 
 ## Requirements
 
@@ -42,11 +42,11 @@ pip3 install -r requirements.txt
 
 ### Python
 
-The Python script will search the configured directories to find relevant API definition files, and will then call the node script to process each file.
+The Python script will search the configured directories to find relevant API description files, and will then call the node script to process each file.
 
 Where the main options are:
 
-* `-t,--types` -- The type of API definition files to search for.
+* `-t,--types` -- The type of API description files to search for.
   Required. Space-separated list.
   One or more of: `RAML OAS`
 * `-d,--directories` -- The list of directories to be searched.

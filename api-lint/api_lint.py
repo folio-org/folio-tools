@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-Assess a set of API definition files (RAML or OpenAPI OAS) and report their conformance.
+Assess a set of API description files (RAML or OpenAPI OAS) and report their conformance.
 
    Returns:
        0: Success.
@@ -25,7 +25,7 @@ import time
 
 import sh
 
-SCRIPT_VERSION = "1.0.0"
+SCRIPT_VERSION = "1.0.1"
 
 LOGLEVELS = {
     "debug": logging.DEBUG,
@@ -205,7 +205,7 @@ def main():
     # Find and process the relevant files
     raml_files = []
     oas_files = []
-    logger.info("Assessing API definition files: %s", ", ".join(args.types))
+    logger.info("Assessing API description files: %s", ", ".join(args.types))
     if "RAML" in args.types:
         api_type = "RAML"
         for directory in args.directories:
@@ -275,7 +275,7 @@ def main():
     return exit_code
 
 def get_api_version(file_pn, api_type, version_raml_re, version_oas_re):
-    """Get the version from the api definition file."""
+    """Get the version from the api description file."""
     logger = logging.getLogger("api-lint")
     supported_raml = ["RAML 1.0"]
     supported_oas = ["OAS 3.0"]
@@ -311,7 +311,7 @@ def get_api_version(file_pn, api_type, version_raml_re, version_oas_re):
     return api_version, version_supported
 
 def do_amf(file_pn, input_dir, api_version):
-    """Assess the api definition."""
+    """Assess the api description."""
     logger = logging.getLogger("api-lint")
     input_dir_pn = os.path.abspath(input_dir)
     script_pn = os.path.join(sys.path[0], "amf.js")
