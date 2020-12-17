@@ -15,7 +15,7 @@ RUN sed -i 's/#PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config && \
 #  Add utility packages to image
 RUN DEBIAN_FRONTEND="noninteractive" apt-get -q install -y \
     -o Dpkg::Options::="--force-confnew"  --no-install-recommends \
-    locales tzdata vim-tiny curl wget unzip lsb-release sudo git && \
+    locales tzdata vim-tiny ca-certificates curl wget unzip lsb-release sudo git && \
     apt-get -q autoremove && \
     apt-get -q clean -y && rm -rf /var/lib/apt/lists/* && \
     rm -f /var/cache/apt/*.bin && \
@@ -29,7 +29,7 @@ ENV LC_ALL en_US.UTF-8
 
 # Install Nodejs
 ENV NODEJS_VERSION 12
-RUN wget -q --no-check-certificate --no-cookies \
+RUN wget -q --no-cookies \
     https://deb.nodesource.com/setup_${NODEJS_VERSION}.x -O /tmp/node.sh  && \
     chmod +x /tmp/node.sh && \
     sh -c "/tmp/node.sh" && \
@@ -39,11 +39,11 @@ RUN wget -q --no-check-certificate --no-cookies \
 ENV POSTGRES_VERSION 10
 RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -cs`-pgdg main" \
      > /etc/apt/sources.list.d/pgdg.list && \
-    wget -q --no-check-certificate --no-cookies -O - \
+    wget -q --no-cookies -O - \
     https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
 
 # Install google chrome repo
-RUN wget -q --no-check-certificate --no-cookies -O - \
+RUN wget -q --no-cookies -O - \
     https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - && \
     echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" \
     > /etc/apt/sources.list.d/google.list
@@ -58,9 +58,9 @@ RUN wget -q --no-check-certificate --no-cookies -O - \
 RUN apt-get -q update && \
     DEBIAN_FRONTEND="noninteractive" apt-get -q install -y \
     -o Dpkg::Options::="--force-confnew"  --no-install-recommends \
-    openjdk-8-jdk build-essential debhelper lintian fakeroot devscripts jq maven python python-pip  \
+    openjdk-8-jdk build-essential debhelper lintian fakeroot devscripts jq maven python python-pip python-dev \
     python3-pip python3-setuptools python3-wheel python3-yaml python3-requests python3-sh nodejs \
-    postgresql-client-${POSTGRES_VERSION} xvfb libgtk2.0-0 libxtst6 libxss1 libgconf-2-4 libnss3 \
+    postgresql-client-${POSTGRES_VERSION} xvfb libffi-dev libgtk2.0-0 libxtst6 libxss1 libgconf-2-4 libnss3 \
     libnspr4 libasound2 firefox google-chrome-stable libaio1 zip && \
     #libnspr4 libasound2 firefox firefox-esr-mozilla-build google-chrome-stable && \
     #apt-get -q clean -y && rm -rf /var/lib/apt/lists/* && \
@@ -80,7 +80,7 @@ RUN wget -O - https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
 
 # Install Docker cli
 ENV DOCKER_VERSION 17.09.0-ce
-RUN wget -q --no-check-certificate --no-cookies \
+RUN wget -q --no-cookies \
     https://download.docker.com/linux/static/stable/x86_64/docker-${DOCKER_VERSION}.tgz \
     -O /tmp/docker.tgz && \
     cd /tmp && tar zxvf docker.tgz && \
@@ -89,7 +89,7 @@ RUN wget -q --no-check-certificate --no-cookies \
 
 # Install AWS cli tools
 RUN cd /tmp && \
-    wget -q --no-check-certificate --no-cookies \
+    wget -q --no-cookies \
     https://s3.amazonaws.com/aws-cli/awscli-bundle.zip -O /tmp/awscli-bundle.zip && \
     unzip /tmp/awscli-bundle.zip && \
     ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws && \
