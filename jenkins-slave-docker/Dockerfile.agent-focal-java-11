@@ -35,11 +35,11 @@ RUN curl -sL https://deb.nodesource.com/setup_${NODEJS_VERSION}.x | bash -
 ARG POSTGRES_VERSION=10
 RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -cs`-pgdg main" \
      > /etc/apt/sources.list.d/pgdg.list && \
-    wget -q --no-check-certificate --no-cookies -O - \
+    wget -q --no-cookies -O - \
     https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
 
 # Install google chrome repo
-RUN wget -q --no-check-certificate --no-cookies -O - \
+RUN wget -q --no-cookies -O - \
     https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - && \
     echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" \
     > /etc/apt/sources.list.d/google.list
@@ -71,7 +71,7 @@ RUN wget -O - https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
 
 # Install Docker cli
 ARG DOCKER_VERSION=19.03.9
-RUN wget -q --no-check-certificate --no-cookies \
+RUN wget -q --no-cookies \
     https://download.docker.com/linux/static/stable/x86_64/docker-${DOCKER_VERSION}.tgz \
     -O /tmp/docker.tgz && \
     cd /tmp && tar zxvf docker.tgz && \
