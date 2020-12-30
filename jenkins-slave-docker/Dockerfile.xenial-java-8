@@ -1,5 +1,7 @@
 FROM ubuntu:xenial
 
+# 2020-12-30: FOLIO-2926: Deprecated the 1.x series. Use the "java-11" instead.
+
 # setup SSH server
 RUN apt-get update \
     && apt-get install --no-install-recommends -y openssh-server \

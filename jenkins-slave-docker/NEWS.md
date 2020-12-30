@@ -30,6 +30,11 @@
 
 * Java 11
 
+## 1.2.2 latest 2020-04-30
+
+* Java 8
+* Deprecated: This is the final of the 1.x series.
+
 ## 1.2.1 2020-04-24
 
 * Utilise new stripes-cli v1.15.1 FOLIO-2572,STCLI-148
