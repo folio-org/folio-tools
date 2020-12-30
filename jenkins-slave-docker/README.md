@@ -3,7 +3,7 @@ tools needed to build and deploy FOLIO artifacts for https://github.com/folio-or
 
 The image can be deployed as either Jenkins slave instances or as personal development
 environments for FOLIO.  The image is primarily used by FOLIO CI and is available
-in the FOLIO CI repository at Docker Hub - https://hub.docker.com/u/folioci/dashboard/
+in the FOLIO CI repository at Docker Hub - https://hub.docker.com/u/folioci
 
 The image is based on the jenkinsci/ssh-slave images including authentication support
 using a SSH key pair and as well as use of the entrypoint script, 'setup-ssh' from the
@@ -39,6 +39,7 @@ Example build and run commands for the image:
 ## Upgrading this image
 * Pick a new version number (Check NEWS.md or hub.docker.com for the latest tag)
 * List changes in the NEWS.md file
-* Build and tag the new image with the new version tag and "latest". Jenkins will pull the image tagged "latest".
+* Build and tag the new image with the new version tag and "java-11". Jenkins will pull the image tagged "java-11".
+* 2020-12-30: The "latest" tag refers to the deprecated 1.x series "java-8" image.
 
-If it's necessary to revert to an older image, use docker pull to get an older version, tag it as latest and push it back up.
+If it's necessary to revert to an older image, use docker pull to get an older version, tag it as "java-11" and push it back up.

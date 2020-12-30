@@ -6,10 +6,6 @@
 
 * Fix wget FOLIO-2923
 
-## 1.3.0 2020-12-18
-
-* Fix wget FOLIO-2923
-
 ## 2.4.0 2020-12-09
 
 * Add api-lint
@@ -33,6 +29,11 @@
 ## 2.1.0 2020-08-15
 
 * Java 11
+
+## 1.2.2 latest 2020-04-30
+
+* Java 8
+* Deprecated: This is the final of the 1.x series.
 
 ## 1.2.1 2020-04-24
 
