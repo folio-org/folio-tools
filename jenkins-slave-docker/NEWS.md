@@ -6,10 +6,6 @@
 
 * Fix wget FOLIO-2923
 
-## 1.3.0 2020-12-18
-
-* Fix wget FOLIO-2923
-
 ## 2.4.0 2020-12-09
 
 * Add api-lint
