@@ -30,7 +30,7 @@ ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 
 ## Install Nodejs
-ARG NODEJS_VERSION=12
+ARG NODEJS_VERSION=12.20.1
 RUN curl -sL https://deb.nodesource.com/setup_${NODEJS_VERSION}.x | bash -
 
 # Install Postgres repo
