@@ -1,3 +1,9 @@
+## 2.6.1 2021-01-05
+
+* Rebuild image to upgrade Node (now 12.20.1 was 12.20.0) fixing
+  TLS, HTTP and OpenSSL security vulnerabilities (CVE-2020-8265, CVE-2020-8287, CVE-2020-1971)
+  https://issues.folio.org/browse/STCOR-497
+
 ## 2.6.0 2020-12-29
 
 * add libyaz5 FOLIO-2925
