@@ -143,7 +143,8 @@ class ClearLoans
 
 
 
-  async main() {
+  main()
+  {
     try {
       this.okapi = new OkapiRequest(process.argv);
       this.dao = new DAO(this.okapi);
@@ -172,8 +173,6 @@ class ClearLoans
       console.error("Unhandled exception:", e);
     }
   }
-
 }
 
-const cl = new ClearLoans();
-cl.main();
+(new ClearLoans()).main();
