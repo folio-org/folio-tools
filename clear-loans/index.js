@@ -155,8 +155,7 @@ class ClearLoans
       .then((sp) => this.transferAccounts(sp))
       .then((sp) => this.cancelOpenPageRequests(sp))
       .then(()   => this.anonymizeClosedLoans())
-      //@@ failing right now do to a missing module permisssion in mod-feesfines
-      // .then(()   => this.removeClosedAccounts())
+      .then(()   => this.removeClosedAccounts())
       .then(()   => {
         console.log('Done!');
       })
