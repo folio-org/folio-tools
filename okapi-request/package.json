@@ -1,0 +1,11 @@
+{
+  "name": "okapi-request",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "A dependency-less Okapi request library for use in node-based scripts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
