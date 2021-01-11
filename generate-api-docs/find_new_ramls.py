@@ -179,8 +179,6 @@ def main():
     print(", ".join(sorted(repos_raml1_detected.difference(repos_raml1_known))))
     print("{0} are not yet raml1:".format(len(repos_raml08)))
     print(", ".join(sorted(repos_raml08)))
-    # FIXME: See note above and MODCXMOCK-17
-    print("(and mod-codex-mock)")
 
 if __name__ == '__main__':
     main()
