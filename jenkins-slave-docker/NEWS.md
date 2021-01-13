@@ -1,3 +1,7 @@
+## 2.7.0 2021-01-13
+
+* Add api-schema-lint FOLIO-2917
+
 ## 2.6.1 2021-01-05
 
 * Rebuild image to upgrade Node (now 12.20.1 was 12.20.0) fixing
@@ -14,7 +18,7 @@
 
 ## 2.4.0 2020-12-09
 
-* Add api-lint
+* Add api-lint FOLIO-2893
 
 ## 2.3.2 2020-11-06
 
