@@ -25,7 +25,7 @@ import time
 
 import sh
 
-SCRIPT_VERSION = "1.0.1"
+SCRIPT_VERSION = "1.0.2"
 
 LOGLEVELS = {
     "debug": logging.DEBUG,
