@@ -174,7 +174,7 @@ def assess_schema_descriptions(schema_files):
                     logger.debug(msg, schema_pn, schema_version)
             else:
                 msg = "%s: Could not detect schema version from keyword: %s"
-                logger.debug(msg, schema_pn, keyword_schema)
+                logger.error(msg, schema_pn, keyword_schema)
         try:
             desc = schema_data['description']
         except KeyError:
