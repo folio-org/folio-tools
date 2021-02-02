@@ -23,7 +23,7 @@ import re
 
 import sh
 
-SCRIPT_VERSION = "1.0.1"
+SCRIPT_VERSION = "1.0.2"
 
 LOGLEVELS = {
     "debug": logging.DEBUG,
@@ -146,8 +146,7 @@ def assess_schema_descriptions(schema_files):
     """
     logger = logging.getLogger("api-schema-lint")
     issues = False
-    version_schema_re = re.compile(r"json-schema.org/(.+)schema#")
-    schema_versions = ['draft-04']
+    version_schema_re = re.compile(r"json-schema.org/(.+)schema#?")
     props_skipped = ["id", "metadata", "resultInfo", "tags", "totalRecords"]
     for schema_fn in sorted(schema_files):
         schema_pn = os.path.relpath(schema_fn)
@@ -167,13 +166,8 @@ def assess_schema_descriptions(schema_files):
             #issues = True
         else:
             match = re.search(version_schema_re, keyword_schema)
-            if match:
-                schema_version = match.group(1)[:-1]
-                if not schema_version in schema_versions:
-                    msg = "%s: Schema version '%s' is not supported."
-                    logger.debug(msg, schema_pn, schema_version)
-            else:
-                msg = "%s: Could not detect schema version from keyword: %s"
+            if not match:
+                msg = "%s: Malformed $schema keyword: %s"
                 logger.error(msg, schema_pn, keyword_schema)
         try:
             desc = schema_data['description']
