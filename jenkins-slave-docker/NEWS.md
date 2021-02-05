@@ -1,3 +1,10 @@
+## 2.7.1 2021-02-05
+
+* Update api-schema-lint FOLIO-2917
+* The re-build also updated some other important tools:
+  Google Chrome 88.0.4324 (was 87.0.4280)
+  stripes 2.0.1000244 (was 1.20.1000236)
+
 ## 2.7.0 2021-01-13
 
 * Add api-schema-lint FOLIO-2917
