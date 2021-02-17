@@ -2,6 +2,7 @@
 
 """
 Find additional RAML files that are not listed in the configuration file.
+For local use until FOLIO-2922.
 """
 
 import sys
@@ -121,6 +122,9 @@ def main():
       "mod-data-loader/ramls/inventory",
       "raml-module-builder/domain-models-interface-extensions",
       "raml-module-builder/domain-models-runtime-it",
+      "raml-module-builder/domain-models-runtime/src/test",
+      "raml-module-builder/domain-models-maven-plugin/src/test",
+      "raml-module-builder/domain-models-maven-plugin",
       "raml-module-builder/sample"
     ]
     for root, dirs, files in os.walk(base_dir, topdown=True):
