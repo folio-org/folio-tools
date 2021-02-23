@@ -1,0 +1,9 @@
+{
+    "enable": false,
+    "user_config_section":"DEFAULT",
+    "cron_time":"*/30 * * * *",
+    "tenant": "diku",
+    "api-path":"/circulation/scheduled-age-to-lost-fee-charging",
+    "method":"POST",
+    "data":{}
+}

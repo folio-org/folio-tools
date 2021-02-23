@@ -1,0 +1,9 @@
+{
+    "enable": true,
+    "user_config_section": "DEFAULT",
+    "cron_time": "*/5 * * * *",
+    "tenant": "diku",
+    "api-path": "/users",
+    "method": "GET",
+    "data":{"active":"true"}
+}
