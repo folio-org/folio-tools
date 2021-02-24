@@ -7,7 +7,7 @@ setup(name='folioCronService',
           'requests',
           'python-crontab',
       ],
-      scripts=['foliocronservice'],
+      scripts=['folioCronService'],
       package_data={'': ['config/*.json']},
       include_package_data=True,
       )
