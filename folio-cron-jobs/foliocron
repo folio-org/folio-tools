@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
-
+import argparse, sys
 from folioCronService import cronOkapiService, cronOkapiServiceSetup,cronConfig
-import argparse 
 
 parser = argparse.ArgumentParser(description='Setup or run service')
 subparsers = parser.add_subparsers()
@@ -14,5 +13,8 @@ parser_cronconfig = subparsers.add_parser('config', help='set up credentials')
 parser_cronconfig.set_defaults(func=cronConfig) 
 parser_cronconfig.add_argument('username', type = str)
 parser_cronconfig.add_argument('password', type = str)
-options = parser.parse_args()
-options.func(**vars(options))
+if len(sys.argv)>1:
+    options = parser.parse_args()
+    options.func(**vars(options))
+else:
+    parser.print_help()
