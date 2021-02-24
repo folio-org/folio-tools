@@ -91,7 +91,7 @@ def cronOkapiServiceSetup(**kwargs):
     cron = CronTab(tab=crontab_string)
     cron.write_to_user()
 
-def cronConfig(username,password):
+def cronConfig(username,password,**kwargs):
     """ 
         cronConfig - creates auth file in home directory. Only sets the DEFAULT config section.
     """
