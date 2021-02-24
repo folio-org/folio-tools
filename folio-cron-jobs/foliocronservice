@@ -51,7 +51,8 @@ def cronOkapiService(name,**kwargs):
             raise Exception("Method not supported(Only GET and POST)")
 
 def cronOkapiServiceSetup(**kwargs):
-        _, _, filenames = next(os.walk('config'))
+        path="{0}/config".format(os.path.dirname(os.path.abspath(__file__)))
+        _, _, filenames = next(os.walk(path))
         home=os.path.expanduser('~')
         crontab_template = "{0} export OKAPI_URL={1};{2} service {3} >> {4}/folio_cron_output.log 2>&1"
         cron = CronTab()
