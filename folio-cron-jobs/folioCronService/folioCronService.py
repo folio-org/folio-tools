@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+
 import requests
 from crontab import CronTab
 try:
@@ -105,17 +105,5 @@ def cronConfig(username,password,**kwargs):
     with open(filename, 'w') as configfile:
         config.write(configfile)
     
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Setup or run service')
-    subparsers = parser.add_subparsers()
-    parser_cronokapiservice = subparsers.add_parser('service', help='runs okapi api')
-    parser_cronokapiservice.set_defaults(func=cronOkapiService) 
-    parser_cronokapiservice.add_argument('name', type = str)
-    parser_cronskapiservicesetup = subparsers.add_parser('setup', help='Set up crontab to run tasks in config folder')
-    parser_cronskapiservicesetup.set_defaults(func=cronOkapiServiceSetup)
-    parser_cronconfig = subparsers.add_parser('config', help='set up credentials')
-    parser_cronconfig.set_defaults(func=cronConfig) 
-    parser_cronconfig.add_argument('username', type = str)
-    parser_cronconfig.add_argument('password', type = str)
-    options = parser.parse_args()
-    options.func(**vars(options))
+
+    
