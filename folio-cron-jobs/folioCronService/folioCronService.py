@@ -78,6 +78,7 @@ def cronOkapiServiceSetup(**kwargs):
     cron_jobs = cron.__str__().split('\n')
     cron.remove_all()
     abspath = os.path.abspath(__file__)
+    abspath = "{0}bin/foliocron".format(abspath.split('lib')[0])
     for filename in filenames:
         job=os.path.splitext(filename)
         if job[1]=='.json':
@@ -104,6 +105,4 @@ def cronConfig(username,password,**kwargs):
     config['DEFAULT'] = {'username': username,'password':password} 
     with open(filename, 'w') as configfile:
         config.write(configfile)
-    
-
     
