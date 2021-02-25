@@ -25,7 +25,7 @@ import time
 
 import sh
 
-SCRIPT_VERSION = "1.0.3"
+SCRIPT_VERSION = "1.0.4"
 
 LOGLEVELS = {
     "debug": logging.DEBUG,
@@ -219,12 +219,17 @@ def main():
             for file_pn in sorted(raml_files):
                 (api_version, supported) = get_api_version(file_pn, api_type,
                     version_raml_re, version_oas_re)
+                if not api_version:
+                    exit_code = 1
+                    continue
                 if supported:
                     logger.info("Processing %s file: %s", api_version, os.path.relpath(file_pn))
                     config_json["config"]["files"]["RAML"].append(os.path.relpath(file_pn))
                     conforms = do_amf(file_pn, input_dir, api_version)
                     if not conforms:
                         exit_code = 1
+                else:
+                    exit_code = 1
         else:
             msg = "No RAML files were found in the configured directories: %s"
             logger.info(msg, ", ".join(args.directories))
@@ -242,12 +247,17 @@ def main():
             for file_pn in sorted(oas_files):
                 (api_version, supported) = get_api_version(file_pn, api_type,
                     version_raml_re, version_oas_re)
+                if not api_version:
+                    exit_code = 1
+                    continue
                 if supported:
                     logger.info("Processing %s file: %s", api_version, os.path.relpath(file_pn))
                     config_json["config"]["files"]["OAS"].append(os.path.relpath(file_pn))
                     conforms = do_amf(file_pn, input_dir, api_version)
                     if not conforms:
                         exit_code = 1
+                else:
+                    exit_code = 1
         else:
             msg = "No OAS files were found in the configured directories: %s"
             logger.info(msg, ", ".join(args.directories))
