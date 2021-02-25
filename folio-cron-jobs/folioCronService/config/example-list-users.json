@@ -1,5 +1,5 @@
 {
-    "enable": true,
+    "enable": false,
     "user_config_section": "DEFAULT",
     "cron_time": "*/5 * * * *",
     "tenant": "diku",
