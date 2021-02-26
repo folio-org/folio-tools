@@ -6,7 +6,7 @@ try:
 except:
     import ConfigParser
 import copy, json, os, sys
-import argparse 
+import argparse, datetime 
 
 opaki_url = os.getenv('OKAPI_URL', 'http://localhost:9130')
 header_default={ "Content-type": "application/json", "cache-control": "no-cache", "accept": "application/json" }
@@ -56,12 +56,12 @@ def cronOkapiService(name,**kwargs):
     if service_vars['method'].lower() == 'post':
         payload=service_vars['data']
         req = requests.post("{0}{1}".format(opaki_url,service_vars['api-path']), data=json.dumps(payload),headers=headers)
-        print("Status:{0} Method: POST Request: {1}\n".format(req.status_code,service_vars['api-path']))
+        print("{0} Status:{1} Method: POST Request: {2}".format(datetime.datetime.now().isoformat(),req.status_code,service_vars['api-path']))
         print(req.text)
     elif service_vars['method'].lower() == 'get':
         payload=service_vars['data']
         req = requests.get("{0}{1}".format(opaki_url,service_vars['api-path']), params=payload,headers=headers)
-        print("Status:{0} Method: GET Request: {1}\n".format(req.status_code,service_vars['api-path']))
+        print("{0} Status:{1} Method: GET Request: {2}".format(datetime.datetime.now().isoformat(),req.status_code,service_vars['api-path']))
         if req.status_code < 400:
             print(req.json())
         else:
