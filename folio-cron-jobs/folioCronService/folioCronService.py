@@ -57,10 +57,7 @@ def cronOkapiService(name,**kwargs):
         payload=service_vars['data']
         req = requests.post("{0}{1}".format(opaki_url,service_vars['api-path']), data=json.dumps(payload),headers=headers)
         print("Status:{0} Method: POST Request: {1}\n".format(req.status_code,service_vars['api-path']))
-        if req.status_code < 400:
-            print(req.json())
-        else:
-            print(req.text)
+        print(req.text)
     elif service_vars['method'].lower() == 'get':
         payload=service_vars['data']
         req = requests.get("{0}{1}".format(opaki_url,service_vars['api-path']), params=payload,headers=headers)
