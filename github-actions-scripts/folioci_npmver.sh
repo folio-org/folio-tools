@@ -27,8 +27,8 @@ fi
 
 new_cur_ver=${maj_ver}.${min_ver}.${patch_ver}
 
-# add 000+Jenkins BUILD_NUMBER to current patch version
+# add 000+Jenkins JOB_ID to current patch version
 
-new_snap_ver=${new_cur_ver}000${GITHUB_RUN_NUMBER}
+new_snap_ver=${new_cur_ver}000${JOB_ID}
 echo "$new_snap_ver"
 
