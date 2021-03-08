@@ -23,6 +23,7 @@ import logging
 import os
 import pprint
 import re
+from shutil import copytree
 import tempfile
 
 import requests
@@ -47,10 +48,15 @@ def main():
     exit_code = 0
     (repo_name, input_dir, output_dir, api_types, api_directories,
         release_version, exclude_dirs, exclude_files) = get_options()
-    for api_type in api_types:
-        logger.info("Processing %s API description files ...", api_type)
-        api_files = find_api_files(api_type, api_directories, exclude_dirs, exclude_files)
-        pprint.pprint(api_files)
+    with tempfile.TemporaryDirectory() as temp_dir:
+        # Copy everything to the temp_dir
+        # to dereference the schema files and not mess the git working dir
+        api_temp_dir = os.path.join(temp_dir, "repo")
+        copytree(input_dir, api_temp_dir)
+        for api_type in api_types:
+            logger.info("Processing %s API description files ...", api_type)
+            api_files = find_api_files(api_type, api_directories, exclude_dirs, exclude_files)
+            pprint.pprint(api_files)
     logging.shutdown()
     return exit_code
 
