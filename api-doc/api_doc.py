@@ -45,8 +45,8 @@ logging.basicConfig(format=LOG_FORMAT)
 
 def main():
     exit_code = 0
-    (input_dir, output_dir, api_types, api_directories, release_version,
-        exclude_dirs, exclude_files) = get_options()
+    (repo_name, input_dir, output_dir, api_types, api_directories,
+        release_version, exclude_dirs, exclude_files) = get_options()
     for api_type in api_types:
         logger.info("Processing %s API description files ...", api_type)
         api_files = find_api_files(api_type, api_directories, exclude_dirs, exclude_files)
@@ -119,7 +119,17 @@ def get_options():
     if not os.path.exists(input_dir):
         msg = "Specified input directory of git clone (-i) not found: %s"
         logger.critical(msg, input_dir)
-        exit_code = 2
+        sys.exit(2)
+    else:
+        try:
+            repo_url = sh.git.config("--get", "remote.origin.url", _cwd=input_dir).stdout.decode().strip()
+        except sh.ErrorReturnCode as err:
+            logger.critical("Trouble doing 'git config': %s", err.stderr.decode())
+            logger.critical("Could not determine remote.origin.url of git clone in specified input directory: %s", input_dir)
+            sys.exit(2)
+        else:
+            repo_name = os.path.splitext(os.path.basename(repo_url))[0]
+    logger.debug("repo_name=%s", repo_name)
     # Ensure that api directories exist
     for directory in args.directories:
         if not os.path.exists(os.path.join(input_dir, directory)):
@@ -153,7 +163,7 @@ def get_options():
         logger.debug("Excluding files: %s", exclude_files)
     if exit_code != 0:
         sys.exit(exit_code)
-    return input_dir, output_dir, args.types, args.directories, args.version, exclude_dirs, exclude_files
+    return repo_name, input_dir, output_dir, args.types, args.directories, args.version, exclude_dirs, exclude_files
 
 def arg_verify_version(arg_value):
     version_re = re.compile(r"^[0-9]+\.[0-9]+$")
