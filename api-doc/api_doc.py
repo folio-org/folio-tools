@@ -48,6 +48,7 @@ def main():
     exit_code = 0
     (repo_name, input_dir, output_dir, api_types, api_directories,
         release_version, exclude_dirs, exclude_files) = get_options()
+    os.makedirs(output_dir, exist_ok=True)
     with tempfile.TemporaryDirectory() as temp_dir:
         # Copy everything to the temp_dir
         # to dereference the schema files and not mess the git working dir
@@ -114,10 +115,6 @@ def get_options():
     # Display a version string
     logger.info("Using version: %s", SCRIPT_VERSION)
     # Process and validate the input parameters
-    if args.output.startswith("~"):
-        output_dir = os.path.expanduser(args.output)
-    else:
-        output_dir = args.output
     if args.input.startswith("~"):
         input_dir = os.path.expanduser(args.input)
     else:
@@ -136,13 +133,17 @@ def get_options():
         else:
             repo_name = os.path.splitext(os.path.basename(repo_url))[0]
     logger.debug("repo_name=%s", repo_name)
+    if args.output.startswith("~"):
+        output_home_dir = os.path.expanduser(args.output)
+    else:
+        output_home_dir = args.output
+    output_dir = os.path.join(output_home_dir, repo_name)
     # Ensure that api directories exist
     for directory in args.directories:
         if not os.path.exists(os.path.join(input_dir, directory)):
             msg = "Specified API directory does not exist: %s"
             logger.critical(msg, directory)
             exit_code = 2
-
     # Prepare the sets of excludes for os.walk
     exclude_dirs_list = ["raml-util", "raml-storage", "acq-models",
         "rtypes", "traits", "bindings", "examples",
