@@ -21,6 +21,7 @@ import fnmatch
 import json
 import logging
 import os
+import pprint
 import re
 import tempfile
 
@@ -46,12 +47,28 @@ def main():
     exit_code = 0
     (input_dir, output_dir, api_types, api_directories, release_version,
         exclude_dirs, exclude_files) = get_options()
-    logger.debug("input_dir=%s output_dir=%s", input_dir, output_dir)
-    logger.debug("types=%s directories=%s", api_types, api_directories)
-    logger.debug("release_version=%s", release_version)
-    logger.debug("exclude_dirs=%s exclude_files=%s", exclude_dirs, exclude_files)
+    for api_type in api_types:
+        logger.info("Processing %s API description files ...", api_type)
+        api_files = find_api_files(api_type, api_directories, exclude_dirs, exclude_files)
+        pprint.pprint(api_files)
     logging.shutdown()
     return exit_code
+
+def find_api_files(api_type, api_directories, exclude_dirs, exclude_files):
+    """Locate the list of relevant API description files."""
+    api_files = []
+    if "RAML" in api_type:
+        file_pattern = ["*.raml"]
+    elif "OAS"in api_type:
+        file_pattern = ["*.yml", "*.yaml"]
+    for api_dir in api_directories:
+        for root, dirs, files in os.walk(api_dir, topdown=True):
+            dirs[:] = [d for d in dirs if d not in exclude_dirs]
+            for extension in file_pattern:
+                for file_fn in fnmatch.filter(files, extension):
+                    if not file_fn in exclude_files:
+                        api_files.append(os.path.join(root, file_fn))
+    return sorted(api_files)
 
 def get_options():
     """Gets and verifies the command-line options."""
