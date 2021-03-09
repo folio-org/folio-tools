@@ -8,7 +8,7 @@ except:
 import copy, json, os, sys
 import argparse, datetime 
 
-opaki_url = os.getenv('OKAPI_URL', 'http://localhost:9130')
+okapi_url = os.getenv('OKAPI_URL', 'http://localhost:9130')
 header_default={ "Content-type": "application/json", "cache-control": "no-cache", "accept": "application/json" }
 
 def getCredentials(section="DEFAULT"):
@@ -31,7 +31,7 @@ def getAuthToken(tenant,section="DEFAULT"):
     headers = copy.copy(header_default)
     headers["x-okapi-tenant"]= tenant
     creds= getCredentials(section)
-    req = requests.post("{0}/authn/login".format(opaki_url),data=json.dumps(creds),headers=headers)
+    req = requests.post("{0}/authn/login".format(okapi_url),data=json.dumps(creds),headers=headers)
     if req.status_code >= 400:
         raise Exception("Please check username and password in credential file ('~/.folio-cron').")
     return req.headers['x-okapi-token']
@@ -55,12 +55,12 @@ def cronOkapiService(name,**kwargs):
     headers["x-okapi-token"]=getAuthToken(service_vars['tenant'],section=service_vars['user_config_section'])
     if service_vars['method'].lower() == 'post':
         payload=service_vars['data']
-        req = requests.post("{0}{1}".format(opaki_url,service_vars['api-path']), data=json.dumps(payload),headers=headers)
+        req = requests.post("{0}{1}".format(okapi_url,service_vars['api-path']), data=json.dumps(payload),headers=headers)
         print("{0} Status:{1} Method: POST Request: {2}".format(datetime.datetime.now().isoformat(),req.status_code,service_vars['api-path']))
         print(req.text)
     elif service_vars['method'].lower() == 'get':
         payload=service_vars['data']
-        req = requests.get("{0}{1}".format(opaki_url,service_vars['api-path']), params=payload,headers=headers)
+        req = requests.get("{0}{1}".format(okapi_url,service_vars['api-path']), params=payload,headers=headers)
         print("{0} Status:{1} Method: GET Request: {2}".format(datetime.datetime.now().isoformat(),req.status_code,service_vars['api-path']))
         if req.status_code < 400:
             print(req.json())
@@ -89,7 +89,7 @@ def cronOkapiServiceSetup(**kwargs):
         if job[1]=='.json':
             service_vars=getServiceVariables(job[0])
             if service_vars['enable']:
-                crontab_string = crontab_template.format(service_vars['cron_time'],opaki_url,abspath,job[0],home)
+                crontab_string = crontab_template.format(service_vars['cron_time'],okapi_url,abspath,job[0],home)
                 cron_jobs.append(crontab_string)
     cron_jobs=list(set(cron_jobs))
     cron_jobs.remove("")
