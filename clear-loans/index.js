@@ -54,9 +54,25 @@ class ClearLoans
     console.log('checking in loans...')
     return this.dao.getOpenLoans().then((loans) => {
       if (loans && Array.isArray(loans) && loans.length > 0) {
+        console.log(`(found ${loans.length} loans)`)
         return this.okapi.eachPromise(loans, (l) => {
           return this.dao.checkin(l, sp).then((cl) => {
             console.log(`\tchecked in ${cl.item.barcode}`);
+          })
+          .catch(err => {
+            const resolution = 'Found by library';
+            return this.dao.checkin(l, sp, resolution).then((cl) => {
+              console.log(`\tchecked in ${cl.item.barcode}`);
+            })
+            .catch(e => {
+              console.error(`\tcould not check in ${l.item.barcode}`)
+              if (e.statusCode && e.body) {
+                console.error(`(${e.statusCode}): ${e.body}`);
+              }
+              else {
+                console.error(e);
+              }
+            });
           })
         });
       }
@@ -74,9 +90,18 @@ class ClearLoans
     console.log('transfer outstanding fees/fines')
     return this.dao.getAccounts('Open').then((accounts) => {
       if (accounts && Array.isArray(accounts) && accounts.length > 0) {
+        console.log(`(found ${accounts.length} fees/fines)`)
         return this.okapi.eachPromise(accounts, (account) => {
           return this.dao.transferAccount(account, sp).then((ta) => {
             console.log(`\ttransfered $${ta.amount} for ${ta.accountId}`);
+          })
+          .catch(e => {
+            if (e.statusCode && e.body) {
+              console.error(`(${e.statusCode}): ${e.body}`);
+            }
+            else {
+              console.error(e);
+            }
           });
         });
       }
@@ -94,6 +119,7 @@ class ClearLoans
     return this.getCancellationReason('Other').then(reason => {
       return this.dao.getRequests("Page", "Open - Not yet filled").then((requests) => {
         if (requests && Array.isArray(requests) && requests.length > 0) {
+          console.log(`(found ${requests.length} requests)`)
           return this.okapi.eachPromise(requests, (r) => {
             return this.dao.cancelRequest(r, sp, reason).then((cr) => {
               console.log(`\tcancelled request for ${r.item.barcode}`);
@@ -113,6 +139,7 @@ class ClearLoans
     console.log('anonymize closed loans')
     return this.dao.getNonAnonymizedClosedLoans().then((loans) => {
       if (loans && Array.isArray(loans) && loans.length > 0) {
+        console.log(`(found ${loans.length} loans)`)
         const userIds = Array.from(new Set(loans.map(l => l.userId)));
         return this.okapi.eachPromise(userIds, (id) => {
           return this.dao.anonymizeLoans(id).then(() => {
@@ -128,13 +155,22 @@ class ClearLoans
    */
   removeClosedAccounts()
   {
-    console.log('delete closed fee/fines')
+    console.log('delete closed fees/fines')
     return this.dao.getAccounts('Closed').then((accounts) => {
       if (accounts && Array.isArray(accounts) && accounts.length > 0) {
+        console.log(`(found ${accounts.length} closed fees/fines)`)
         return this.okapi.eachPromise(accounts, (account) => {
-          console.log(`deleteing ${account.id}`)
           return this.dao.removeAccount(account).then(() => {
-            console.log(`\tremoved $${account}`);
+            console.log(`\tremoved ${account.id}`);
+          })
+          .catch(e => {
+            if (e.statusCode && e.body) {
+              console.log(`could not remove ${account.id}; (${e.statusCode}): ${e.body}`);
+              console.error(`(${e.statusCode}): ${e.body}`);
+            }
+            else {
+              console.error(e);
+            }
           });
         });
       }
