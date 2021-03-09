@@ -45,7 +45,9 @@ logger = logging.getLogger(PROG_NAME)
 logging.basicConfig(format=LOG_FORMAT)
 
 def main():
-    exit_code = 0
+    exit_code = 0 # Continue processing to detect various issues, then return the result.
+    version_raml_re = re.compile(r"^#%RAML ([0-9]+)\.([0-9]+)")
+    version_oas_re = re.compile(r"^openapi: ([0-9]+)\.([0-9]+)")
     (repo_name, input_dir, output_dir, api_types, api_directories,
         release_version, exclude_dirs, exclude_files) = get_options()
     os.makedirs(output_dir, exist_ok=True)
@@ -57,7 +59,20 @@ def main():
         for api_type in api_types:
             logger.info("Processing %s API description files ...", api_type)
             api_files = find_api_files(api_type, api_directories, exclude_dirs, exclude_files)
-            pprint.pprint(api_files)
+            if api_files:
+                for file_pn in sorted(api_files):
+                    (api_version, supported) = get_api_version(file_pn, api_type,
+                        version_raml_re, version_oas_re)
+                    if not api_version:
+                        exit_code = 1
+                        continue
+                    if supported:
+                        logger.info("Processing %s file: %s", api_version, os.path.relpath(file_pn))
+                    else:
+                        exit_code = 1
+            else:
+                msg = "No %s files were found in the configured directories: %s"
+                logger.info(msg, ", ".join(api_type, api_directories))
     logging.shutdown()
     return exit_code
 
@@ -76,6 +91,42 @@ def find_api_files(api_type, api_directories, exclude_dirs, exclude_files):
                     if not file_fn in exclude_files:
                         api_files.append(os.path.join(root, file_fn))
     return sorted(api_files)
+
+def get_api_version(file_pn, api_type, version_raml_re, version_oas_re):
+    """Get the version from the api description file."""
+    #logger = logging.getLogger("api-lint")
+    supported_raml = ["RAML 1.0"]
+    supported_oas = ["OAS 3.0"]
+    msg_1 = "API version %s is not supported for file: %s"
+    api_version = None
+    version_supported = False
+    with open(file_pn, "r") as input_fh:
+        for num, line in enumerate(input_fh):
+            if "RAML" in api_type:
+                match = re.search(version_raml_re, line)
+                if match:
+                    api_version = "RAML {}.{}".format(match.group(1), match.group(2))
+                    break
+            if "OAS" in api_type:
+                match = re.search(version_oas_re, line)
+                if match:
+                    api_version = "OAS {}.{}".format(match.group(1), match.group(2))
+                    break
+    if api_version:
+        if "RAML" in api_type:
+            if api_version in supported_raml:
+                version_supported = True
+            else:
+                logger.warning(msg_1, api_version, file_pn)
+        if "OAS" in api_type:
+            if api_version in supported_oas:
+                version_supported = True
+            else:
+                logger.warning(msg_1, api_version, file_pn)
+    else:
+        msg = "Could not determine %s version for file: %s"
+        logger.error(msg, api_type, file_pn)
+    return api_version, version_supported
 
 def get_options():
     """Gets and verifies the command-line options."""
