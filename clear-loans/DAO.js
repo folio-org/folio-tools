@@ -12,13 +12,13 @@ class DAO
    */
   getOpenLoans()
   {
-    return this.okapi.getAll('/circulation/loans?query=status.name=="Open"', 'loans', this.limit);
+    return this.okapi.getAll('/circulation/loans?query=status.name=="Open" sortby id', 'loans', this.limit);
   }
 
   /**
    * check in the given loan at the given service point
    */
-  checkin(loan, sp)
+  checkin(loan, sp, resolution)
   {
     if (loan.item.barcode) {
       const body = {
@@ -26,6 +26,10 @@ class DAO
         servicePointId: sp.id,
         checkInDate: new Date().toISOString(),
       };
+
+      if (resolution) {
+        body.claimedReturnedResolution = resolution;
+      }
 
       return this.okapi.post('/circulation/check-in-by-barcode', body).then(res => res.json);
     }
@@ -47,7 +51,7 @@ class DAO
    * retrieve all accounts by status, in $limit sized-batches; return a single array
    */
   getAccounts(status) {
-    return this.okapi.getAll(`/accounts?query=status.name=="${status}"`, 'accounts', this.limit);
+    return this.okapi.getAll(`/accounts?query=status.name=="${status}" sortby id`, 'accounts', this.limit);
   }
 
   /**
@@ -90,7 +94,7 @@ class DAO
    */
   getRequests(type, status)
   {
-    return this.okapi.get(`/request-storage/requests?query=requestType==${type} and status=="${status}"`, 'requests', this.limit);
+    return this.okapi.getAll(`/request-storage/requests?query=requestType==${type} and status=="${status}" sortby id`, 'requests', this.limit);
   }
 
   /**
@@ -117,7 +121,7 @@ class DAO
    */
   getNonAnonymizedClosedLoans()
   {
-    return this.okapi.get('/circulation/loans?query=status.name==Closed and userId=""', 'loans', this.limit);
+    return this.okapi.getAll('/circulation/loans?query=status.name==Closed and userId="" sortby id', 'loans', this.limit);
   }
 
   /**
