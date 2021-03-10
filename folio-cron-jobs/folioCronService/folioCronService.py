@@ -36,20 +36,26 @@ def getAuthToken(tenant,section="DEFAULT"):
         raise Exception("Please check username and password in credential file ('~/.folio-cron').")
     return req.headers['x-okapi-token']
 
-def getServiceVariables(name):
+def getServiceVariables(path,name):
     """ 
         getServiceVariables- return cron config service variables.
     """
-    path=os.path.dirname(os.path.abspath(__file__))
-    with open("{0}/config/{1}.json".format(path,name),'r') as f1:
+    with open("{0}/{1}.json".format(path,name),'r') as f1:
         jsonstring=f1.read()
     return json.loads(jsonstring)
 
-def cronOkapiService(name,**kwargs):
+def cronOkapiService(configDir,name,**kwargs):
     """ 
         cronOkapiService - The service witch allows Okapi POST or GET.
-    """
-    service_vars = getServiceVariables(name)
+   """
+    if configDir is None:
+        path="{0}/config".format(os.path.dirname(os.path.abspath(__file__)))
+    else:
+        if os.path.isdir(configDir):
+            path=configDir
+        else:
+            raise Exception('Config directory ' + configDir + ' is not a directory')
+    service_vars = getServiceVariables(path,name)
     headers = copy.copy(header_default)
     headers["x-okapi-tenant"]= service_vars['tenant']
     headers["x-okapi-token"]=getAuthToken(service_vars['tenant'],section=service_vars['user_config_section'])
@@ -69,14 +75,20 @@ def cronOkapiService(name,**kwargs):
     else:
         raise Exception("Method not supported(Only GET and POST)")
 
-def cronOkapiServiceSetup(**kwargs):
+def cronOkapiServiceSetup(configDir,**kwargs):
     """ 
         cronOkapiServiceSetup - provide the set up of all enabled cronjobs within the config folder.
     """
-    path="{0}/config".format(os.path.dirname(os.path.abspath(__file__)))
+    if configDir is None:
+        path="{0}/config".format(os.path.dirname(os.path.abspath(__file__)))
+    else:
+        if os.path.isdir(configDir):
+            path=configDir
+        else:
+            raise Exception('Config directory ' + configDir + ' is not a directory')
     _, _, filenames = next(os.walk(path))
     home=os.path.expanduser('~')
-    crontab_template = "{0} export OKAPI_URL={1};{2} service {3} >> {4}/folio_cron_output.log 2>&1"
+    crontab_template = "{0} export OKAPI_URL={1};{2} service --configDir={3} {4} >> {5}/folio_cron_output.log 2>&1"
     cron = CronTab()
     cron = CronTab(user=True)
     cron.read()
@@ -87,9 +99,9 @@ def cronOkapiServiceSetup(**kwargs):
     for filename in filenames:
         job=os.path.splitext(filename)
         if job[1]=='.json':
-            service_vars=getServiceVariables(job[0])
+            service_vars=getServiceVariables(path,job[0])
             if service_vars['enable']:
-                crontab_string = crontab_template.format(service_vars['cron_time'],okapi_url,abspath,job[0],home)
+                crontab_string = crontab_template.format(service_vars['cron_time'],okapi_url,abspath,os.path.abspath(path),job[0],home)
                 cron_jobs.append(crontab_string)
     cron_jobs=list(set(cron_jobs))
     cron_jobs.remove("")
