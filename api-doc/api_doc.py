@@ -28,6 +28,7 @@ import tempfile
 
 import requests
 import sh
+import yaml
 
 SCRIPT_VERSION = "1.0.0"
 
@@ -50,6 +51,9 @@ def main():
     version_oas_re = re.compile(r"^openapi: ([0-9]+)\.([0-9]+)")
     (repo_name, input_dir, output_dir, api_types, api_directories,
         release_version, exclude_dirs, exclude_files) = get_options()
+    # The yaml parser gags on the "!include".
+    # http://stackoverflow.com/questions/13280978/pyyaml-errors-on-in-a-string
+    yaml.add_constructor(u"!include", construct_raml_include, Loader=yaml.SafeLoader)
     os.makedirs(output_dir, exist_ok=True)
     with tempfile.TemporaryDirectory() as temp_dir:
         # Copy everything to the temp_dir
@@ -68,6 +72,8 @@ def main():
                         continue
                     if supported:
                         logger.info("Processing %s file: %s", api_version, os.path.relpath(file_pn))
+                        schemas_parent = gather_schema_declarations(file_pn, api_type, exclude_dirs, exclude_files)
+                        pprint.pprint(schemas_parent)
                     else:
                         exit_code = 1
             else:
@@ -94,7 +100,6 @@ def find_api_files(api_type, api_directories, exclude_dirs, exclude_files):
 
 def get_api_version(file_pn, api_type, version_raml_re, version_oas_re):
     """Get the version from the api description file."""
-    #logger = logging.getLogger("api-lint")
     supported_raml = ["RAML 1.0"]
     supported_oas = ["OAS 3.0"]
     msg_1 = "API version %s is not supported for file: %s"
@@ -127,6 +132,51 @@ def get_api_version(file_pn, api_type, version_raml_re, version_oas_re):
         msg = "Could not determine %s version for file: %s"
         logger.error(msg, api_type, file_pn)
     return api_version, version_supported
+
+def gather_schema_declarations(file_pn, api_type, exclude_dirs, exclude_files):
+    """Gather the parent schemas (types) declarations from the API description file.
+    """
+    schema_files = []
+    root_dir = os.path.split(file_pn)[0]
+    if "RAML" in api_type:
+        with open(file_pn) as input_fh:
+            try:
+                content = yaml.safe_load(input_fh)
+            except yaml.YAMLError as err:
+                logger.critical("Trouble parsing as YAML file '%s': %s", file_pn, err)
+            else:
+                try:
+                    types = content["types"]
+                except KeyError:
+                    pass
+                else:
+                    for decl in types:
+                        type_fn = types[decl]
+                        if isinstance(type_fn, str):
+                            type_pn = os.path.join(root_dir, type_fn)
+                            # The "types" can be other than schema.
+                            file_extension = os.path.splitext(type_pn)[1]
+                            if not file_extension in [".json", ".schema"]:
+                                continue
+                            if not os.path.exists(type_pn):
+                                logger.warning("Missing schema file '%s'. Declared in the RAML types section.", type_pn)
+                            else:
+                                exclude = False
+                                for exclude_dir in exclude_dirs:
+                                    if exclude_dir in type_pn:
+                                        exclude = True
+                                for exclude_file in exclude_files:
+                                    if exclude_file in type_pn:
+                                        exclude = True
+                                if not exclude:
+                                    schema_files.append(type_pn)
+    if "OAS" in api_type:
+        logger.debug("Not yet dereferencing schemas for API type OAS.")
+    return sorted(schema_files)
+
+def construct_raml_include(loader, node):
+    """Add a special construct for YAML loader"""
+    return loader.construct_yaml_str(node)
 
 def get_options():
     """Gets and verifies the command-line options."""
