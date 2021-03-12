@@ -26,7 +26,6 @@ import re
 import shutil
 import tempfile
 
-import requests
 import sh
 import yaml
 
@@ -78,7 +77,7 @@ def main():
         found_files_flag = False
         for api_type in api_types:
             logger.info("Processing %s API description files ...", api_type)
-            api_files = find_api_files(api_type, api_directories, exclude_dirs, exclude_files)
+            api_files = find_api_files(api_type, input_dir, api_directories, exclude_dirs, exclude_files)
             if api_files:
                 found_files_flag = True
                 # Prepare output sub-directories
@@ -95,11 +94,15 @@ def main():
                         version_raml_re, version_oas_re)
                     if not api_version:
                         continue
-                    if supported:
-                        logger.info("Processing %s file: %s", api_version, os.path.relpath(file_pn))
-                        schemas_parent = gather_schema_declarations(file_pn, api_type, exclude_dirs, exclude_files)
-                        if len(schemas_parent) > 0:
-                            dereference_schemas(api_type, api_temp_dir, os.path.abspath(output_dir), schemas_parent)
+                    if not supported:
+                        continue
+                    logger.info("Processing %s file: %s", api_version, os.path.normpath(file_pn))
+                    schemas_parent = gather_schema_declarations(
+                        file_pn, api_type, exclude_dirs, exclude_files)
+                    if len(schemas_parent) > 0:
+                        dereference_schemas(
+                            api_type, api_temp_dir, os.path.abspath(output_dir), schemas_parent)
+                    #generate_doc(api_type, api_temp_dir, )
             else:
                 msg = "No %s files were found in the configured directories: %s"
                 logger.info(msg, api_type, ", ".join(api_directories))
@@ -114,7 +117,7 @@ def main():
     logging.shutdown()
     return exit_code
 
-def find_api_files(api_type, api_directories, exclude_dirs, exclude_files):
+def find_api_files(api_type, input_dir, api_directories, exclude_dirs, exclude_files):
     """Locate the list of relevant API description files."""
     api_files = []
     if "RAML" in api_type:
@@ -122,7 +125,8 @@ def find_api_files(api_type, api_directories, exclude_dirs, exclude_files):
     elif "OAS"in api_type:
         file_pattern = ["*.yml", "*.yaml"]
     for api_dir in api_directories:
-        for root, dirs, files in os.walk(api_dir, topdown=True):
+        api_dir_pn = os.path.join(input_dir, api_dir)
+        for root, dirs, files in os.walk(api_dir_pn, topdown=True):
             dirs[:] = [d for d in dirs if d not in exclude_dirs]
             for extension in file_pattern:
                 for file_fn in fnmatch.filter(files, extension):
@@ -191,7 +195,9 @@ def gather_schema_declarations(file_pn, api_type, exclude_dirs, exclude_files):
                             if not file_extension in [".json", ".schema"]:
                                 continue
                             if not os.path.exists(type_pn):
-                                logger.warning("Missing schema file '%s'. Declared in the RAML types section.", type_pn)
+                                msg = ("Missing schema file '%s'. "
+                                       "Declared in the RAML types section.")
+                                logger.warning(msg, type_pn)
                             else:
                                 exclude = False
                                 for exclude_dir in exclude_dirs:
@@ -211,7 +217,7 @@ def dereference_schemas(api_type, input_dir, output_dir, schemas):
     Dereference the parent schema files to resolve the $ref child schema.
     If successful, then replace the original.
     """
-    logger.debug("Found %s declared schema files.", len(schemas))
+    #logger.debug("Found %s declared schema files.", len(schemas))
     if "RAML" in api_type:
         subdir = "r"
     if "OAS" in api_type:
@@ -291,7 +297,9 @@ def get_options():
             repo_url = sh.git.config("--get", "remote.origin.url", _cwd=input_dir).stdout.decode().strip()
         except sh.ErrorReturnCode as err:
             logger.critical("Trouble doing 'git config': %s", err.stderr.decode())
-            logger.critical("Could not determine remote.origin.url of git clone in specified input directory: %s", input_dir)
+            msg = ("Could not determine remote.origin.url of git clone "
+                   "in specified input directory: %s")
+            logger.critical(msg, input_dir)
             sys.exit(2)
         else:
             repo_name = os.path.splitext(os.path.basename(repo_url))[0]
@@ -333,9 +341,11 @@ def get_options():
         logger.debug("Excluding files: %s", exclude_files)
     if exit_code != 0:
         sys.exit(exit_code)
-    return repo_name, input_dir, output_base_dir, args.types, args.directories, args.version, exclude_dirs, exclude_files
+    return (repo_name, input_dir, output_base_dir, args.types,
+        args.directories, args.version, exclude_dirs, exclude_files)
 
 def arg_verify_version(arg_value):
+    """Ensure that the version number is appropriate."""
     version_re = re.compile(r"^[0-9]+\.[0-9]+$")
     if not version_re.match(arg_value):
         raise argparse.ArgumentTypeError("Must be semantic version 'major.minor'")
