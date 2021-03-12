@@ -81,6 +81,15 @@ def main():
             api_files = find_api_files(api_type, api_directories, exclude_dirs, exclude_files)
             if api_files:
                 found_files_flag = True
+                # Prepare output sub-directories
+                subdirs = []
+                if "RAML" in api_type:
+                    subdirs.extend(["r", "r/schemas", "p"])
+                if "OAS" in api_type:
+                    subdirs.extend(["s", "s/schemas"])
+                for subdir in subdirs:
+                    the_dir = os.path.join(output_dir, subdir)
+                    os.makedirs(the_dir, exist_ok=True)
                 for file_pn in sorted(api_files):
                     (api_version, supported) = get_api_version(file_pn, api_type,
                         version_raml_re, version_oas_re)
