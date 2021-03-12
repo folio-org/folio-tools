@@ -49,12 +49,27 @@ def main():
     exit_code = 0 # Continue processing to detect various issues, then return the result.
     version_raml_re = re.compile(r"^#%RAML ([0-9]+)\.([0-9]+)")
     version_oas_re = re.compile(r"^openapi: ([0-9]+)\.([0-9]+)")
-    (repo_name, input_dir, output_dir, api_types, api_directories,
+    (repo_name, input_dir, output_base_dir, api_types, api_directories,
         release_version, exclude_dirs, exclude_files) = get_options()
     # The yaml parser gags on the "!include".
     # http://stackoverflow.com/questions/13280978/pyyaml-errors-on-in-a-string
     yaml.add_constructor(u"!include", construct_raml_include, Loader=yaml.SafeLoader)
-    os.makedirs(output_dir, exist_ok=True)
+    os.makedirs(output_base_dir, exist_ok=True)
+    if release_version:
+        output_dir = os.path.join(output_base_dir, release_version)
+        os.makedirs(output_dir, exist_ok=True)
+    else:
+        output_dir = output_base_dir
+    generated_date = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    config_json = {}
+    config_json["metadata"] = {}
+    config_json["metadata"]["repository"] = repo_name
+    config_json["metadata"]["generatedDate"] = generated_date
+    config_json["metadata"]["apiTypes"] = api_types
+    config_json["config"] = {
+        "oas": { "files": [] },
+        "raml": { "files": [] }
+    }
     with tempfile.TemporaryDirectory() as temp_dir:
         # Copy everything to the temp_dir
         # to dereference the schema files and not mess the git working dir
@@ -79,6 +94,11 @@ def main():
             else:
                 msg = "No %s files were found in the configured directories: %s"
                 logger.info(msg, ", ".join(api_type, api_directories))
+    config_pn = os.path.join(output_dir, "config-doc.json")
+    config_json_object = json.dumps(config_json, sort_keys=True, indent=2, separators=(",", ": "))
+    with open(config_pn, "w") as output_json_fh:
+        output_json_fh.write(config_json_object)
+        output_json_fh.write("\n")
     logging.shutdown()
     return exit_code
 
@@ -238,7 +258,7 @@ def get_options():
         output_home_dir = os.path.expanduser(args.output)
     else:
         output_home_dir = args.output
-    output_dir = os.path.join(output_home_dir, repo_name)
+    output_base_dir = os.path.join(output_home_dir, repo_name)
     # Ensure that api directories exist
     for directory in args.directories:
         if not os.path.exists(os.path.join(input_dir, directory)):
@@ -271,7 +291,7 @@ def get_options():
         logger.debug("Excluding files: %s", exclude_files)
     if exit_code != 0:
         sys.exit(exit_code)
-    return repo_name, input_dir, output_dir, args.types, args.directories, args.version, exclude_dirs, exclude_files
+    return repo_name, input_dir, output_base_dir, args.types, args.directories, args.version, exclude_dirs, exclude_files
 
 def arg_verify_version(arg_value):
     version_re = re.compile(r"^[0-9]+\.[0-9]+$")
