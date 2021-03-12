@@ -23,7 +23,7 @@ import logging
 import os
 import pprint
 import re
-from shutil import copytree
+import shutil
 import tempfile
 
 import requests
@@ -74,7 +74,7 @@ def main():
         # Copy everything to the temp_dir
         # to dereference the schema files and not mess the git working dir
         api_temp_dir = os.path.join(temp_dir, "repo")
-        copytree(input_dir, api_temp_dir)
+        shutil.copytree(input_dir, api_temp_dir)
         found_files_flag = False
         for api_type in api_types:
             logger.info("Processing %s API description files ...", api_type)
@@ -98,7 +98,8 @@ def main():
                     if supported:
                         logger.info("Processing %s file: %s", api_version, os.path.relpath(file_pn))
                         schemas_parent = gather_schema_declarations(file_pn, api_type, exclude_dirs, exclude_files)
-                        pprint.pprint(schemas_parent)
+                        if len(schemas_parent) > 0:
+                            dereference_schemas(api_type, api_temp_dir, os.path.abspath(output_dir), schemas_parent)
             else:
                 msg = "No %s files were found in the configured directories: %s"
                 logger.info(msg, api_type, ", ".join(api_directories))
@@ -204,6 +205,36 @@ def gather_schema_declarations(file_pn, api_type, exclude_dirs, exclude_files):
     if "OAS" in api_type:
         logger.debug("Not yet dereferencing schemas for API type OAS.")
     return sorted(schema_files)
+
+def dereference_schemas(api_type, input_dir, output_dir, schemas):
+    """
+    Dereference the parent schema files to resolve the $ref child schema.
+    If successful, then replace the original.
+    """
+    logger.debug("Found %s declared schema files.", len(schemas))
+    if "RAML" in api_type:
+        subdir = "r"
+    if "OAS" in api_type:
+        subdir = "s"
+    output_schemas_dir = os.path.join(output_dir, subdir, "schemas")
+    script_pn = os.path.join(sys.path[0], "deref-schema.js")
+    for schema_fn in schemas:
+        input_pn = os.path.normpath(os.path.join(input_dir, schema_fn))
+        output_pn = os.path.join(output_schemas_dir, os.path.basename(input_pn))
+        try:
+            sh.node(script_pn, input_pn, output_pn).stdout.decode().strip()
+        except sh.ErrorReturnCode as err:
+            logger.debug("Trouble doing node: %s", err.stderr.decode())
+            msg = ("Ignore the error, and do not replace the schema. "
+                   "The api-lint tool should have been used beforehand, "
+                   "and would have already handled this.")
+            logger.debug(msg)
+            continue
+        else:
+            try:
+                shutil.copyfile(output_pn, input_pn)
+            except:
+                logger.debug("Could not copy %s to %s", output_pn, input_pn)
 
 def construct_raml_include(loader, node):
     """Add a special construct for YAML loader"""
