@@ -75,25 +75,27 @@ def main():
         # to dereference the schema files and not mess the git working dir
         api_temp_dir = os.path.join(temp_dir, "repo")
         copytree(input_dir, api_temp_dir)
+        found_files_flag = False
         for api_type in api_types:
             logger.info("Processing %s API description files ...", api_type)
             api_files = find_api_files(api_type, api_directories, exclude_dirs, exclude_files)
             if api_files:
+                found_files_flag = True
                 for file_pn in sorted(api_files):
                     (api_version, supported) = get_api_version(file_pn, api_type,
                         version_raml_re, version_oas_re)
                     if not api_version:
-                        exit_code = 1
                         continue
                     if supported:
                         logger.info("Processing %s file: %s", api_version, os.path.relpath(file_pn))
                         schemas_parent = gather_schema_declarations(file_pn, api_type, exclude_dirs, exclude_files)
                         pprint.pprint(schemas_parent)
-                    else:
-                        exit_code = 1
             else:
                 msg = "No %s files were found in the configured directories: %s"
-                logger.info(msg, ", ".join(api_type, api_directories))
+                logger.info(msg, api_type, ", ".join(api_directories))
+        if not found_files_flag:
+            logger.critical("No API files were found in the configured directories.")
+            exit_code = 2
     config_pn = os.path.join(output_dir, "config-doc.json")
     config_json_object = json.dumps(config_json, sort_keys=True, indent=2, separators=(",", ": "))
     with open(config_pn, "w") as output_json_fh:
@@ -142,12 +144,12 @@ def get_api_version(file_pn, api_type, version_raml_re, version_oas_re):
             if api_version in supported_raml:
                 version_supported = True
             else:
-                logger.warning(msg_1, api_version, file_pn)
+                logger.error(msg_1, api_version, file_pn)
         if "OAS" in api_type:
             if api_version in supported_oas:
                 version_supported = True
             else:
-                logger.warning(msg_1, api_version, file_pn)
+                logger.error(msg_1, api_version, file_pn)
     else:
         msg = "Could not determine %s version for file: %s"
         logger.error(msg, api_type, file_pn)
