@@ -354,6 +354,12 @@ def get_options():
             msg = "Specified API directory does not exist: %s"
             logger.critical(msg, directory)
             exit_code = 2
+    # Ensure that commands are available
+    bin_redoc = os.path.join(sys.path[0], "node_modules", ".bin", "redoc-cli")
+    if not os.path.exists(bin_redoc):
+        logger.critical("'redoc-cli' is not available.")
+        logger.critical("Do 'yarn install' in folio-tools/api-doc directory.")
+        exit_code = 2
     # Prepare the sets of excludes for os.walk
     exclude_dirs_list = ["raml-util", "raml-storage", "acq-models",
         "rtypes", "traits", "bindings", "examples",
