@@ -21,7 +21,6 @@ import fnmatch
 import json
 import logging
 import os
-import pprint
 import re
 import shutil
 import tempfile
@@ -77,7 +76,8 @@ def main():
         found_files_flag = False
         for api_type in api_types:
             logger.info("Processing %s API description files ...", api_type)
-            api_files = find_api_files(api_type, api_temp_dir, api_directories, exclude_dirs, exclude_files)
+            api_files = find_api_files(api_type, api_temp_dir,
+                api_directories, exclude_dirs, exclude_files)
             if api_files:
                 found_files_flag = True
                 config_json["config"][api_type.lower()]["files"].extend(api_files)
@@ -332,7 +332,8 @@ def get_options():
         sys.exit(2)
     else:
         try:
-            repo_url = sh.git.config("--get", "remote.origin.url", _cwd=input_dir).stdout.decode().strip()
+            repo_url = sh.git.config("--get", "remote.origin.url",
+                _cwd=input_dir).stdout.decode().strip()
         except sh.ErrorReturnCode as err:
             logger.critical("Trouble doing 'git config': %s", err.stderr.decode())
             msg = ("Could not determine remote.origin.url of git clone "
