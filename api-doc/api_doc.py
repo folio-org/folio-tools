@@ -330,7 +330,7 @@ def get_options():
             logger.critical(msg, input_dir)
             sys.exit(2)
         else:
-            repo_name = os.path.splitext(os.path.basename(repo_url))[0]
+            repo_name = os.path.splitext(os.path.basename(repo_url.rstrip("/")))[0]
     logger.debug("repo_name=%s", repo_name)
     if args.output.startswith("~"):
         output_home_dir = os.path.expanduser(args.output)
