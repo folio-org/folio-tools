@@ -77,7 +77,7 @@ def main():
         found_files_flag = False
         for api_type in api_types:
             logger.info("Processing %s API description files ...", api_type)
-            api_files = find_api_files(api_type, input_dir, api_directories, exclude_dirs, exclude_files)
+            api_files = find_api_files(api_type, api_temp_dir, api_directories, exclude_dirs, exclude_files)
             if api_files:
                 found_files_flag = True
                 # Prepare output sub-directories
@@ -90,19 +90,20 @@ def main():
                     the_dir = os.path.join(output_dir, subdir)
                     os.makedirs(the_dir, exist_ok=True)
                 for file_pn in sorted(api_files):
-                    (api_version, supported) = get_api_version(file_pn, api_type,
+                    file_an = os.path.join(api_temp_dir, file_pn)
+                    (api_version, supported) = get_api_version(file_an, api_type,
                         version_raml_re, version_oas_re)
                     if not api_version:
                         continue
                     if not supported:
                         continue
-                    logger.info("Processing %s file: %s", api_version, os.path.normpath(file_pn))
+                    logger.info("Processing %s file: %s", api_version, file_pn)
                     schemas_parent = gather_schema_declarations(
-                        file_pn, api_type, exclude_dirs, exclude_files)
+                        file_an, api_type, exclude_dirs, exclude_files)
                     if len(schemas_parent) > 0:
                         dereference_schemas(
                             api_type, api_temp_dir, os.path.abspath(output_dir), schemas_parent)
-                    generate_doc(api_type, api_temp_dir, output_dir, file_pn)
+                    generate_doc(api_type, api_temp_dir, output_dir, file_an)
             else:
                 msg = "No %s files were found in the configured directories: %s"
                 logger.info(msg, api_type, ", ".join(api_directories))
@@ -131,7 +132,7 @@ def find_api_files(api_type, input_dir, api_directories, exclude_dirs, exclude_f
             for extension in file_pattern:
                 for file_fn in fnmatch.filter(files, extension):
                     if not file_fn in exclude_files:
-                        api_files.append(os.path.join(root, file_fn))
+                        api_files.append(os.path.relpath(os.path.join(root, file_fn), start=input_dir))
     return sorted(api_files)
 
 def get_api_version(file_pn, api_type, version_raml_re, version_oas_re):
@@ -242,10 +243,9 @@ def dereference_schemas(api_type, input_dir, output_dir, schemas):
             except:
                 logger.debug("Could not copy %s to %s", output_pn, input_pn)
 
-def generate_doc(api_type, api_temp_dir, output_dir, file_pn):
+def generate_doc(api_type, api_temp_dir, output_dir, input_pn):
     """Generate the API documentation from this API description file."""
-    input_pn = os.path.normpath(os.path.join(api_temp_dir, file_pn))
-    output_fn = os.path.splitext(os.path.split(file_pn)[1])[0] + ".html"
+    output_fn = os.path.splitext(os.path.split(input_pn)[1])[0] + ".html"
     if "RAML" in api_type:
         output_1_pn = os.path.join(output_dir, "r", output_fn)
         output_2_pn = os.path.join(output_dir, "p", output_fn)
