@@ -2,6 +2,7 @@
   "dependencies": {
     "json-schema-ref-parser": "^9.0.0",
     "raml2html": "^7.1.0",
-    "raml2html-plain-theme": "folio-org/raml2html-plain-theme#folio-589"
+    "raml2html-plain-theme": "folio-org/raml2html-plain-theme#folio-589",
+    "redoc-cli": "^0.10.3"
   }
 }

@@ -269,7 +269,16 @@ def generate_doc(api_type, api_temp_dir, output_dir, input_pn):
             logger.error("%s: %s", cmd_name, err.stderr.decode())
     if "OAS" in api_type:
         output_1_pn = os.path.join(output_dir, "s", output_fn)
-        logger.debug("TODO: add OAS handler.")
+        cmd_name = "redoc-cli"
+        cmd = sh.Command(os.path.join(sys.path[0], "node_modules", ".bin", cmd_name))
+        # Generate using the default redoc template
+        try:
+            cmd("bundle", input_pn,
+                "--options.hideDownloadButton",
+                cdn=True,
+                output=output_1_pn)
+        except sh.ErrorReturnCode as err:
+            logger.error("%s: %s", cmd_name, err.stderr.decode())
 
 def construct_raml_include(loader, node):
     """Add a special construct for YAML loader"""
