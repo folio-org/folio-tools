@@ -18,6 +18,7 @@ if sys.version_info[0] < 3:
 import argparse
 import datetime
 import fnmatch
+import glob
 import json
 import logging
 import os
@@ -116,6 +117,15 @@ def main():
     with open(config_pn, "w") as output_json_fh:
         output_json_fh.write(config_json_object)
         output_json_fh.write("\n")
+    # Replicate default output to top-level to match old S3 configuration.
+    if not release_version:
+        if "RAML" in api_types:
+            src_dir = os.path.join(output_dir, "r")
+        else:
+            src_dir = os.path.join(output_dir, "s")
+        pattern = os.path.join(src_dir, "*.html")
+        for file_pn in glob.glob(pattern):
+            shutil.copy(file_pn, output_dir)
     logging.shutdown()
     return exit_code
 
