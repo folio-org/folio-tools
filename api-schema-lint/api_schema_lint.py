@@ -23,7 +23,7 @@ import re
 
 import sh
 
-SCRIPT_VERSION = "1.0.2"
+SCRIPT_VERSION = "1.0.3"
 
 LOGLEVELS = {
     "debug": logging.DEBUG,
@@ -120,7 +120,7 @@ def main():
         api_directory = os.path.join(input_dir, directory)
         for root, dirs, files in os.walk(api_directory, topdown=True):
             dirs[:] = [d for d in dirs if d not in exclude_dirs]
-            for extension in ("*.json", "*.schema"):
+            for extension in ["*.json", "*.schema"]:
                 for api_fn in fnmatch.filter(files, extension):
                     if not api_fn in exclude_files:
                         schema_files.append(os.path.join(root, api_fn))

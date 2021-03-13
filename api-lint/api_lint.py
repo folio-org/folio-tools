@@ -157,7 +157,7 @@ def main():
             api_directory = os.path.join(input_dir, directory)
             for root, dirs, files in os.walk(api_directory, topdown=True):
                 dirs[:] = [d for d in dirs if d not in exclude_dirs]
-                for extension in ("*.yaml", "*.yml"):
+                for extension in ["*.yaml", "*.yml"]:
                     for api_fn in fnmatch.filter(files, extension):
                         if not api_fn in exclude_files:
                             oas_files.append(os.path.join(root, api_fn))
