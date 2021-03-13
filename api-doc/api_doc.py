@@ -80,6 +80,7 @@ def main():
             api_files = find_api_files(api_type, api_temp_dir, api_directories, exclude_dirs, exclude_files)
             if api_files:
                 found_files_flag = True
+                config_json["config"][api_type.lower()]["files"].extend(api_files)
                 # Prepare output sub-directories
                 subdirs = []
                 if "RAML" in api_type:
