@@ -102,7 +102,7 @@ def main():
                     if len(schemas_parent) > 0:
                         dereference_schemas(
                             api_type, api_temp_dir, os.path.abspath(output_dir), schemas_parent)
-                    #generate_doc(api_type, api_temp_dir, )
+                    generate_doc(api_type, api_temp_dir, output_dir, file_pn)
             else:
                 msg = "No %s files were found in the configured directories: %s"
                 logger.info(msg, api_type, ", ".join(api_directories))
@@ -241,6 +241,34 @@ def dereference_schemas(api_type, input_dir, output_dir, schemas):
                 shutil.copyfile(output_pn, input_pn)
             except:
                 logger.debug("Could not copy %s to %s", output_pn, input_pn)
+
+def generate_doc(api_type, api_temp_dir, output_dir, file_pn):
+    """Generate the API documentation from this API description file."""
+    input_pn = os.path.normpath(os.path.join(api_temp_dir, file_pn))
+    output_fn = os.path.splitext(os.path.split(file_pn)[1])[0] + ".html"
+    if "RAML" in api_type:
+        output_1_pn = os.path.join(output_dir, "r", output_fn)
+        output_2_pn = os.path.join(output_dir, "p", output_fn)
+        cmd_name = "raml2html"
+        cmd = sh.Command(os.path.join(sys.path[0], "node_modules", cmd_name, "bin", cmd_name))
+        # Generate using the default raml2html template
+        try:
+            cmd(i=input_pn, o=output_1_pn)
+        except sh.ErrorReturnCode as err:
+            logger.error("%s: %s", cmd_name, err.stderr.decode())
+        # Generate using other templates
+        # raml2html-plain-theme
+        theme_name = "plain"
+        try:
+            cmd(input_pn,
+                theme="raml2html-plain-theme",
+                i=input_pn,
+                o=output_2_pn)
+        except sh.ErrorReturnCode as err:
+            logger.error("%s: %s", cmd_name, err.stderr.decode())
+    if "OAS" in api_type:
+        output_1_pn = os.path.join(output_dir, "s", output_fn)
+        logger.debug("TODO: add OAS handler.")
 
 def construct_raml_include(loader, node):
     """Add a special construct for YAML loader"""
