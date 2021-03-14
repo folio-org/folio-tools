@@ -211,15 +211,7 @@ def gather_schema_declarations(file_pn, api_type, exclude_dirs, exclude_files):
                                        "Declared in the RAML types section.")
                                 logger.warning(msg, type_pn)
                             else:
-                                exclude = False
-                                for exclude_dir in exclude_dirs:
-                                    if exclude_dir in type_pn:
-                                        exclude = True
-                                for exclude_file in exclude_files:
-                                    if exclude_file in type_pn:
-                                        exclude = True
-                                if not exclude:
-                                    schema_files.append(type_pn)
+                                schema_files.append(type_pn)
     if "OAS" in api_type:
         logger.debug("Not yet dereferencing schemas for API type OAS.")
     return sorted(schema_files)
