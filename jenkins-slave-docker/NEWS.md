@@ -1,3 +1,7 @@
+## 2.8.0 2021-03-15
+
+* Add api-doc FOLIO-2898
+
 ## 2.7.1 2021-02-05
 
 * Update api-schema-lint FOLIO-2917
