@@ -1,6 +1,9 @@
 ## 2.8.0 2021-03-15
 
 * Add api-doc FOLIO-2898
+* The re-build also updated some other important tools:
+  Google Chrome 89.0.4389
+  stripes 2.0.1000246
 
 ## 2.7.1 2021-02-05
 
