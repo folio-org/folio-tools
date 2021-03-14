@@ -39,7 +39,7 @@ class OkapiRequest
       "headers": {
         "Content-type": "application/json",
         "cache-control": "no-cache",
-        "accept": "application/json"
+        "accept": "application/json, text/plain"
       },
     },
     "handler": undefined,
