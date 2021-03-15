@@ -29,7 +29,7 @@ import tempfile
 import sh
 import yaml
 
-SCRIPT_VERSION = "1.0.0"
+SCRIPT_VERSION = "1.0.1"
 
 LOGLEVELS = {
     "debug": logging.DEBUG,
@@ -42,7 +42,6 @@ PROG_NAME = os.path.basename(sys.argv[0])
 PROG_DESC = __import__('__main__').__doc__
 LOG_FORMAT = "%(levelname)s: %(name)s: %(message)s"
 logger = logging.getLogger(PROG_NAME)
-logging.basicConfig(format=LOG_FORMAT)
 
 def main():
     exit_code = 0 # Continue processing to detect various issues, then return the result.
@@ -321,6 +320,9 @@ def get_options():
     args = parser.parse_args()
     loglevel = LOGLEVELS.get(args.loglevel.lower(), logging.NOTSET)
     logger.setLevel(loglevel)
+    # Need stdout to enable Jenkins to redirect into an output file
+    logging.basicConfig(stream=sys.stdout, format=LOG_FORMAT, level=loglevel)
+    logging.getLogger("sh").setLevel(logging.ERROR)
     # Display a version string
     logger.info("Using version: %s", SCRIPT_VERSION)
     # Process and validate the input parameters
