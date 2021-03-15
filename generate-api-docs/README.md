@@ -1,5 +1,9 @@
 # Generate static API documentation from RAML files
 
+# DEPRECATED
+
+Use [api-doc](../api-doc/) instead.
+
 ## Prerequisites
 
 - python (version 3 or higher)
