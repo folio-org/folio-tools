@@ -341,6 +341,7 @@ const getPermissions = async () => {
   if (res.json.totalRecords) {
     const hash = {};
     res.json.permissions.forEach(p => {
+      hash[p.permissionName.toLowerCase()] = p.permissionName;
       try {
         if (p.displayName) {
           hash[p.displayName.toLowerCase()] = p.permissionName;
