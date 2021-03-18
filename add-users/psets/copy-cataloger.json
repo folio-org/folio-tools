@@ -6,9 +6,9 @@
   "Inventory: View, create, edit, delete holdings",
   "Inventory: View, create, edit, delete items",
   "Inventory: View, create, edit, mark missing items",
-  "Settings (Inventory): Display list of settings pages",
-  "Settings (data-export): display list of settings pages",
-  "Settings (data-import): display list of settings pages",
-  "UI: Data export module is enabled",
-  "quickMARC: View, edit"
+  "Settings (Inventory): View list of settings pages",
+  "ui-data-export.settings.enabled",
+  "Settings (Data import): Can view, create, edit, and remove",
+  "ui-data-export.app.enabled",
+  "quickMARC: View, edit MARC bibliographic record"
 ]
