@@ -7,7 +7,7 @@
   "eHoldings: Can view Usage & analysis data for packages, titles and resources",
   "ERM Comparisons: Create jobs",
   "Find Agreement Plugin: Search agreements",
-  "Find E-resource Plugin: Search e-resources",
+  "ui-plugin-find-eresource.search",
   "Find License Plugin: Search licenses",
   "Licenses: Edit licenses",
   "Local KB admin: Create jobs",

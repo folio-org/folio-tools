@@ -2,7 +2,7 @@
   "Agreements: Search & view agreements",
   "Agreements: Search & view e-resources",
   "Agreements: Search & view platforms",
-  "eHoldings: Can view providers, packages, titles detail records",
+  "ui-eholdings.app.enabled",
   "eHoldings: Can view Usage & analysis data for packages, titles and resources",
   "ERM comparisons: View jobs",
   "Licenses: Search & view licenses",

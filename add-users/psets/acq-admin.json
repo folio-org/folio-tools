@@ -129,7 +129,7 @@
   "Settings (eHoldings): Can create, edit, and view knowledge base credentials",
   "Settings (eHoldings): Can delete knowledge base credentials",
   "Settings (eHoldings): configure root proxy setting",
-  "Settings (eHoldings): display list of settings pages",
+  "ui-eholdings.settings.enabled",
   "Settings (eholdings): Can create, edit, and view access status types",
   "Settings (eholdings): Can create, edit, view, and delete access status types",
   "Settings (eholdings): Can view access status types",
