@@ -90,11 +90,16 @@ class DAO
   }
 
   /**
-   * get requests given a type and status in $limit-sized batches; return a single array
+   * get requests given lists of types and statuses, in $limit-sized batches;
+   * return a single array.
+   *
+   * @param {string} types or-separated list of types
+   * @param {string} statuses or-separated list of statuses
+   *
    */
-  getRequests(type, status)
+  getRequests(types, statuses)
   {
-    return this.okapi.getAll(`/request-storage/requests?query=requestType==${type} and status=="${status}" sortby id`, 'requests', this.limit);
+    return this.okapi.getAll(`/request-storage/requests?query=requestType==(${types}) ${statuses ? ` and status==(${statuses})` : ''} sortby id`, 'requests', this.limit);
   }
 
   /**
