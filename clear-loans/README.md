@@ -5,9 +5,10 @@
 1. check in all outstanding loans (this will clear patron blocks due to
    items aged to lost; it will also generate lots of fee/fines records)
 2. transfer all outstanding fee/fine records (this will close all open fee/fines)
-3. cancel all Page requests with request status Open- Not yet filled
-4. anonymize all closed loans
-5. delete all closed fee/fines
+3. cancel all Page requests with request status "Open - Not yet filled" with reason "Other"
+4. cancel all requests with any "open" status with reason "Patron cancelled"
+5. anonymize all closed loans
+6. delete all closed fee/fines
 
 ### usage
 ```
