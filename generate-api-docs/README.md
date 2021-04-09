@@ -2,7 +2,7 @@
 
 # DEPRECATED
 
-Use [api-doc](../api-doc/) instead.
+Use [api-doc](https://dev.folio.org/guides/api-doc/) instead.
 
 ## Prerequisites
 
