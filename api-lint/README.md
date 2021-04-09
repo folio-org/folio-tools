@@ -15,7 +15,7 @@ The Python script can also be used locally prior to commit.
 
 The node script can also be used locally to process a single file.
 
-Refer to additional [notes](https://dev.folio.org/guides/api-lint/).
+Refer to additional notes: [https://dev.folio.org/guides/api-lint/](https://dev.folio.org/guides/api-lint/)
 
 ## Procedure
 
