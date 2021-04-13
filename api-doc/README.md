@@ -13,6 +13,8 @@ The Python script is used in FOLIO CI as the build stage "Generate API docs". Se
 
 The Python script can also be used locally prior to commit.
 
+Refer to additional notes: [https://dev.folio.org/guides/api-doc/](https://dev.folio.org/guides/api-doc/)
+
 ## Requirements
 
 For local use:
