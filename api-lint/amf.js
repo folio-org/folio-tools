@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const argv = require('yargs/yargs')(process.argv.slice(2))
+const { argv } = require('yargs/yargs')(process.argv.slice(2))
   .usage('Usage: node $0 [options]')
   .example('node $0 -t "RAML 1.0" -f $GH_FOLIO/mod-notes/ramls/note.raml')
   .alias('t', 'type')
@@ -12,8 +12,7 @@ const argv = require('yargs/yargs')(process.argv.slice(2))
   .demandOption(['t', 'f'])
   .help('h')
   .alias('h', 'help')
-  .version("1.0.0")
-  .argv;
+  .version('1.0.0');
 
 const amf = require('amf-client-js');
 const fs = require('fs');
