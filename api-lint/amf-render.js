@@ -84,7 +84,7 @@ async function main() {
       const resolver = amf.Core.resolver('OAS 3.0');
       const resolvedDoc = resolver.resolve(doc, 'compatibility');
       const content = await new amf.Oas30Renderer().generateString(resolvedDoc);
-      const outputFn = 'api.yml';
+      const outputFn = 'api.json';
       fs.writeFile(outputFn, content, (err) => {
         if (err) throw err;
         console.log(`Rendered ${outputFn}`);
