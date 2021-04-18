@@ -23,7 +23,7 @@ import re
 
 import sh
 
-SCRIPT_VERSION = "1.0.3"
+SCRIPT_VERSION = "1.0.4"
 
 LOGLEVELS = {
     "debug": logging.DEBUG,
@@ -158,6 +158,7 @@ def assess_schema_descriptions(schema_files):
                 logger.error("Trouble loading %s: %s", schema_pn, err)
                 issues = True
                 continue
+        ''' 20210417: disable until OAS 3.1 FOLIO-2948
         try:
             keyword_schema = schema_data['$schema']
         except KeyError:
@@ -169,6 +170,7 @@ def assess_schema_descriptions(schema_files):
             if not match:
                 msg = "%s: Malformed $schema keyword: %s"
                 logger.error(msg, schema_pn, keyword_schema)
+        '''
         try:
             desc = schema_data['description']
         except KeyError:
