@@ -135,6 +135,7 @@ def find_api_files(api_type, input_dir, api_directories, exclude_dirs, exclude_f
         file_pattern = ["*.raml"]
     elif "OAS"in api_type:
         file_pattern = ["*.yml", "*.yaml"]
+        exclude_dirs.update(["schemas", "schema"])
     for api_dir in api_directories:
         api_dir_pn = os.path.join(input_dir, api_dir)
         for root, dirs, files in os.walk(api_dir_pn, topdown=True):
