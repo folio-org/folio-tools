@@ -1,16 +1,25 @@
+## 2.8.1 2021-04-19
+
+* Update api-doc FOLIO-2898
+* Update api-lint FOLIO-2893
+* Update api-schema-lint FOLIO-2917
+* The re-build also updated some other important tools:
+  * Google Chrome 90.0.4430.72
+  * stripes 2.2.1000248
+
 ## 2.8.0 2021-03-15
 
 * Add api-doc FOLIO-2898
 * The re-build also updated some other important tools:
-  Google Chrome 89.0.4389
-  stripes 2.0.1000246
+  * Google Chrome 89.0.4389
+  * stripes 2.0.1000246
 
 ## 2.7.1 2021-02-05
 
 * Update api-schema-lint FOLIO-2917
 * The re-build also updated some other important tools:
-  Google Chrome 88.0.4324 (was 87.0.4280)
-  stripes 2.0.1000244 (was 1.20.1000236)
+  * Google Chrome 88.0.4324 (was 87.0.4280)
+  * stripes 2.0.1000244 (was 1.20.1000236)
 
 ## 2.7.0 2021-01-13
 

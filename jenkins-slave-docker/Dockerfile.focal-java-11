@@ -107,21 +107,22 @@ RUN apt-get -q update && \
     rvm install 2.4.3' && \
     groupadd -g 1010 rvm
 
-# Install generate_api_docs from folio-org/folio-tools
+# Install api-doc from folio-org/folio-tools
 RUN cd /usr/local && \
     git clone https://github.com/folio-org/folio-tools && \
-    cd /usr/local/folio-tools/generate-api-docs && \
-    yarn install && \
-    ln -s /usr/local/folio-tools/generate-api-docs/generate_api_docs.py \
-    /usr/local/bin/generate_api_docs.py && \
-    chmod +x /usr/local/folio-tools/generate-api-docs/generate_api_docs.py
-
-# Install api-doc from folio-org/folio-tools
-RUN cd /usr/local/folio-tools/api-doc && \
+    cd /usr/local/folio-tools/api-doc && \
     yarn install && \
     ln -s /usr/local/folio-tools/api-doc/api_doc.py \
     /usr/local/bin/api_doc.py && \
     chmod +x /usr/local/folio-tools/api-doc/api_doc.py
+
+# Install generate_api_docs from folio-org/folio-tools
+# This is deprecated by api-doc
+RUN cd /usr/local/folio-tools/generate-api-docs && \
+    yarn install && \
+    ln -s /usr/local/folio-tools/generate-api-docs/generate_api_docs.py \
+    /usr/local/bin/generate_api_docs.py && \
+    chmod +x /usr/local/folio-tools/generate-api-docs/generate_api_docs.py
 
 # Install api-lint from folio-org/folio-tools
 RUN cd /usr/local/folio-tools/api-lint && \
@@ -137,6 +138,7 @@ RUN cd /usr/local/folio-tools/api-schema-lint && \
     chmod +x /usr/local/folio-tools/api-schema-lint/api_schema_lint.py
 
 # Install lint_raml_cop from folio-org/folio-tools
+# This is deprecated by api-lint
 RUN cd /usr/local/folio-tools/lint-raml && \
     yarn install && \
     ln -s /usr/local/folio-tools/lint-raml/lint_raml_cop.py \
