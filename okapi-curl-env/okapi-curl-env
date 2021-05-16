@@ -1,0 +1,71 @@
+#!/bin/sh
+
+# Simple curl script based on Mike Taylor's okapi-curl
+# https://github.com/miketaylor/okapi-curl
+# Use environment variables instead of config file:
+# OKAPI_URL
+# OKAPI_TENANT (default "supertenant")
+# OKAPI_USER
+# OKAPI_PW
+# OKAPI_TOKEN
+
+
+okapi_curl() {
+    exec $MAYBE_ECHO curl -w '\n' \
+         -H "X-Okapi-Token:$OKAPI_TOKEN" \
+         -H "Content-Type:application/json" \
+         -H "Accept:*/*" \
+         ${CURL_OPTS} \
+         "${OKAPI_URL}${path}"
+}
+
+if [ "x$1" = x-v ]; then
+    MAYBE_ECHO=echo
+    shift
+fi
+
+if [ $# = 0 ]; then
+    echo "Usage: $0 [-v] <path> [<curl-options>]" >&2
+    exit 1;
+fi
+
+if test -z "$OKAPI_URL"; then
+    echo "OKAPI_URL must be set in environment"
+    exit 1
+fi
+
+OKAPI_TENANT="${OKAPI_TENANT:-supertenant}"
+
+if test ! -z "$OKAPI_TOKEN"; then
+    path="$1"
+    shift
+    CURL_OPTS=${@+"$@"}
+    okapi_curl
+fi
+
+if test ! -z "$OKAPI_USER"; then
+    if test -z "$OKAPI_PW"; then
+        echo "If using OKAPI_USER, OKAPI_PW must be set in environment"
+        exit 1;
+    fi
+    OKAPI_TOKEN=`
+                curl -o /tmp/tmp.okapi.out.${$} -D - -s \
+                  -H "X-Okapi-Tenant:$OKAPI_TENANT" \
+                  -H 'Content-Type:application/json' \
+                  -H 'Accept:*/*' \
+                  -d"{\"username\":\"$OKAPI_USER\",\"password\":\"$OKAPI_PW\"}" \
+                "$OKAPI_URL/authn/login" |
+                awk '/x-okapi-token/ {print $2}' |
+                tr -d '[:space:]'
+                `
+    if test -z "$OKAPI_TOKEN"; then
+        cat /tmp/tmp.okapi.out.${$} 1>&2
+        echo
+        exit 1
+    fi
+fi
+
+path="$1"
+shift
+CURL_OPTS=${@+"$@"}
+okapi_curl
