@@ -63,7 +63,7 @@ RUN apt-get -q update && \
 RUN npm install -g raml2html@3.0.1 && \
   npm install -g npm-snapshot
 
-ARG YARN_VERSION=1.22.4-1
+ARG YARN_VERSION=1.22.5-1
 RUN wget -O - https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
     sh -c 'echo "deb https://dl.yarnpkg.com/debian/ stable main" \
     >> /etc/apt/sources.list.d/yarn.list' && \
@@ -72,7 +72,7 @@ RUN wget -O - https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
     yarn global add @folio/stripes-cli --prefix /usr/local
 
 # Install Docker cli
-ARG DOCKER_VERSION=19.03.9
+ARG DOCKER_VERSION=20.10.6
 RUN wget -q --no-cookies \
     https://download.docker.com/linux/static/stable/x86_64/docker-${DOCKER_VERSION}.tgz \
     -O /tmp/docker.tgz && \
@@ -85,8 +85,8 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2
   unzip ./awscliv2.zip -d /tmp && /tmp/aws/install && \
   rm -rf /tmp/aws && rm ./awscliv2.zip
 
-# Ansible 2.7.5 (from pip)
-ARG ANSIBLE_VER=2.9.13
+# Ansible (from pip)
+ARG ANSIBLE_VER=2.9.21
 RUN pip3 install boto && \
     pip3 install boto3 && \
     pip3 install jmespath && \

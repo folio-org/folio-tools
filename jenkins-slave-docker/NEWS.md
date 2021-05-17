@@ -1,3 +1,30 @@
+## 2.8.2 2021-05-17
+
+* Update Ansible from 2.9.13 to 2.9.21 fixing security issues:
+  * https://access.redhat.com/security/cve/cve-2021-2022 - Mask default and fallback values for `no_log` module options
+  * https://access.redhat.com/security/cve/cve-2021-20191 - Various modules missing `no_log` on sensitive module arguments
+  * https://access.redhat.com/security/cve/cve-2021-20180 - `bitbucket_pipeline_variable` - hide user sensitive information which are marked as `secured` from logging into the console
+  * https://access.redhat.com/security/cve/cve-2021-20178 - `snmp_facts` - hide user sensitive information such as ``privkey`` and ``authkey`` from logging into the console
+  * https://access.redhat.com/security/cve/cve-2020-1753 - kubectl connection plugin - now redacts `kubectl_token` and `kubectl_password` in console log
+
+* Update Docker from 19.03.9 to 20.10.6 fixing
+  * CVE-2021-21285 Prevent an invalid image from crashing docker daemon https://github.com/moby/moby/security/advisories/GHSA-6fj5-m822-rqx8
+  * CVE-2021-21284 Lock down file permissions to prevent remapped root from accessing docker state https://github.com/moby/moby/security/advisories/GHSA-7452-xqpj-6rpc
+  * CVE-2019-14271 loading of nsswitch based config inside chroot under Glibc https://github.com/moby/moby/pull/39612
+  * CVE-2020-15257 Update bundled static binaries of containerd to v1.3.9 https://github.com/containerd/containerd/security/advisories/GHSA-36xw-fx78-c5r4
+
+* Update Yarn from 1.22.4 to 1.22.5, to the classic stable version: https://classic.yarnpkg.com/lang/en/
+
+* The re-build also updates many other tools, most notably Node:
+
+* Update Node from 12.20.1 to 12.22.1 fixing
+  * https://nodejs.org/en/blog/vulnerability/april-2021-security-releases/ OpenSSL - CA certificate check bypass with `X509_V_FLAG_X509_STRICT` (CVE-2021-3450)
+  * https://nodejs.org/en/blog/vulnerability/april-2021-security-releases/ OpenSSL - NULL pointer deref in signature_algorithms processing (CVE-2021-3449)
+  * https://nodejs.org/en/blog/vulnerability/april-2021-security-releases/ npm upgrade - Update y18n to fix Prototype-Pollution (CVE-2020-7774)
+  * https://nodejs.org/en/blog/vulnerability/february-2021-security-releases/ HTTP2 'unknownProtocol' cause Denial of Service by resource exhaustion (CVE-2021-22883)
+  * https://nodejs.org/en/blog/vulnerability/february-2021-security-releases/ DNS rebinding in --inspect (CVE-2021-22884)
+  * https://nodejs.org/en/blog/vulnerability/february-2021-security-releases/ OpenSSL - Integer overflow in CipherUpdate (CVE-2021-23840)
+
 ## 2.8.1 2021-04-19
 
 * Update api-doc FOLIO-2898
