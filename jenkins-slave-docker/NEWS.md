@@ -25,6 +25,11 @@
   * https://nodejs.org/en/blog/vulnerability/february-2021-security-releases/ DNS rebinding in --inspect (CVE-2021-22884)
   * https://nodejs.org/en/blog/vulnerability/february-2021-security-releases/ OpenSSL - Integer overflow in CipherUpdate (CVE-2021-23840)
 
+* openjdk version "11.0.11"
+* Google Chrome 90.0.4430.212
+* aws-cli/2.2.5
+* stripes 2.2.1000249
+
 ## 2.8.1 2021-04-19
 
 * Update api-doc FOLIO-2898
