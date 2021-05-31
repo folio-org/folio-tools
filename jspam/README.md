@@ -39,6 +39,15 @@ Options:
   -h, --help         Show help                                         [boolean]
 ```
 
+Labels may be passed separately or as a comma-delimited string:
+```
+jspam ... --label foo --label bar
+```
+
+```
+jspam ... --label foo,bar
+```
+
 ## sample output
 
 ```
