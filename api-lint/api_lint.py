@@ -22,7 +22,7 @@ import re
 
 import sh
 
-SCRIPT_VERSION = "1.0.6"
+SCRIPT_VERSION = "1.0.7"
 
 LOGLEVELS = {
     "debug": logging.DEBUG,
