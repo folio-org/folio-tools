@@ -86,7 +86,7 @@ def main():
     # Prepare the sets of excludes for os.walk
     exclude_dirs_list = ["raml-util", "raml-storage", "acq-models",
         "schemas", "schema", "rtypes", "traits", "bindings", "examples",
-        "node_modules", ".git"]
+        "headers", "node_modules", ".git"]
     exclude_dirs_add = []
     exclude_files = []
     if args.excludes:
