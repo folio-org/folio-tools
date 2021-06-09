@@ -225,7 +225,7 @@ class JSpam {
     }
 
     if (labels) {
-      body.fields.labels = labels;
+      body.fields.labels = Array.isArray(labels) ? labels : labels.split(',');
     }
 
     if (team) {

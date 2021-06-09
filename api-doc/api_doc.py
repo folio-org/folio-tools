@@ -29,7 +29,7 @@ import tempfile
 import sh
 import yaml
 
-SCRIPT_VERSION = "1.0.1"
+SCRIPT_VERSION = "1.0.2"
 
 LOGLEVELS = {
     "debug": logging.DEBUG,
@@ -92,7 +92,7 @@ def main():
                     os.makedirs(the_dir, exist_ok=True)
                 for file_pn in sorted(api_files):
                     file_an = os.path.join(api_temp_dir, file_pn)
-                    (api_version, supported) = get_api_version(file_an, api_type,
+                    (api_version, supported) = get_api_version(file_an, file_pn, api_type,
                         version_raml_re, version_oas_re)
                     if not api_version:
                         continue
@@ -135,6 +135,7 @@ def find_api_files(api_type, input_dir, api_directories, exclude_dirs, exclude_f
         file_pattern = ["*.raml"]
     elif "OAS"in api_type:
         file_pattern = ["*.yml", "*.yaml"]
+        exclude_dirs.update(["schemas", "schema"])
     for api_dir in api_directories:
         api_dir_pn = os.path.join(input_dir, api_dir)
         for root, dirs, files in os.walk(api_dir_pn, topdown=True):
@@ -145,14 +146,14 @@ def find_api_files(api_type, input_dir, api_directories, exclude_dirs, exclude_f
                         api_files.append(os.path.relpath(os.path.join(root, file_fn), start=input_dir))
     return sorted(api_files)
 
-def get_api_version(file_pn, api_type, version_raml_re, version_oas_re):
+def get_api_version(file_an, file_pn, api_type, version_raml_re, version_oas_re):
     """Get the version from the api description file."""
     supported_raml = ["RAML 1.0"]
     supported_oas = ["OAS 3.0"]
     msg_1 = "API version %s is not supported for file: %s"
     api_version = None
     version_supported = False
-    with open(file_pn, "r") as input_fh:
+    with open(file_an, "r") as input_fh:
         for num, line in enumerate(input_fh):
             if "RAML" in api_type:
                 match = re.search(version_raml_re, line)
