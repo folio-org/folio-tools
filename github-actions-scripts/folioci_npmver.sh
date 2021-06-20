@@ -29,6 +29,6 @@ new_cur_ver=${maj_ver}.${min_ver}.${patch_ver}
 
 # add 000+Jenkins JOB_ID to current patch version
 
-new_snap_ver=${new_cur_ver}000${JOB_ID}
+new_snap_ver=${new_cur_ver}00000${JOB_ID}
 echo "$new_snap_ver"
 
