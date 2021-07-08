@@ -34,7 +34,7 @@ ARG NODEJS_VERSION=12
 RUN curl -sL https://deb.nodesource.com/setup_${NODEJS_VERSION}.x | bash -
 
 # Install Postgres repo
-ARG POSTGRES_VERSION=10
+ARG POSTGRES_VERSION=12
 RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -cs`-pgdg main" \
      > /etc/apt/sources.list.d/pgdg.list && \
     wget -q --no-cookies -O - \
@@ -148,7 +148,6 @@ RUN groupadd -g ${gid} ${group} \
     && useradd -d "${JENKINS_AGENT_HOME}" -u "${uid}" -g "${gid}" -m -s /bin/bash "${user}" \
     && groupadd -g ${docker_gid} docker \
     && usermod -a -G docker ${docker_user} \
-    && usermod -a -G rvm ${user} \
     && bash -c "echo '${user} ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/folio" \
     && bash -c "echo '[user]' > ${JENKINS_AGENT_HOME}/.gitconfig" \
     && bash -c "echo '  email = ${user_email}' >> ${JENKINS_AGENT_HOME}/.gitconfig" \

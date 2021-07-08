@@ -1,7 +1,8 @@
-## 2.9.0 2021-07-05
+## 2.9.0 2021-07-07
 
 * Remove Dockerfile.agent-focal-java-11 and Dockerfile.xenial-java-8. They are not maintained and shouldn't been used any longer.
 * Remove Ruby, no longer needed. Ruby 2.4 has multiple vulnerabilities. Solves https://issues.folio.org/browse/FOLIO-3164
+* Update PostgreSQL from 10 to 12. Solves https://issues.folio.org/browse/FOLIO-3167
 * Update Docker from 20.10.6 to 20.10.7.
 * Update Ansible from 2.9.21 to 2.9.23.
 
@@ -50,7 +51,7 @@
   * Low CVE-2021-30537: Insufficient policy enforcement in cookies.
   * Low CVE-2021-30539: Insufficient policy enforcement in content security policy.
   * Low CVE-2021-30540: Incorrect security UI in payments.
-* aws-cli/2.2.16
+* aws-cli/2.2.17
 * stripes-cli 2.3.1000253
 
 
