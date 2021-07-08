@@ -1,3 +1,60 @@
+## 2.9.0 2021-07-07
+
+* Remove Dockerfile.agent-focal-java-11 and Dockerfile.xenial-java-8. They are not maintained and shouldn't been used any longer.
+* Remove Ruby, no longer needed. Ruby 2.4 has multiple vulnerabilities. Solves https://issues.folio.org/browse/FOLIO-3164
+* Update PostgreSQL from 10 to 12. Solves https://issues.folio.org/browse/FOLIO-3167
+* Update Docker from 20.10.6 to 20.10.7.
+* Update Ansible from 2.9.21 to 2.9.23.
+
+* The re-build also updates many other important tools:
+
+* Update Node from 12.22.1 to 12.22.2 ( https://nodejs.org/en/blog/release/v12.22.2/ ) fixing
+  * CVE-2021-27290: npm upgrade - ssri Regular Expression Denial of Service (ReDoS) (High)
+  * CVE-2021-22918: libuv upgrade - Out of bounds read (Medium)
+  * CVE-2021-22921: Windows installer - Node Installer Local Privilege Escalation (Medium)
+  * CVE-2021-23362: npm upgrade - hosted-git-info Regular Expression Denial of Service (ReDoS) (Medium)
+* Google Chrome 91.0.4472.114 - https://chromereleases.googleblog.com/search/label/Stable%20updates
+  * Critical CVE-2021-30544: Use after free in BFCache.
+  * High CVE-2021-30521: Heap buffer overflow in Autofill.
+  * High CVE-2021-30522: Use after free in WebAudio.
+  * High CVE-2021-30523: Use after free in WebRTC.
+  * High CVE-2021-30524: Use after free in TabStrip.
+  * High CVE-2021-30525: Use after free in TabGroups.
+  * High CVE-2021-30526: Out of bounds write in TabStrip.
+  * High CVE-2021-30527: Use after free in WebUI.
+  * High CVE-2021-30528: Use after free in WebAuthentication.
+  * High CVE-2021-30545: Use after free in Extensions.
+  * High CVE-2021-30546: Use after free in Autofill.
+  * High CVE-2021-30547: Out of bounds write in ANGLE.
+  * High CVE-2021-30548: Use after free in Loader.
+  * High CVE-2021-30549: Use after free in Spell check.
+  * High CVE-2021-30550: Use after free in Accessibility.
+  * High CVE-2021-30551: Type Confusion in V8.
+  * High CVE-2021-30554: Use after free in WebGL
+  * High CVE-2021-30555: Use after free in Sharing.
+  * High CVE-2021-30556: Use after free in WebAudio.
+  * High CVE-2021-30557: Use after free in TabGroups.
+  * Medium CVE-2021-30529: Use after free in Bookmarks.
+  * Medium CVE-2021-30530: Out of bounds memory access in WebAudio.
+  * Medium CVE-2021-30531: Insufficient policy enforcement in Content Security Policy.
+  * Medium CVE-2021-30532: Insufficient policy enforcement in Content Security Policy.
+  * Medium CVE-2021-30533: Insufficient policy enforcement in PopupBlocker.
+  * Medium CVE-2021-30534: Insufficient policy enforcement in iFrameSandbox.
+  * Medium CVE-2021-30535: Double free in ICU.
+  * Medium CVE-2021-30542: Use after free in Tab Strip
+  * Medium CVE-2021-30543: Use after free in Tab Strip.
+  * Medium CVE-2021-30558: Insufficient policy enforcement in content security policy.
+  * Medium CVE-2021-30552: Use after free in Extensions.
+  * Medium CVE-2021-30553: Use after free in Network service.
+  * Low CVE-2021-30536: Out of bounds read in V8.
+  * Low CVE-2021-30537: Insufficient policy enforcement in cookies.
+  * Low CVE-2021-30537: Insufficient policy enforcement in cookies.
+  * Low CVE-2021-30539: Insufficient policy enforcement in content security policy.
+  * Low CVE-2021-30540: Incorrect security UI in payments.
+* aws-cli/2.2.17
+* stripes-cli 2.3.1000253
+
+
 ## 2.8.2 2021-05-17
 
 * Update Ansible from 2.9.13 to 2.9.21 fixing security issues:

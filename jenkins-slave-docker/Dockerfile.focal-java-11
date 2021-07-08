@@ -34,7 +34,7 @@ ARG NODEJS_VERSION=12
 RUN curl -sL https://deb.nodesource.com/setup_${NODEJS_VERSION}.x | bash -
 
 # Install Postgres repo
-ARG POSTGRES_VERSION=10
+ARG POSTGRES_VERSION=12
 RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -cs`-pgdg main" \
      > /etc/apt/sources.list.d/pgdg.list && \
     wget -q --no-cookies -O - \
@@ -63,6 +63,7 @@ RUN apt-get -q update && \
 RUN npm install -g raml2html@3.0.1 && \
   npm install -g npm-snapshot
 
+# to be migrated to NPM 7/Node 16 - https://issues.folio.org/browse/STRIPES-676
 ARG YARN_VERSION=1.22.5-1
 RUN wget -O - https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
     sh -c 'echo "deb https://dl.yarnpkg.com/debian/ stable main" \
@@ -72,7 +73,7 @@ RUN wget -O - https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
     yarn global add @folio/stripes-cli --prefix /usr/local
 
 # Install Docker cli
-ARG DOCKER_VERSION=20.10.6
+ARG DOCKER_VERSION=20.10.7
 RUN wget -q --no-cookies \
     https://download.docker.com/linux/static/stable/x86_64/docker-${DOCKER_VERSION}.tgz \
     -O /tmp/docker.tgz && \
@@ -86,26 +87,11 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2
   rm -rf /tmp/aws && rm ./awscliv2.zip
 
 # Ansible (from pip)
-ARG ANSIBLE_VER=2.9.21
+ARG ANSIBLE_VER=2.9.23
 RUN pip3 install boto && \
     pip3 install boto3 && \
     pip3 install jmespath && \
     pip3 install ansible==${ANSIBLE_VER}
-
-# ruby/rvm
-RUN apt-get -q update && \
-    DEBIAN_FRONTEND="noninteractive" apt-get -q install -y \
-    -o Dpkg::Options::="--force-confnew"  --no-install-recommends \
-    software-properties-common && \
-    apt-add-repository -y ppa:rael-gc/rvm && \
-    apt-get -q update && \
-    DEBIAN_FRONTEND="noninteractive" apt-get -q install -y \
-    -o Dpkg::Options::="--force-confnew"  --no-install-recommends \
-    rvm && \
-    bash -l -c 'source /usr/share/rvm/scripts/rvm && \
-    rvm install 2.4.2 && \
-    rvm install 2.4.3' && \
-    groupadd -g 1010 rvm
 
 # Install api-doc from folio-org/folio-tools
 RUN cd /usr/local && \
@@ -162,7 +148,6 @@ RUN groupadd -g ${gid} ${group} \
     && useradd -d "${JENKINS_AGENT_HOME}" -u "${uid}" -g "${gid}" -m -s /bin/bash "${user}" \
     && groupadd -g ${docker_gid} docker \
     && usermod -a -G docker ${docker_user} \
-    && usermod -a -G rvm ${user} \
     && bash -c "echo '${user} ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/folio" \
     && bash -c "echo '[user]' > ${JENKINS_AGENT_HOME}/.gitconfig" \
     && bash -c "echo '  email = ${user_email}' >> ${JENKINS_AGENT_HOME}/.gitconfig" \
