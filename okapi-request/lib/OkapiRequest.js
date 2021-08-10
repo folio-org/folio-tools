@@ -315,11 +315,52 @@ class OkapiRequest
   }
 
   /**
+   * eachPromiseSeries
+   * Split an array of Promises into N chunks to be handled in parallel,
+   * the items in each chunk being handled in series. e.g given 100 elements
+   * and a chunk-size of 4, create 4 parallel streams that handle 25 promises
+   * in series, applying the given async function to each.
+   * @arg [] arr array of elements
+   * @arg function fn function to apply to each element
+   * @return promise
+   */
+  eachPromiseSeries(arr, fn) {
+    // console.log('SERIES')
+    return arr.reduce((prev, cur) => (prev.then(() => fn(cur))), Promise.resolve());
+  }
+
+  /**
+   * eachPromiseParallel
+   * Split an array of Promises into N partitions to be handled in parallel,
+   * the items in each partition being handled in series. e.g given 100 elements
+   * and a partition-size of 4, create 4 parallel streams that handle 25 promises
+   * in series, applying the given async function to each.
+   *
+   * @arg [] arr array of elements
+   * @arg function fn function to apply to each element
+   * @arg int size number of partitions to handle in parallel
+   * @return promise
+   */
+  eachPromiseParallel(arr, fn, partitionSize) {
+    // console.log('PARALLEL')
+    const size = Math.ceil(arr.length / partitionSize);
+    const streams = [];
+    for (let i = 0; i < arr.length; i += size) {
+      streams.push(this.eachPromiseSeries(arr.slice(i, i + size), fn));
+    }
+
+    return Promise.all(streams).then(values => {
+      return [].concat(...values);
+    });
+  };
+
+  /**
    * eachPromise
    * iterate through an array of items IN SERIES, applying the given async
    * function to each element. If this.streams is non-zero, partition the
    * array into streams and handling the streams in parallel but each stream
    * in series.
+   *
    * @arg [] arr array of elements
    * @arg function fn function to apply to each element
    * @return promise
@@ -328,46 +369,7 @@ class OkapiRequest
   {
     if (!Array.isArray(arr)) return Promise.reject(new Error('Array not found'));
 
-    /**
-     * eachPromiseSeries
-     * Split an array of Promises into N chunks to be handled in parallel,
-     * the items in each chunk being handled in series. e.g given 100 elements
-     * and a chunk-size of 4, create 4 parallel streams that handle 25 promises
-     * in series, applying the given async function to each.
-     * @arg [] arr array of elements
-     * @arg function fn function to apply to each element
-     * @return promise
-     */
-    const eachPromiseSeries = (arr, fn) => {
-      // console.log('SERIES')
-      return arr.reduce((prev, cur) => (prev.then(() => fn(cur))), Promise.resolve());
-    };
-
-    /**
-     * eachPromiseParallel
-     * Split an array of Promises into N partitions to be handled in parallel,
-     * the items in each partition being handled in series. e.g given 100 elements
-     * and a partition-size of 4, create 4 parallel streams that handle 25 promises
-     * in series, applying the given async function to each.
-     * @arg [] arr array of elements
-     * @arg function fn function to apply to each element
-     * @arg int size number of partitions to handle in parallel
-     * @return promise
-     */
-    const eachPromiseParallel = (arr, fn, partitionSize) => {
-      // console.log('PARALLEL')
-      const size = Math.ceil(arr.length / partitionSize);
-      const streams = [];
-      for (let i = 0; i < arr.length; i += size) {
-        streams.push(eachPromiseSeries(arr.slice(i, i + size), fn));
-      }
-
-      return Promise.all(streams).then(values => {
-        return [].concat(...values);
-      });
-    };
-
-    return this.streams ? eachPromiseParallel(arr, fn, this.streams) : eachPromiseSeries(arr, fn);
+    return this.streams ? this.eachPromiseParallel(arr, fn, this.streams) : this.eachPromiseSeries(arr, fn);
   };
 
   /**
