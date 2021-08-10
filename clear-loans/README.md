@@ -14,9 +14,19 @@
 ```
 node $0 --username <u> --password <p> --tenant <t> --hostname <h> --port <p>
 node $0 --username <u> --password <p> --tenant <t> --okapi <http...>
+node $0 ... --pageSize <n> --streams <n>
+
 ```
 where username, password, and tenant are credentials for signing into
 the okapi instance available at hostname. Given a hostname via `--hostname`,
 handle all requests over https. Given a URL via `--okapi`, parse the value
 and determine whether to handle requests with http or https based on the
 protocol.
+
+Given `--pageSize <n>` where `n` is an integer, request `n` entries at a time,
+in series. Default: 100.
+
+Given `--streams <n>` where `n` is an integer, process requests in `n` parallel
+streams. e.g. if there are 1000 rows in a result set, `--streams 10` would
+create 10 parallel requests for 100 entries (the default page-size) instead
+of running those requests in series.

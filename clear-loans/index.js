@@ -211,8 +211,35 @@ class ClearLoans
     });
   }
 
+  /**
+   * replace console function with one that includes a timestamp prefix
+   * @param {string} fx name of a console function, e.g. log, error
+   */
+  consoleReplace(fx) {
+    if (console[fx]) {
+      const originalLog = console[fx];
+      console[fx] = (...rest) => {
+        const av = Array.from(rest);
+        const stamp = new Date().toISOString();
+        if (av[0]) {
+          if (typeof av[0] === 'string') {
+            av[0] = `${stamp} ${av[0]}`;
+          } else {
+            av.unshift(stamp);
+          }
+        }
+
+        originalLog.apply(null, av);
+      }
+    }
+  }
+
+
   main()
   {
+    this.consoleReplace('log')
+    this.consoleReplace('error')
+
     try {
       this.okapi = new OkapiRequest(process.argv);
       this.dao = new DAO(this.okapi);
