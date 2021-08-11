@@ -5,6 +5,7 @@
 Read the wiki's team-module-responsibility matrix and output it as a
 JSON object keyed by GitHub repository name:
 ```
+{
   "okapi": {
     "team": "Core Platform",
     "po": "jakub",
@@ -12,6 +13,8 @@ JSON object keyed by GitHub repository name:
     "github": "okapi",
     "jira": "OKAPI"
   },
+  ...
+}
 ```
 * `team`: Jira team responsible for the module
 * `po`: Wiki/Jira username of the product owner
