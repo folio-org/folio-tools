@@ -41,7 +41,7 @@ LOGLEVELS = {
 PROG_NAME = os.path.basename(sys.argv[0])
 PROG_DESC = __import__('__main__').__doc__
 LOG_FORMAT = "%(levelname)s: %(name)s: %(message)s"
-logger = logging.getLogger(PROG_NAME)
+logger = logging.getLogger("api-doc")
 
 def main():
     exit_code = 0 # Continue processing to detect various issues, then return the result.
@@ -326,6 +326,7 @@ def get_options():
     logging.getLogger("sh").setLevel(logging.ERROR)
     # Display a version string
     logger.info("Using version: %s", SCRIPT_VERSION)
+    logger.info("https://dev.folio.org/guides/api-doc/")
     # Process and validate the input parameters
     if args.input.startswith("~"):
         input_dir = os.path.expanduser(args.input)

@@ -65,6 +65,7 @@ def main():
 
     # Display a version string
     logger.info("Using api-lint version: %s", SCRIPT_VERSION)
+    logger.info("https://dev.folio.org/guides/api-lint/")
 
     # Process and validate the input parameters
     if args.input.startswith("~"):
