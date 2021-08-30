@@ -348,12 +348,13 @@ def get_options():
             sys.exit(2)
         else:
             repo_name = os.path.splitext(os.path.basename(repo_url.rstrip("/")))[0]
-    logger.debug("repo_name=%s", repo_name)
     if args.output.startswith("~"):
         output_home_dir = os.path.expanduser(args.output)
     else:
         output_home_dir = args.output
     output_base_dir = os.path.join(output_home_dir, repo_name)
+    msg = "Output directory: %s"
+    logger.debug(msg, output_base_dir)
     # Ensure that api directories exist
     for directory in args.directories:
         if not os.path.exists(os.path.join(input_dir, directory)):
