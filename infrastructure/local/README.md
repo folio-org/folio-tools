@@ -4,7 +4,7 @@ To allow developers to run the infrastructure needed to run FOLIO back end modul
 
 ## Infrastructure Included
 
-* PostgreSQL 10
+* PostgreSQL 12
 * Kafka
 
 ## Prerequisites
@@ -32,4 +32,5 @@ A single docker compose file chosen to make it easy to use with limited commands
 A trade off with this approach is that it does not provide the flexibility to only 
 run part of the infrastructure that a particular module uses. 
 
-This could be addressed by separating the file by part of the infrastructure e.g. PostgreSQL, Kafka  
+This could be addressed by separating the file by part of the infrastructure e.g. PostgreSQL, Kafka
+
