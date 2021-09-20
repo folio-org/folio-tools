@@ -9,15 +9,20 @@ To allow developers to run the infrastructure needed to run FOLIO back end modul
 
 ## Prerequisites
 
-* [Docker Desktop](https://www.docker.com/products/docker-desktop)
+* [Docker Compose](https://docs.docker.com/compose/install/)
 
 ## Usage
 
-These commands are specific to later versions of Docker where compose is part of the main CLI
+These commands are specific to [Compose V2](https://docs.docker.com/compose/cli-command/#installing-compose-v2),
+replace `docker compose` by `docker-compose` if using V1 syntax.
 
 ### Starting the infrastructure containers
 
 Run `docker compose up -d`
+
+To only start PostgreSQL run `docker compose up -d postgres`
+
+To only start Kafka use `docker compose up -d kafka`
 
 ### Stopping the infrastructure containers
 
@@ -27,10 +32,5 @@ Run `docker compose down`
 
 ### File Structure
 
-A single docker compose file chosen to make it easy to use with limited commands. 
-
-A trade off with this approach is that it does not provide the flexibility to only 
-run part of the infrastructure that a particular module uses. 
-
-This could be addressed by separating the file by part of the infrastructure e.g. PostgreSQL, Kafka
+A single docker compose file chosen to make it easy to use with limited commands.
 
