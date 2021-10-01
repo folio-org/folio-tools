@@ -420,9 +420,26 @@ class JSpam {
       // get projects from JIRA
       axios.get(`${this.jira}/rest/api/2/project`)
       .then(projects => {
-        // map the array of projects into a hash keyed by name, e.g. ui-some-app
+        // map Jira's array of projects into a hash keyed by name, e.g. ui-some-app
+        // generally, name corresponds to GitHub repository name, and thus can be used
+        // to map between the matrix and Jira
         const pmap = {};
         projects.data.forEach(p => { pmap[p.name] = p; });
+
+        // fill in holes in Jira's map with values from the matrix if possible. 
+        // this happens when the Jira name does not correspond to a repo name 
+        // but the matrix provides such a mapping, e.g. for all the ERM projects
+        // that are in separate repos but share a common Jira project.
+        Object.keys(this.matrix).forEach(k => {
+          if (!pmap[k]) {
+            console.log(`found ${k}`)
+            const match = Object.values(pmap).find(jira => jira.key === this.matrix[k].jira);
+            if (match) {
+              pmap[k] = match;
+            }
+          }
+        });
+
         this.eachPromise(deps, d => {
           if (pmap[d] && this.matrix[d]) {
             this.teamForName(this.matrix[d].team)
