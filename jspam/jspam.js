@@ -432,7 +432,6 @@ class JSpam {
         // that are in separate repos but share a common Jira project.
         Object.keys(this.matrix).forEach(k => {
           if (!pmap[k]) {
-            console.log(`found ${k}`)
             const match = Object.values(pmap).find(jira => jira.key === this.matrix[k].jira);
             if (match) {
               pmap[k] = match;
