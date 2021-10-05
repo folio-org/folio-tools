@@ -22,7 +22,7 @@ import re
 
 import sh
 
-SCRIPT_VERSION = "1.0.7"
+SCRIPT_VERSION = "1.0.8"
 
 LOGLEVELS = {
     "debug": logging.DEBUG,
@@ -87,7 +87,7 @@ def main():
     # Prepare the sets of excludes for os.walk
     exclude_dirs_list = ["raml-util", "raml-storage", "acq-models",
         "schemas", "schema", "rtypes", "traits", "bindings", "examples",
-        "headers", "node_modules", ".git"]
+        "headers", "parameters", "node_modules", ".git"]
     exclude_dirs_add = []
     exclude_files = []
     if args.excludes:
