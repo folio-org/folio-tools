@@ -21,17 +21,32 @@ class ParseMatrix {
       return td.querySelector ? td.querySelector('a')?.getAttribute('data-username') : null;
     }
 
-    const ths = parse(matrix).querySelectorAll('.confluenceTable tbody th');
-
     const teams = parse(matrix).querySelectorAll('.confluenceTable tbody tr');
+
+    // pluck the first row, pretending it's a <thead> effectively,
+    // so it can be used as a template for parsing other rows
+    // which may have missing team or product-owner cells because
+    // a td above spans multiple rows.
+    const ths = Array.from(teams.shift().querySelectorAll('td'));
+
     let pteam = { team: '', po: '', tl: '', github: '', jira: '' };
     teams.forEach((tr, i) => {
       const tds = Array.from(tr.querySelectorAll('td'));
-      if (tds.length === ths.length - 1) {
-        tds.unshift({ text: '' });
-      }
-      else if (tds.length === ths.length - 2) {
-        tds.unshift({ text: '' });
+
+      // jigger tds so it always resembles ths, i.e. so there is always a 1::1
+      // correspondence between the th and the td. if we have a table like this:
+      //
+      // | TEAM | PO | TL | junk | REPO | JIRA |
+      // | Aaaa | Aa | Aa | junk | Aaaa | Aaaa |
+      // |      | Bb | Bb | junk | Bbbb | Bbbb |
+      // | Cccc | Cc | Cc | junk | Cccc | Cccc |
+      // |      |    | Dd | junk | Dddd | Dddd |
+      //
+      // then the A-row and C-row have the same number of cols, but the B-row
+      // is short by one and the D-row is short by two because of the cells
+      // above that span multiple rows.
+
+      while (tds.length < ths.length) {
         tds.unshift({ text: '' });
       }
 

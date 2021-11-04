@@ -85,7 +85,13 @@ class JSpam {
    * getMatrix
    * retrieve and parse the team-project responsibility matrix from the given URL.
    * transpose it to an object keyed by the project's github name.
-   * @param {*} matrixUrl
+   *
+   * This is such an unholy mess. It would be _really_ nice to maintain the matrix
+   * in machine-readable format and driving the wiki page from that, rather than
+   * vice-versa and having to tweak the parser every time somebody changes the
+   * HTML markup.
+   *
+   * @param {string} matrixUrl
    */
   async getMatrix(matrixUrl)
   {
@@ -94,20 +100,35 @@ class JSpam {
     // const matrix = fs.readFileSync('Team+vs+module+responsibility+matrix', { encoding: 'UTF-8' });
 
     const userFromTd = (td) => {
-      return td.querySelector ? td.querySelector('a')?.getAttribute('data-username') : null;
+      return td.querySelector ? td.querySelector('a')?.getAttribute('data-username')?.trim() : null;
     }
 
-    const ths = parse(matrix).querySelectorAll('.confluenceTable tbody th');
+    const teams = Array.from(parse(matrix).querySelectorAll('.confluenceTable tbody tr'));
 
-    const teams = parse(matrix).querySelectorAll('.confluenceTable tbody tr');
+    // pluck the first row, pretending it's a <thead> effectively,
+    // so it can be used as a template for parsing other rows
+    // which may have missing team or product-owner cells because
+    // a td above spans multiple rows.
+    const ths = Array.from(teams.shift().querySelectorAll('td'));
+
     let pteam = { team: '', po: '', tl: '', github: '', jira: '' };
     teams.forEach((tr, i) => {
       const tds = Array.from(tr.querySelectorAll('td'));
-      if (tds.length === ths.length - 1) {
-        tds.unshift({ text: '' });
-      }
-      else if (tds.length === ths.length - 2) {
-        tds.unshift({ text: '' });
+
+      // jigger tds so it always resembles ths, i.e. so there is always a 1::1
+      // correspondence between the th and the td. if we have a table like this:
+      //
+      // | TEAM | PO | TL | junk | REPO | JIRA |
+      // | Aaaa | Aa | Aa | junk | Aaaa | Aaaa |
+      // |      | Bb | Bb | junk | Bbbb | Bbbb |
+      // | Cccc | Cc | Cc | junk | Cccc | Cccc |
+      // |      |    | Dd | junk | Dddd | Dddd |
+      //
+      // then the A-row and C-row have the same number of cols, but the B-row
+      // is short by one and the D-row is short by two because of the cells
+      // above that span multiple rows.
+
+      while (tds.length < ths.length) {
         tds.unshift({ text: '' });
       }
 
@@ -115,11 +136,11 @@ class JSpam {
       // I don't really know what kind of data structure `tds` is.
       // iterating with (td, j) works just fine, but trying to access tds[j] fails.
       tds.forEach((td, j) => {
-        if (j == 0) team.team = td.text || pteam.team;
+        if (j == 0) team.team = td.text.trim() || pteam.team;
         if (j == 1) team.po = userFromTd(td) || pteam.po;
         if (j == 2) team.tl = userFromTd(td) || pteam.tl;
-        if (j == 4) team.github = td.text;
-        if (j == 5) team.jira = td.text;
+        if (j == 4) team.github = td.text.trim();
+        if (j == 5) team.jira = td.text.trim();
       });
 
       if (team.github) {
@@ -371,7 +392,6 @@ class JSpam {
       this.relatesLink = this.linkTypes.data.issueLinkTypes.find(link => link.name === 'Relates');
 
       this.matrix = await this.getMatrix('https://wiki.folio.org/display/REL/Team+vs+module+responsibility+matrix');
-
       // get ticket from Jira
       let link;
       if (this.argv.link) {
@@ -400,12 +420,27 @@ class JSpam {
       // get projects from JIRA
       axios.get(`${this.jira}/rest/api/2/project`)
       .then(projects => {
-        // map the array of projects into a hash keyed by name, e.g. ui-some-app
+        // map Jira's array of projects into a hash keyed by name, e.g. ui-some-app
+        // generally, name corresponds to GitHub repository name, and thus can be used
+        // to map between the matrix and Jira
         const pmap = {};
         projects.data.forEach(p => { pmap[p.name] = p; });
 
+        // fill in holes in Jira's map with values from the matrix if possible. 
+        // this happens when the Jira name does not correspond to a repo name 
+        // but the matrix provides such a mapping, e.g. for all the ERM projects
+        // that are in separate repos but share a common Jira project.
+        Object.keys(this.matrix).forEach(k => {
+          if (!pmap[k]) {
+            const match = Object.values(pmap).find(jira => jira.key === this.matrix[k].jira);
+            if (match) {
+              pmap[k] = match;
+            }
+          }
+        });
+
         this.eachPromise(deps, d => {
-          if (pmap[d]) {
+          if (pmap[d] && this.matrix[d]) {
             this.teamForName(this.matrix[d].team)
             .then(team => {
               // only assign the team if we received --team

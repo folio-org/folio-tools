@@ -15,6 +15,10 @@ import http from 'http';
  * or
  *     --hostname [hostname]
  *     --port [port]
+ * and optionally
+ *     --pageSize [item-count to retrieve in a single page]
+ *     --streams [page-count to retrieve in parallel]
+ *
  *
  * Use it like this:
  *     const okapi = new OkapiRequest(process.argv);
@@ -166,6 +170,30 @@ class OkapiRequest
       this.requestOptions.options.headers["x-okapi-tenant"] = i;
     };
 
+    /**
+     * handlePageSize; basically atoi
+     */
+    const handlePageSize = (i, config) => {
+      const v = Number.parseInt(i, 10);
+      if (! isNaN(v)) {
+        config.pageSize = v;
+      } else {
+        throw `The pageSize value "${i}" is not a valid number.`;
+      }
+    };
+
+    /**
+     * handleStreams; basically atoi
+     */
+    const handleStreams = (i, config) => {
+      const v = Number.parseInt(i, 10);
+      if (! isNaN(v)) {
+        config.streams = v;
+      } else {
+        throw `The streams value "${i}" is not a valid number.`;
+      }
+    };
+
     // I don't really want the hostname and tenant in here any more now that
     // argument parsing has handler functions, but it's not worth refactoring.
     const config = {
@@ -183,6 +211,8 @@ class OkapiRequest
       hostname: handleHostname,
       port:     handlePort,
       okapi:    handleOkapi,
+      streams:  handleStreams,
+      pageSize: handlePageSize,
     };
 
     // start at 2 because we get called like "node script.js --foo bar --bat baz"
@@ -221,6 +251,12 @@ class OkapiRequest
       username: config.username,
       password: config.password,
     };
+
+    // how many records to retrieve at once
+    this.pageSize = config.pageSize;
+
+    // given an array of promises, how many streams to execute in parallel
+    this.streams = config.streams;
   }
 
   /** get request; return a promise */
@@ -235,15 +271,24 @@ class OkapiRequest
    */
   getAll(path, name, batchSize)
   {
+    const pageSize = this.pageSize ?? batchSize;
+    if (pageSize === 0) {
+      throw "You must specify a page-size";
+    }
+
     return this.get(`${path}&limit=0`).then(res => {
       const queries = [];
       const max = res.json.totalRecords;
-      for (let i = 0; i < max; i+= batchSize) {
-        queries.push(`${path}&limit=${batchSize}&offset=${i}`);
+      console.log(`found ${max} ${name} records`)
+      for (let i = 0; i < max; i+= pageSize) {
+        queries.push(`${path}&limit=${pageSize}&offset=${i}`);
       }
       let entries = [];
+      // console.log(`that'll be ${queries.length} batches of ${pageSize}`)
+      let batch = 0;
       return this.eachPromise(queries, (r) => {
         return this.get(r).then(res => {
+          // console.log(`retrieved batch ${++batch}`)
           entries = [...entries, ...res.json[name]];
           return entries;
         });
@@ -270,9 +315,52 @@ class OkapiRequest
   }
 
   /**
+   * eachPromiseSeries
+   * Split an array of Promises into N chunks to be handled in parallel,
+   * the items in each chunk being handled in series. e.g given 100 elements
+   * and a chunk-size of 4, create 4 parallel streams that handle 25 promises
+   * in series, applying the given async function to each.
+   * @arg [] arr array of elements
+   * @arg function fn function to apply to each element
+   * @return promise
+   */
+  eachPromiseSeries(arr, fn) {
+    // console.log('SERIES')
+    return arr.reduce((prev, cur) => (prev.then(() => fn(cur))), Promise.resolve());
+  }
+
+  /**
+   * eachPromiseParallel
+   * Split an array of Promises into N partitions to be handled in parallel,
+   * the items in each partition being handled in series. e.g given 100 elements
+   * and a partition-size of 4, create 4 parallel streams that handle 25 promises
+   * in series, applying the given async function to each.
+   *
+   * @arg [] arr array of elements
+   * @arg function fn function to apply to each element
+   * @arg int size number of partitions to handle in parallel
+   * @return promise
+   */
+  eachPromiseParallel(arr, fn, partitionSize) {
+    // console.log('PARALLEL')
+    const size = Math.ceil(arr.length / partitionSize);
+    const streams = [];
+    for (let i = 0; i < arr.length; i += size) {
+      streams.push(this.eachPromiseSeries(arr.slice(i, i + size), fn));
+    }
+
+    return Promise.all(streams).then(values => {
+      return [].concat(...values);
+    });
+  };
+
+  /**
    * eachPromise
    * iterate through an array of items IN SERIES, applying the given async
-   * function to each.
+   * function to each element. If this.streams is non-zero, partition the
+   * array into streams and handling the streams in parallel but each stream
+   * in series.
+   *
    * @arg [] arr array of elements
    * @arg function fn function to apply to each element
    * @return promise
@@ -280,7 +368,8 @@ class OkapiRequest
   eachPromise(arr, fn)
   {
     if (!Array.isArray(arr)) return Promise.reject(new Error('Array not found'));
-    return arr.reduce((prev, cur) => (prev.then(() => fn(cur))), Promise.resolve());
+
+    return this.streams ? this.eachPromiseParallel(arr, fn, this.streams) : this.eachPromiseSeries(arr, fn);
   };
 
   /**
