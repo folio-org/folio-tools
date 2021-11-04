@@ -319,12 +319,13 @@ const assignPermissions = (user, pset) => {
 const configureUser = async (p, path, permissions, servicePoints, group) => {
   try {
     const username = p.match(/(.*)\.json/)[1];
+    const psetname = `role-${username}`
 
     const user = await getOrCreateUser(username, group);
     await assignPermissionsUser(user);
     await assignCredentials(user);
     await assignServicePoint(user, servicePoints);
-    const pset = await getOrCreatePset(username, `${path}/${p}`, permissions);
+    const pset = await getOrCreatePset(psetname, `${path}/${p}`, permissions);
     await assignPermissions(user, pset);
   }
   catch(e) {
