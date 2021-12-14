@@ -1,3 +1,14 @@
+## 2.9.1 2021-12-14
+
+* Upgrade Node to v14 (14.18.2) FOLIO-3352
+* Upgrade Yarn (1.22.15) FOLIO-3353
+* Upgrade Docker (20.10.11) FOLIO-3353
+* The re-build also updates other important tools:
+  * Google Chrome 96.0.4664.93
+  * ansible 2.9.23
+  * aws-cli 2.4.6
+  * stripes 2.4.1000005
+
 ## 2.9.0 2021-07-07
 
 * Remove Dockerfile.agent-focal-java-11 and Dockerfile.xenial-java-8. They are not maintained and shouldn't been used any longer.
