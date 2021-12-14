@@ -64,7 +64,7 @@ RUN npm install -g raml2html@3.0.1 && \
   npm install -g npm-snapshot
 
 # to be migrated to NPM 7/Node 16 - https://issues.folio.org/browse/STRIPES-676
-ARG YARN_VERSION=1.22.5-1
+ARG YARN_VERSION=1.22.15-1
 RUN wget -O - https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
     sh -c 'echo "deb https://dl.yarnpkg.com/debian/ stable main" \
     >> /etc/apt/sources.list.d/yarn.list' && \
@@ -73,7 +73,7 @@ RUN wget -O - https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
     yarn global add @folio/stripes-cli --prefix /usr/local
 
 # Install Docker cli
-ARG DOCKER_VERSION=20.10.7
+ARG DOCKER_VERSION=20.10.11
 RUN wget -q --no-cookies \
     https://download.docker.com/linux/static/stable/x86_64/docker-${DOCKER_VERSION}.tgz \
     -O /tmp/docker.tgz && \
