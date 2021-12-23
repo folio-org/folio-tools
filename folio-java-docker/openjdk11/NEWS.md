@@ -1,3 +1,7 @@
+## 1.2.0 2021-12-23
+
+* Upgraded to Alpine 3.15.0 [FOLIO-3366](https://issues.folio.org/browse/FOLIO-3366)
+
 ## 1.1.0 2021-08-20
 
 * Alpine 3.14
