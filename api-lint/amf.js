@@ -1,85 +1,61 @@
 const { argv } = require('yargs/yargs')(process.argv.slice(2))
   .usage('Usage: node $0 [options]')
-  .example('node $0 -t "RAML 1.0" -f $GH_FOLIO/mod-notes/ramls/note.raml')
+  .example('node $0 -t "RAML 1.0" -f $GH_FOLIO/mod-courses/ramls/courses.raml')
+  .example('node $0 -t "OAS 3.0" -f $GH_FOLIO/mod-eusage-reports/src/main/resources/openapi/eusage-reports-1.0.yaml')
   .alias('t', 'type')
   .nargs('t', 1)
-  .describe('t', 'The API type: "RAML 1.0" or "OAS 3.0"')
+  .describe('t', 'The API type: "RAML 1.0" or "OAS 3.0".')
   .alias('f', 'inputFile')
   .nargs('f', 1)
-  .describe('f', 'The path of the input file to be processed')
+  .describe('f', 'The path of the input file to be processed.')
   .demandOption(['t', 'f'])
   .help('h')
   .alias('h', 'help')
-  .version('1.0.1');
+  .version('1.1.0');
 
 const amf = require('amf-client-js');
 const fs = require('fs');
-const path = require('path');
-
-amf.plugins.document.WebApi.register();
-amf.plugins.document.Vocabularies.register();
-amf.plugins.features.AMFValidation.register();
 
 if (!fs.existsSync(argv.inputFile)) {
   console.error(`Input file does not exist: ${argv.inputFile}`);
   process.exit(1);
 }
 
-let validationProfile;
-let messageStyles;
+let client;
 switch (argv.type) {
   case 'RAML 1.0':
-    validationProfile = amf.ProfileNames.RAML;
-    messageStyles = amf.MessageStyles.RAML;
+    client = amf.RAMLConfiguration.RAML10().baseUnitClient();
     break;
   case 'OAS 3.0':
-    validationProfile = amf.ProfileNames.OAS;
-    messageStyles = amf.MessageStyles.OAS;
+    client = amf.OASConfiguration.OAS30().baseUnitClient();
     break;
   default:
     console.error(`Type '${argv.type}' must be one of 'RAML 1.0' or 'OAS 3.0'.`);
     process.exit(1);
 }
 
-const inputExt = path.extname(argv.inputFile);
-let mediaType;
-switch (inputExt) {
-  case '.raml':
-    mediaType = 'application/raml';
-    break;
-  case '.yaml':
-    mediaType = 'application/yaml';
-    break;
-  case '.yml':
-    mediaType = 'application/yaml';
-    break;
-  case '.json':
-    mediaType = 'application/json';
-    break;
-  default:
-    console.error('Could not determine media-type from input filename extension.');
-    process.exit(1);
-}
-
 async function main() {
-  await amf.AMF.init();
-  const parser = amf.Core.parser(argv.type, mediaType);
-  const doc = await parser.parseFileAsync(`file://${argv.inputFile}`);
-  let report;
-  try {
-    report = await amf.AMF.validate(doc, validationProfile, messageStyles);
-  } catch (e) {
+  const parsingResult = await client.parseDocument(`file://${argv.inputFile}`);
+  const validationResult = await client.validate(parsingResult.baseUnit);
+  console.log('---- Summary:');
+  console.log(`parsingResult.conforms: ${parsingResult.conforms}`);
+  console.log(`parsingResult.results.length: ${parsingResult.results.length}`);
+  parsingResult.results.forEach((res) => {
+    console.log(`${res.severityLevel}: ${res.message}`);
+  });
+  console.log('--------');
+  console.log(`validationResult.conforms: ${validationResult.conforms}`);
+  console.log(`validationResult.results.length: ${validationResult.results.length}`);
+  validationResult.results.forEach((res) => {
+    console.log(`${res.severityLevel}: ${res.message}`);
+  });
+  console.log('--------\n');
+  console.log('---- parsingResult:');
+  console.log(parsingResult.toString());
+  console.log('---- validationResult:');
+  console.log(validationResult.toString());
+  if (!parsingResult.conforms || !validationResult.conforms) {
     process.exitCode = 1;
-    console.log(e.toString());
-  }
-  if (!report.conforms) {
-    process.exitCode = 1;
-    report.results.map((res) => {
-      console.log(`${res.level} - ${res.message}`);
-    });
-    console.log(report.toString());
-  } else {
-    console.log('Conforms');
   }
 }
 
