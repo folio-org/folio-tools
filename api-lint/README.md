@@ -1,6 +1,6 @@
 # api-lint
 
-Copyright (C) 2020-2021 The Open Library Foundation
+Copyright (C) 2020-2022 The Open Library Foundation
 
 This software is distributed under the terms of the Apache License,
 Version 2.0. See the file "[LICENSE](LICENSE)" for more information.
@@ -55,6 +55,8 @@ Where the main options are:
   Optional. Space-separated list.
   By default it excludes certain well-known directories (such as `raml-util`).
   Use the option `--loglevel debug` to report what is being excluded.
+* `-w,--warnings` -- Cause "warnings" to fail the workflow, in the absence of "violations".
+  Optional. By default, if there are no "violations", then the workflow is successful and so any "warnings" would not be displayed.
 
 See help for the full list:
 
@@ -96,5 +98,6 @@ buildMvn {
   apiTypes = 'RAML' // Required. Space-separated list: RAML OAS
   apiDirectories = 'ramls' // Required. Space-separated list
   apiExcludes = 'types.raml' // Optional. Space-separated list
+  apiWarnings = true // Optional. Treat warnings as errors.
 ```
 
