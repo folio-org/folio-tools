@@ -22,7 +22,7 @@ import re
 
 import sh
 
-SCRIPT_VERSION = "1.0.8"
+SCRIPT_VERSION = "1.1.0"
 
 LOGLEVELS = {
     "debug": logging.DEBUG,
@@ -42,14 +42,17 @@ def main():
         choices=["RAML", "OAS"],
         nargs="+",
         required=True,
-        help="List of API types. Space-delimited.")
+        help="List of API types. Space-delimited. Required.")
     parser.add_argument("-d", "--directories",
         nargs="+",
         required=True,
-        help="List of directories to be searched. Space-delimited.")
+        help="List of directories to be searched. Space-delimited. Required.")
     parser.add_argument("-e", "--excludes",
         nargs="*",
-        help="List of additional sub-directories and files to be excluded. Space-delimited.")
+        help="List of additional sub-directories and files to be excluded. Space-delimited. Optional.")
+    parser.add_argument("-w", "--warnings",
+        action="store_true",
+        help='Cause "warnings" to fail the workflow, in the absence of "violations". Optional.')
     parser.add_argument("-l", "--loglevel",
         choices=["debug", "info", "warning", "error", "critical"],
         default="info",
@@ -66,6 +69,8 @@ def main():
     # Display a version string
     logger.info("Using api-lint version: %s", SCRIPT_VERSION)
     logger.info("https://dev.folio.org/guides/api-lint/")
+    if args.warnings:
+        logger.info("Treating warnings as errors.")
 
     # Process and validate the input parameters
     if args.input.startswith("~"):
@@ -144,7 +149,7 @@ def main():
                     continue
                 if supported:
                     logger.info("Processing %s file: %s", api_version, os.path.relpath(file_pn))
-                    conforms = do_amf(file_pn, input_dir, api_version)
+                    conforms = do_amf(file_pn, input_dir, api_version, args.warnings)
                     if not conforms:
                         exit_code = 1
                 else:
@@ -171,7 +176,7 @@ def main():
                     continue
                 if supported:
                     logger.info("Processing %s file: %s", api_version, os.path.relpath(file_pn))
-                    conforms = do_amf(file_pn, input_dir, api_version)
+                    conforms = do_amf(file_pn, input_dir, api_version, args.warnings)
                     if not conforms:
                         exit_code = 1
                 else:
@@ -224,14 +229,18 @@ def get_api_version(file_pn, api_type, version_raml_re, version_oas_re):
         logger.error(msg, api_type, file_pn)
     return api_version, version_supported
 
-def do_amf(file_pn, input_dir, api_version):
+def do_amf(file_pn, input_dir, api_version, include_warnings):
     """Assess the api description."""
     logger = logging.getLogger("api-lint")
+    if include_warnings:
+        option_warnings = "-w"
+    else:
+        option_warnings = ""
     input_dir_pn = os.path.abspath(input_dir)
     script_pn = os.path.join(sys.path[0], "amf.js")
     try:
         # pylint: disable=E1101
-        sh.node(script_pn, "-t", api_version, "-f", file_pn, _cwd=input_dir_pn)
+        sh.node(script_pn, "-t", api_version, "-f", file_pn, option_warnings, _cwd=input_dir_pn)
     except sh.ErrorReturnCode as err:
         status = False
         logger.error("%s\n%s", err.stderr.decode(), err.stdout.decode())

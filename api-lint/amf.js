@@ -8,6 +8,8 @@ const { argv } = require('yargs/yargs')(process.argv.slice(2))
   .alias('f', 'inputFile')
   .nargs('f', 1)
   .describe('f', 'The path of the input file to be processed.')
+  .alias('w', 'warnings')
+  .describe('w', 'Cause "warnings" to fail the workflow,\nin the absence of "violations".')
   .demandOption(['t', 'f'])
   .help('h')
   .alias('h', 'help')
@@ -56,6 +58,14 @@ async function main() {
   console.log(validationResult.toString());
   if (!parsingResult.conforms || !validationResult.conforms) {
     process.exitCode = 1;
+  }
+  if (argv.warnings) {
+    if (parsingResult.conforms && (parsingResult.results.length > 0)) {
+      process.exitCode = 1;
+    }
+    if (validationResult.conforms && (validationResult.results.length > 0)) {
+      process.exitCode = 1;
+    }
   }
 }
 
