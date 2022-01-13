@@ -1,3 +1,10 @@
+## 2.9.2 2022-01-12
+
+* Update api-lint FOLIO-3382
+* The re-build also updated some other important tools:
+  * Google Chrome 97.0.4692.71
+  * stripes 2.5.10000018
+
 ## 2.9.1 2021-12-14
 
 * Upgrade Node to v14 (14.18.2) FOLIO-3352
