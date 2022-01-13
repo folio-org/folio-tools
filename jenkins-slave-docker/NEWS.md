@@ -1,3 +1,8 @@
+## 2.9.3 2022-01-13
+
+* Remove global installation of stripes-cli from image
+* Upgrade yarn to 1.22.17 (from 1.22.15).
+
 ## 2.9.2 2022-01-12
 
 * Update api-lint FOLIO-3382
