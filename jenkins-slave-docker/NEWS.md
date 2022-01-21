@@ -1,3 +1,7 @@
+## 2.9.4 2022-01-21
+
+* Update Linux base FOLIO-3397
+
 ## 2.9.3 2022-01-13
 
 * Remove global installation of stripes-cli from image
