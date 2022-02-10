@@ -8,6 +8,9 @@ RUN mkdir -p /usr/verticles
 ENV JAVA_APP_DIR=/usr/verticles \
     JAVA_MAJOR_VERSION=11
 
+RUN apk add --no-cache \
+    libc6-compat     # https://issues.folio.org/browse/FOLIO-3406 for OpenSSL
+
 # Add run script as JAVA_APP_DIR/run-java.sh and make it executable
 COPY run-java.sh ${JAVA_APP_DIR}/
 RUN chmod 755 ${JAVA_APP_DIR}/run-java.sh
