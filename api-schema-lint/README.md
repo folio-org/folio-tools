@@ -1,6 +1,6 @@
 # api-schema-lint
 
-Copyright (C) 2021 The Open Library Foundation
+Copyright (C) 2021-2022 The Open Library Foundation
 
 This software is distributed under the terms of the Apache License,
 Version 2.0. See the file "[LICENSE](LICENSE)" for more information.
@@ -51,11 +51,19 @@ python3 ../folio-tools/api-schema-lint/api_schema_lint.py --help
 Example for RAML:
 
 ```
-cd $GH_FOLIO/mod-notes
+cd $GH_FOLIO/mod-courses
 python3 ../folio-tools/api-schema-lint/api_schema_lint.py -d ramls
 ```
 
-### Jenkinsfile
+Example for OpenAPI (OAS):
+
+```
+cd $GH_FOLIO/mod-eusage-reports
+python3 ../folio-tools/api-schema-lint/api_schema_lint.py \
+  -d src/main/resources/openapi
+```
+
+### FOLIO CI
 
 This "api-schema-lint" facilty is used in FOLIO Continuous Integration,
 in conjunction with the "[api-lint](https://dev.folio.org/guides/api-lint/)" facility.

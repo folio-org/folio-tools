@@ -67,7 +67,7 @@ python3 ../folio-tools/api-lint/api_lint.py --help
 Example for RAML:
 
 ```
-cd $GH_FOLIO/mod-notes
+cd $GH_FOLIO/mod-courses
 python3 ../folio-tools/api-lint/api_lint.py \
   -t RAML \
   -d ramls
@@ -87,17 +87,8 @@ python3 ../folio-tools/api-lint/api_lint.py \
 The node script can also be used stand-alone to process a single file.
 See usage notes with: `node amf.js --help`
 
-### Jenkinsfile
+### FOLIO CI
 
-To use "api-lint" with FOLIO Continuous Integration, add this configuration to the project's Jenkinsfile:
-
-```
-buildMvn {
-...
-  doApiLint = true
-  apiTypes = 'RAML' // Required. Space-separated list: RAML OAS
-  apiDirectories = 'ramls' // Required. Space-separated list
-  apiExcludes = 'types.raml' // Optional. Space-separated list
-  apiWarnings = true // Optional. Treat warnings as errors.
-```
+To use "api-lint" with FOLIO Continuous Integration,
+see instructions at [https://dev.folio.org/guides/api-lint/](https://dev.folio.org/guides/api-lint/)
 
