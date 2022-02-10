@@ -1,6 +1,6 @@
 # api-doc
 
-Copyright (C) 2021 The Open Library Foundation
+Copyright (C) 2021-2022 The Open Library Foundation
 
 This software is distributed under the terms of the Apache License,
 Version 2.0. See the file "[LICENSE](LICENSE)" for more information.
@@ -72,17 +72,8 @@ python3 ../folio-tools/api-doc/api_doc.py \
   -d ramls src/main/resources/oas
 ```
 
-### Jenkinsfile
+### FOLIO CI
 
-To use "api-doc" with FOLIO Continuous Integration, add this configuration to the project's Jenkinsfile:
-
-```
-buildMvn {
-...
-  doApiLint = true
-  doApiDoc = true
-  apiTypes = 'RAML' // Required. Space-separated list: RAML OAS
-  apiDirectories = 'ramls' // Required. Space-separated list
-  apiExcludes = 'types.raml' // Optional. Space-separated list
-```
+To use "api-doc" with FOLIO Continuous Integration,
+see instructions at [https://dev.folio.org/guides/api-doc/](https://dev.folio.org/guides/api-doc/)
 
