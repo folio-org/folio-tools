@@ -67,7 +67,7 @@ python3 ../folio-tools/api-lint/api_lint.py --help
 Example for RAML:
 
 ```
-cd $GH_FOLIO/mod-notes
+cd $GH_FOLIO/mod-courses
 python3 ../folio-tools/api-lint/api_lint.py \
   -t RAML \
   -d ramls
