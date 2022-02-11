@@ -9,6 +9,7 @@ ENV JAVA_APP_DIR=/usr/verticles \
     JAVA_MAJOR_VERSION=11
 
 RUN apk add --no-cache \
+    curl \
     libc6-compat     # https://issues.folio.org/browse/FOLIO-3406 for OpenSSL
 
 # Add run script as JAVA_APP_DIR/run-java.sh and make it executable
