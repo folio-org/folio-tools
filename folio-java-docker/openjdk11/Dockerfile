@@ -1,4 +1,4 @@
-FROM alpine:3.15.0
+FROM eclipse-temurin:11-jre-alpine
 
 USER root
 
@@ -8,12 +8,9 @@ RUN mkdir -p /usr/verticles
 ENV JAVA_APP_DIR=/usr/verticles \
     JAVA_MAJOR_VERSION=11
 
-# /dev/urandom is used as random source, which is perfectly safe
-# according to http://www.2uo.de/myths-about-urandom/
 RUN apk add --no-cache \
     curl \
-    openjdk11-jre-headless \
- && echo "securerandom.source=file:/dev/urandom" >> /usr/lib/jvm/default-jvm/jre/lib/security/java.security
+    libc6-compat     # https://issues.folio.org/browse/FOLIO-3406 for OpenSSL
 
 # Add run script as JAVA_APP_DIR/run-java.sh and make it executable
 COPY run-java.sh ${JAVA_APP_DIR}/

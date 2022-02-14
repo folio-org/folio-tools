@@ -1,3 +1,7 @@
+## 1.3.0 2022-02
+
+* Switched to OpenJDK Adoptium (Eclipse Temurin) [FOLIO-3405](https://issues.folio.org/browse/FOLIO-3405)
+
 ## 1.2.0 2021-12-23
 
 * Upgraded to Alpine 3.15.0 [FOLIO-3366](https://issues.folio.org/browse/FOLIO-3366)
