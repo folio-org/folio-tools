@@ -1,4 +1,4 @@
-## 1.3.0 2022-02
+## 1.3.0 2022-02-14
 
 * Switched to OpenJDK Adoptium (Eclipse Temurin) [FOLIO-3405](https://issues.folio.org/browse/FOLIO-3405)
 
