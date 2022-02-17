@@ -16,8 +16,12 @@ ENV KUBERNETES_TOKEN=''
 ENV PG_ADMIN_USER=''
 ENV PG_ADMIN_PASS=''
 
+# Upgrade expat fixing https://nvd.nist.gov/vuln/detail/CVE-2022-23852 , https://nvd.nist.gov/vuln/detail/CVE-2022-23990
+# Upgrade libuuid fixing https://nvd.nist.gov/vuln/detail/CVE-2021-3995 , https://nvd.nist.gov/vuln/detail/CVE-2021-3996 , https://nvd.nist.gov/vuln/detail/CVE-2022-0563
 # add dependencies
-RUN apk --update --no-cache add \
+RUN apk update && \
+  apk upgrade && \
+  apk add \
     gcc \
     bash \
     curl \
@@ -27,7 +31,8 @@ RUN apk --update --no-cache add \
     make \
     openssl-dev \
     postgresql-client \
-    postgresql-dev
+    postgresql-dev && \
+  rm -rf /var/cache/apk/*
 
 # install python deps
 RUN pip3 install --upgrade pip
