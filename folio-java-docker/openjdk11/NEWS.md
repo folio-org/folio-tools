@@ -1,3 +1,7 @@
+## 1.3.1 2022-04-12
+
+* Upgraded to eclipse-temurin:11-jre-alpine latest [FOLIO-3463](https://issues.folio.org/browse/FOLIO-3463)
+
 ## 1.3.0 2022-02-14
 
 * Switched to OpenJDK Adoptium (Eclipse Temurin) [FOLIO-3405](https://issues.folio.org/browse/FOLIO-3405)
