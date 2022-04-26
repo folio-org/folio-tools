@@ -9,17 +9,7 @@
   "Inventory: View instance records being suppressed for staff",
   "Inventory: View instances, holdings, and items",
   "Invoice: Can view Invoices and Invoice lines",
-  "Orders: Assign acquisition units to new order",
-  "Orders: Create order lines",
-  "Orders: Create orders",
-  "Orders: Delete order lines",
-  "Orders: Edit order lines",
-  "Orders: Edit orders",
-  "Orders: Remove orders",
-  "Orders: Reopen purchase orders",
-  "Orders: Unopen purchase orders",
-  "Orders: View order lines",
-  "Orders: View orders",
+  "Orders: Can view Orders and Order lines",
   "Organizations: Interface usernames and passwords: view",
   "Organizations: View",
   "Receiving: View",
@@ -29,6 +19,5 @@
   "Users: Can view service points assigned to users",
   "Users: Can view user profile",
   "Users: User loans view",
-  "Users: View requests",
-  "eHoldings: Can select/unselect packages and titles to/from your holdings"
+  "Users: View requests"
 ]
