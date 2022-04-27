@@ -8,9 +8,14 @@ RUN mkdir -p /usr/verticles
 ENV JAVA_APP_DIR=/usr/verticles \
     JAVA_MAJOR_VERSION=11
 
-RUN apk add --no-cache \
+# get zlib=1.2.11-r3 from v3.11
+RUN echo 'https://dl-cdn.alpinelinux.org/alpine/v3.11/main' >> /etc/apk/repositories \
+ && apk add --no-cache \
     curl \
-    libc6-compat     # https://issues.folio.org/browse/FOLIO-3406 for OpenSSL
+    # https://issues.folio.org/browse/FOLIO-3406 libc6-compat for OpenSSL
+    libc6-compat \
+    # https://issues.folio.org/browse/FOLIO-3480 downgrade zlib until 1.2.13 is available
+    zlib=1.2.11-r3
 
 # Add run script as JAVA_APP_DIR/run-java.sh and make it executable
 COPY run-java.sh ${JAVA_APP_DIR}/
