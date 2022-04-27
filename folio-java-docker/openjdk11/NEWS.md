@@ -1,3 +1,7 @@
+## 1.3.2 2022-04-27
+
+* Downgrade zlib fixing ZipException [FOLIO-3480](https://issues.folio.org/browse/FOLIO-3480)
+
 ## 1.3.1 2022-04-12
 
 * Upgraded to eclipse-temurin:11-jre-alpine latest [FOLIO-3463](https://issues.folio.org/browse/FOLIO-3463)
