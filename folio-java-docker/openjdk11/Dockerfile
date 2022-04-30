@@ -8,10 +8,12 @@ RUN mkdir -p /usr/verticles
 ENV JAVA_APP_DIR=/usr/verticles \
     JAVA_MAJOR_VERSION=11
 
-RUN apk add --no-cache \
-    curl \
-    # https://issues.folio.org/browse/FOLIO-3406 libc6-compat for OpenSSL
-    libc6-compat
+RUN apk upgrade \
+ && apk add \
+      curl \
+      # https://issues.folio.org/browse/FOLIO-3406 libc6-compat for OpenSSL
+      libc6-compat \
+ && rm -rf /var/cache/apk/*
 
 # Add run script as JAVA_APP_DIR/run-java.sh and make it executable
 COPY run-java.sh ${JAVA_APP_DIR}/
