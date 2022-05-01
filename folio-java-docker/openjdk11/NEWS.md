@@ -1,3 +1,8 @@
+## 1.3.4 2022-05-01
+
+* Specifically use zlib-1.2.12-r1 ZipException [FOLIO-3487](https://issues.folio.org/browse/FOLIO-3487)
+  as not yet in eclipse-temurin:11-jre-alpine
+
 ## 1.3.3 2022-04-29
 
 * Removed workaround for zlib ZipException [FOLIO-3480](https://issues.folio.org/browse/FOLIO-3480)
