@@ -1,3 +1,11 @@
+## 2.9.5 2022-05-03
+
+* Upgrade Docker to 20.10.14
+* Upgrade Yarn to 1.22.18
+* Upgrade Ansible to 2.9.27
+* Upgrade OpenJDK to 11.0.15 FOLIO-3464
+* Upgrade Google Chrome to 101.0.4951.54
+
 ## 2.9.4 2022-01-21
 
 * Update Linux base FOLIO-3397
