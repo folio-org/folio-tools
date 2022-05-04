@@ -29,11 +29,11 @@ Docker CLI tools contained in the image, docker_gid must match the same gid set 
 Example build and run commands for the image:
 
 ```
-'docker build -f Dockerfile  -t folioci/jenkins-slave-all .'
+'docker build -f Dockerfile  -t folioci/jenkins-slave-all:java-11 .'
 
 'docker run -d -p 127.0.0.1:2222:22 -v /var/run/docker.sock:/var/run/docker.sock \
    -e "JENKINS_SLAVE_SSH_PUBKEY=<YOUR PUBLIC SSH KEY HERE>" \
-   jenkins-slave-all'
+   folioci/jenkins-slave-all:java-11'
 ```
 
 ## Upgrading this image
