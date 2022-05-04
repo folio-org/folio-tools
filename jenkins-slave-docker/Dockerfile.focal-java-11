@@ -64,14 +64,14 @@ RUN npm install -g raml2html@3.0.1 && \
   npm install -g npm-snapshot
 
 # to be migrated to NPM 7/Node 16 - https://issues.folio.org/browse/STRIPES-676
-ARG YARN_VERSION=1.22.17-1
+ARG YARN_VERSION=1.22.18-1
 RUN wget -O - https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
     sh -c 'echo "deb https://dl.yarnpkg.com/debian/ stable main" \
     >> /etc/apt/sources.list.d/yarn.list' && \
     apt-get -q update && apt-get install -y yarn=${YARN_VERSION} 
 
 # Install Docker cli
-ARG DOCKER_VERSION=20.10.11
+ARG DOCKER_VERSION=20.10.14
 RUN wget -q --no-cookies \
     https://download.docker.com/linux/static/stable/x86_64/docker-${DOCKER_VERSION}.tgz \
     -O /tmp/docker.tgz && \
@@ -85,7 +85,7 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2
   rm -rf /tmp/aws && rm ./awscliv2.zip
 
 # Ansible (from pip)
-ARG ANSIBLE_VER=2.9.23
+ARG ANSIBLE_VER=2.9.27
 RUN pip3 install boto && \
     pip3 install boto3 && \
     pip3 install jmespath && \
