@@ -37,9 +37,13 @@ Example build and run commands for the image:
 ```
 
 ## Upgrading this image
+
 * Pick a new version number (Check [NEWS.md](NEWS.md) or https://hub.docker.com/r/folioci/jenkins-slave-all/tags?page=1&ordering=last_updated for the latest tag)
 * List changes in the NEWS.md file
-* Build and tag the new image with the new version tag and "java-11". Jenkins will pull the image tagged "java-11".
+* Build and tag and push the new image as "java-11-test".
+* Temporarily enable "Jenkins Slave02" host.
+* Verify various builds (e.g. folio-snapshot-test, backend repo, frontend repo) using buildNode `jenkins-agent-test` rather than the default `jenkins-agent-java11`
+* Tag and push the new image with the new version tag and "java-11". Jenkins will pull the image tagged "java-11".
 * 2020-12-30: The "latest" tag refers to the deprecated 1.x series "java-8" image.
 
 If it's necessary to revert to an older image, use docker pull to get an older version, tag it as "java-11" and push it back up.
