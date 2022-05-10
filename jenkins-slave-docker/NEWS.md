@@ -1,3 +1,7 @@
+## 2.9.6 2022-05-10
+
+* Update api-lint FOLIO-3486
+
 ## 2.9.5 2022-05-03
 
 * Upgrade Docker to 20.10.14
