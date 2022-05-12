@@ -1,4 +1,4 @@
-FROM eclipse-temurin:11-jre-alpine
+FROM eclipse-temurin:17-jre-alpine
 
 USER root
 
@@ -6,8 +6,11 @@ RUN mkdir -p /usr/verticles
 
 # JAVA_APP_DIR is used by run-java.sh for finding the binaries
 ENV JAVA_APP_DIR=/usr/verticles \
-    JAVA_MAJOR_VERSION=11
+    JAVA_MAJOR_VERSION=17
 
+# Note: FOLIO-3499 2022-05-12:
+# This still has the workaround from broken zlib FOLIO-3487
+# as the fix is still not in the temurin images.
 RUN apk upgrade \
  && apk add \
       curl \

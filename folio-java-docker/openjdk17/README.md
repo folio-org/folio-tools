@@ -1,5 +1,5 @@
-This directory has the configuration to build the alpine-jre-openjdk11
-Docker container for FOLIO modules that run under Java SE 11.
+This directory has the configuration to build the alpine-jre-openjdk17
+Docker container for FOLIO modules that run under Java SE 17.
 
 It is based on
 https://github.com/fabric8io-images/java/tree/master/images/alpine/openjdk11/jre
@@ -17,7 +17,7 @@ This is a sample Dockerfile for the module mod-inventory-storage.
 It picks up `target/mod-inventory-storage-fat.jar` that Maven has built.
 
 ```
-FROM folioci/alpine-jre-openjdk11:latest
+FROM folioci/alpine-jre-openjdk17:latest
 
 ENV VERTICLE_FILE mod-inventory-storage-fat.jar
 
@@ -31,7 +31,7 @@ COPY target/${VERTICLE_FILE} ${VERTICLE_HOME}/${VERTICLE_FILE}
 EXPOSE 8081
 ```
 
-### Upgrading from alpine-jre-openjdk8
+### Note about shell
 
 Most modules do not add their own shell scripts to the container. Those that do, will need to
 change `#!/bin/bash` to `#!/bin/sh` to use the Almquist shell that is the default
