@@ -1,4 +1,4 @@
-FROM ubuntu:focal
+FROM ubuntu:jammy
 
 # setup SSH server
 RUN apt-get update \
@@ -68,7 +68,7 @@ ARG YARN_VERSION=1.22.18-1
 RUN wget -O - https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
     sh -c 'echo "deb https://dl.yarnpkg.com/debian/ stable main" \
     >> /etc/apt/sources.list.d/yarn.list' && \
-    apt-get -q update && apt-get install -y yarn=${YARN_VERSION} 
+    apt-get -q update && apt-get install -y yarn=${YARN_VERSION}
 
 # Install Docker cli
 ARG DOCKER_VERSION=20.10.14

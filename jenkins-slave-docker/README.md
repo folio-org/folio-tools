@@ -41,7 +41,7 @@ Example build and run commands for the image (here showing "`java-17`"):
 * Pick a new version number (Check [NEWS.md](NEWS.md) or https://hub.docker.com/r/folioci/jenkins-slave-all/tags?page=1&ordering=last_updated for the latest tag)
 * List changes in the NEWS.md file
 * Build and tag and push the new image as "java-17-test" (or "java-11-test" for the previous).
-* Verify various builds (e.g. folio-snapshot-test, backend repo, frontend repo) using buildNode `jenkins-agent-java17-test` rather than the default `jenkins-agent-java17`
+* Verify various builds (e.g. folio-snapshot-test, backend repo, frontend repo) using buildNode `jenkins-agent-java17-test` rather than the default `jenkins-agent-java17` (and the same convention for the previous java11).
 * After satisfied with tests, then tag and push the new image with the new version tag and "java-17". Jenkins will pull the image tagged "java-17".
 * 2020-12-30: The "latest" tag refers to the deprecated 1.x series "java-8" image.
 
