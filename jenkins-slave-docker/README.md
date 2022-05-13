@@ -26,24 +26,23 @@ Docker CLI tools contained in the image, docker_gid must match the same gid set 
  * docker_user=jenkins
  * docker_gid=496  # The GID of the docker group on the docker daemon host.
 
-Example build and run commands for the image:
+Example build and run commands for the image (here showing "`java-17`"):
 
 ```
-'docker build -f Dockerfile  -t folioci/jenkins-slave-all:java-11 .'
+'docker build -f Dockerfile  -t folioci/jenkins-slave-all:java-17 .'
 
 'docker run -d -p 127.0.0.1:2222:22 -v /var/run/docker.sock:/var/run/docker.sock \
    -e "JENKINS_SLAVE_SSH_PUBKEY=<YOUR PUBLIC SSH KEY HERE>" \
-   folioci/jenkins-slave-all:java-11'
+   folioci/jenkins-slave-all:java-17'
 ```
 
 ## Upgrading this image
 
 * Pick a new version number (Check [NEWS.md](NEWS.md) or https://hub.docker.com/r/folioci/jenkins-slave-all/tags?page=1&ordering=last_updated for the latest tag)
 * List changes in the NEWS.md file
-* Build and tag and push the new image as "java-11-test".
-* Temporarily enable "Jenkins Slave02" host.
-* Verify various builds (e.g. folio-snapshot-test, backend repo, frontend repo) using buildNode `jenkins-agent-test` rather than the default `jenkins-agent-java11`
-* Tag and push the new image with the new version tag and "java-11". Jenkins will pull the image tagged "java-11".
+* Build and tag and push the new image as "java-17-test" (or "java-11-test" for the previous).
+* Verify various builds (e.g. folio-snapshot-test, backend repo, frontend repo) using buildNode `jenkins-agent-java17-test` rather than the default `jenkins-agent-java17`
+* After satisfied with tests, then tag and push the new image with the new version tag and "java-17". Jenkins will pull the image tagged "java-17".
 * 2020-12-30: The "latest" tag refers to the deprecated 1.x series "java-8" image.
 
 If it's necessary to revert to an older image, use docker pull to get an older version, tag it as "java-11" and push it back up.

@@ -1,4 +1,4 @@
-FROM ubuntu:focal
+FROM ubuntu:jammy
 
 # setup SSH server
 RUN apt-get update \
@@ -30,7 +30,7 @@ ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 
 ## Install Nodejs
-ARG NODEJS_VERSION=14
+ARG NODEJS_VERSION=16
 RUN curl -sL https://deb.nodesource.com/setup_${NODEJS_VERSION}.x | bash -
 
 # Install Postgres repo
@@ -50,7 +50,7 @@ RUN wget -q --no-cookies -O - \
 RUN apt-get -q update && \
     DEBIAN_FRONTEND="noninteractive" apt-get -q install -y \
     -o Dpkg::Options::="--force-confnew"  --no-install-recommends \
-    openjdk-11-jdk build-essential debhelper lintian fakeroot devscripts jq maven python3 \
+    openjdk-17-jdk build-essential debhelper lintian fakeroot devscripts jq maven python3 \
     python3-pip python3-setuptools python3-wheel python3-yaml python3-requests python3-sh nodejs \
     postgresql-client-${POSTGRES_VERSION} xvfb libgtk2.0-0 libxtst6 libxss1 libgconf-2-4 libnss3 \
     libnspr4 libasound2 firefox google-chrome-stable libaio1 zip python-is-python3 libyaz5 && \
@@ -68,7 +68,7 @@ ARG YARN_VERSION=1.22.18-1
 RUN wget -O - https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
     sh -c 'echo "deb https://dl.yarnpkg.com/debian/ stable main" \
     >> /etc/apt/sources.list.d/yarn.list' && \
-    apt-get -q update && apt-get install -y yarn=${YARN_VERSION} 
+    apt-get -q update && apt-get install -y yarn=${YARN_VERSION}
 
 # Install Docker cli
 ARG DOCKER_VERSION=20.10.14

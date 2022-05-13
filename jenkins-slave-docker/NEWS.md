@@ -1,3 +1,10 @@
+## 3.0.0 2022-05-12
+
+* Build "java-17" image from Dockerfile.jammy-java-17 [FOLIO-3494](https://issues.folio.org/browse/FOLIO-3494)
+* Use Ubuntu 22.04 LTS (Jammy Jellyfish) [FOLIO-3478](https://issues.folio.org/browse/FOLIO-3478)
+* Use OpenJDK 17.0.3
+* Use NodeJS LTS v16 (16.15.0) [FOLIO-3434](https://issues.folio.org/browse/FOLIO-3434)
+
 ## 2.9.6 2022-05-10
 
 * Update api-lint FOLIO-3486
