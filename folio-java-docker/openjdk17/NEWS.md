@@ -1,3 +1,7 @@
+## 2.0.1 2022-05-18
+
+* Remove curl. Use wget for module docker health check [FOLIO-3507](https://issues.folio.org/browse/FOLIO-3507)
+
 ## 2.0.0 2022-05-12
 
 * Initial version.
