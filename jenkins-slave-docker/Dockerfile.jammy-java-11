@@ -1,4 +1,4 @@
-FROM ubuntu:focal
+FROM ubuntu:jammy
 
 # setup SSH server
 RUN apt-get update \
@@ -53,7 +53,7 @@ RUN apt-get -q update && \
     openjdk-11-jdk build-essential debhelper lintian fakeroot devscripts jq maven python3 \
     python3-pip python3-setuptools python3-wheel python3-yaml python3-requests python3-sh nodejs \
     postgresql-client-${POSTGRES_VERSION} xvfb libgtk2.0-0 libxtst6 libxss1 libgconf-2-4 libnss3 \
-    libnspr4 libasound2 firefox google-chrome-stable libaio1 zip python-is-python3 libyaz5 && \
+    libnspr4 libasound2 google-chrome-stable libaio1 zip python-is-python3 libyaz5 && \
     #libnspr4 libasound2 firefox firefox-esr-mozilla-build google-chrome-stable && \
     #apt-get -q clean -y && rm -rf /var/lib/apt/lists/* && \
     #rm -f /var/cache/apt/*.bin && \
@@ -68,7 +68,7 @@ ARG YARN_VERSION=1.22.18-1
 RUN wget -O - https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
     sh -c 'echo "deb https://dl.yarnpkg.com/debian/ stable main" \
     >> /etc/apt/sources.list.d/yarn.list' && \
-    apt-get -q update && apt-get install -y yarn=${YARN_VERSION} 
+    apt-get -q update && apt-get install -y yarn=${YARN_VERSION}
 
 # Install Docker cli
 ARG DOCKER_VERSION=20.10.14
