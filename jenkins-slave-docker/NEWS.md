@@ -1,3 +1,9 @@
+## 2.10.0 2022-05-17
+
+* Upgrade "java-11" image from 20.04 Focal to 22.04 Jammy [FOLIO-3478](https://issues.folio.org/browse/FOLIO-3478)
+* Remove firefox [FOLIO-3478](https://issues.folio.org/browse/FOLIO-3478)
+* Still Node v14.
+
 ## 3.0.0 2022-05-12
 
 * Build "java-17" image from Dockerfile.jammy-java-17 [FOLIO-3494](https://issues.folio.org/browse/FOLIO-3494)
