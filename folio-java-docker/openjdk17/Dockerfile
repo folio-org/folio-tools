@@ -13,7 +13,6 @@ ENV JAVA_APP_DIR=/usr/verticles \
 # as the fix is still not in the temurin images.
 RUN apk upgrade \
  && apk add \
-      curl \
       # https://issues.folio.org/browse/FOLIO-3406 libc6-compat for OpenSSL
       libc6-compat \
  && rm -rf /var/cache/apk/*
