@@ -31,6 +31,22 @@ COPY target/${VERTICLE_FILE} ${VERTICLE_HOME}/${VERTICLE_FILE}
 EXPOSE 8081
 ```
 
+### No curl, use wget
+
+While curl is in folioci/alpine-jre-openjdk11 it has been removed from
+folioci/alpine-jre-openjdk17 for the reasons explained in
+https://issues.folio.org/browse/FOLIO-3407
+
+In Jenkinsfile change
+
+```
+healthChkCmd = 'curl -sS --fail -o /dev/null  http://localhost:8081/admin/health || exit 1'
+```
+to
+```
+healthChkCmd = 'wget --no-verbose --tries=1 --spider http://localhost:8081/admin/health || exit 1'
+```
+
 ### Note about shell
 
 Most modules do not add their own shell scripts to the container. Those that do, will need to
