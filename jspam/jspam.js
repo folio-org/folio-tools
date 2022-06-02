@@ -4,6 +4,7 @@ const { hideBin } = require('yargs/helpers')
 const axios = require("axios");
 const fs = require('fs');
 const { parse } = require('node-html-parser');
+const { exit } = require("process");
 
 /**
  * Create tickets for all jira projects associated with packages in
@@ -85,62 +86,72 @@ class JSpam {
    * getMatrix
    * retrieve and parse the team-project responsibility matrix from the given URL.
    * transpose it to an object keyed by the project's github name.
-   *
-   * This is such an unholy mess. It would be _really_ nice to maintain the matrix
-   * in machine-readable format and driving the wiki page from that, rather than
-   * vice-versa and having to tweak the parser every time somebody changes the
-   * HTML markup.
-   *
-   * @param {string} matrixUrl
+   * @param {*} matrixUrl
    */
   async getMatrix(matrixUrl)
   {
     const modules = {};
     const matrix = (await axios.get(matrixUrl)).data;
-    // const matrix = fs.readFileSync('Team+vs+module+responsibility+matrix', { encoding: 'UTF-8' });
+    // const matrix = fs.readFileSync('Team vs module responsibility matrix - Releases - FOLIO Wiki.html', { encoding: 'UTF-8' });
 
     const userFromTd = (td) => {
-      return td.querySelector ? td.querySelector('a')?.getAttribute('data-username')?.trim() : null;
+      let name = td.querySelector ? td.querySelector('a')?.getAttribute('data-username')?.trim() : null;
+      if (name) {
+        name = name.replace(/\s+/g, ' ');
+      }
+      return name;
     }
 
-    const teams = Array.from(parse(matrix).querySelectorAll('.confluenceTable tbody tr'));
+    const ths = Array.from(parse(matrix).querySelectorAll('.confluenceTable tbody tr:nth-child(1) td'));
 
-    // pluck the first row, pretending it's a <thead> effectively,
-    // so it can be used as a template for parsing other rows
-    // which may have missing team or product-owner cells because
-    // a td above spans multiple rows.
-    const ths = Array.from(teams.shift().querySelectorAll('td'));
-
+    const teams = parse(matrix).querySelectorAll('.confluenceTable tbody tr');
     let pteam = { team: '', po: '', tl: '', github: '', jira: '' };
     teams.forEach((tr, i) => {
       const tds = Array.from(tr.querySelectorAll('td'));
+      // in a table like this:
+      //   | th-1 | th-2 | th-3 |
+      //   |------|------|------|
+      //   |      | r1c2 | r1c3 |
+      //   |      |      |------|
+      //   |      |      | r2c3 |
+      // r2c3 will come through as r2c1 so we need to pad it on the left
+      // so it can be parsed as c3.
 
-      // jigger tds so it always resembles ths, i.e. so there is always a 1::1
-      // correspondence between the th and the td. if we have a table like this:
+      // table is expected to be 12 cells wide, but it's constantly changing.
+      // typically only the leading cells span multiple rows, which means we
+      // can reliable just pad from the front.
       //
-      // | TEAM | PO | TL | junk | REPO | JIRA |
-      // | Aaaa | Aa | Aa | junk | Aaaa | Aaaa |
-      // |      | Bb | Bb | junk | Bbbb | Bbbb |
-      // | Cccc | Cc | Cc | junk | Cccc | Cccc |
-      // |      |    | Dd | junk | Dddd | Dddd |
-      //
-      // then the A-row and C-row have the same number of cols, but the B-row
-      // is short by one and the D-row is short by two because of the cells
-      // above that span multiple rows.
-
-      while (tds.length < ths.length) {
+      // there have been so many different incarnations of this code as the
+      // table goes through subtle changes. it used to be possible to rely
+      // on cell style attributes and weird hard-coded widths, but not all
+      // cells have those attributes, etc. etc. it's always something.
+      const cellCount = 12;
+      const diff = cellCount - tds.length;
+      for (let j = 0; j < diff; j++) {
         tds.unshift({ text: '' });
       }
+
+      /*
+      const tdStyle = tds[0].rawAttributes.style;
+      for (let j = 0; j < ths.length; j++) {
+        if (ths[j].rawAttributes.style === tdStyle) {
+          console.log(`broke / ${j}`)
+          break;
+        }
+
+        tds.unshift({ text: '' });
+      }
+      */
 
       const team = { team: '', po: '', tl: '', github: '', jira: '' };
       // I don't really know what kind of data structure `tds` is.
       // iterating with (td, j) works just fine, but trying to access tds[j] fails.
       tds.forEach((td, j) => {
-        if (j == 0) team.team = td.text.trim() || pteam.team;
+        if (j == 0) team.team = (td.text.trim() || pteam.team.trim()).split(/\n/)[0].trim();
         if (j == 1) team.po = userFromTd(td) || pteam.po;
         if (j == 2) team.tl = userFromTd(td) || pteam.tl;
-        if (j == 4) team.github = td.text.trim();
-        if (j == 5) team.jira = td.text.trim();
+        if (j == 4) team.github = td.text?.trim();
+        if (j == 5) team.jira = td.text?.trim();
       });
 
       if (team.github) {
@@ -168,33 +179,45 @@ class JSpam {
   {
     const teams = {
       "@cult": 10304,
+      "Bama": 12226,
+      "Bienenvolk": 10308,
       "Concorde": 10571,
-      "Core functional team": 10302,
-        "Prokopovych (Core: Functional)": 10302,
-        "Prokopovych (Core functional) team": 10302,
-        "Core: Functional": 10302,
       "Core: Platform": 10432,
         "Core Platform": 10432,
       "EBSCO - FSE": 10307,
+      "ERM": 12221,
       "ERM Subgroup Dev Team": 10308,
         "ERM Delivery": 10308,
+        "Bienenvolk": 10308,
       "Falcon": 11327,
       "Firebird": 10883,
         "Firebird team": 10883,
       "Folijet": 10390,
         "Folijet Team": 10390,
+      "Folijet Support": 12101,
       "FOLIO DevOps": 10882,
       "Frontside": 10305,
       "Gulfstream": 10884,
+      "K-Int": 12269,
+      "Kitfox": 12001,
       "Lehigh": 10388,
         "NSIP(Lehigh)": 10388,
       "Leipzig": 10389,
+      "Prokopovych": 10302,
+        "Core functional team": 10302,
+        "Prokopovych (Core: Functional)": 10302,
+        "Prokopovych (Core functional) team": 10302,
+        "Core: Functional": 10302,
+        "Prokopovych Team": 10302,
+        "Prokopovych team": 10302,
       "Qulto": 10306,
       "Reporting": 11022,
       "Scanbit": 10903,
       "Scout": 11405,
+      "Sif": 12228,
       "Spitfire": 10420,
         "Spitfire Team": 10420,
+      "Spring Force": 11814,
       "Stacks": 10303,
       "Stripes Force": 10421,
       "Thor": 10609,
@@ -203,6 +226,7 @@ class JSpam {
       "UNAM": 10309,
       "Vega": 10419,
         "Vega Team": 10419,
+      "Volaris": 11807,
       "仁者无敌 \"Benevolence\"": 10909,
       "None": 11025,
     };
@@ -392,6 +416,7 @@ class JSpam {
       this.relatesLink = this.linkTypes.data.issueLinkTypes.find(link => link.name === 'Relates');
 
       this.matrix = await this.getMatrix('https://wiki.folio.org/display/REL/Team+vs+module+responsibility+matrix');
+
       // get ticket from Jira
       let link;
       if (this.argv.link) {
@@ -426,8 +451,8 @@ class JSpam {
         const pmap = {};
         projects.data.forEach(p => { pmap[p.name] = p; });
 
-        // fill in holes in Jira's map with values from the matrix if possible. 
-        // this happens when the Jira name does not correspond to a repo name 
+        // fill in holes in Jira's map with values from the matrix if possible.
+        // this happens when the Jira name does not correspond to a repo name
         // but the matrix provides such a mapping, e.g. for all the ERM projects
         // that are in separate repos but share a common Jira project.
         Object.keys(this.matrix).forEach(k => {
