@@ -1,3 +1,8 @@
+## 2.0.2 2022-06-28
+
+* Rebuild to update [FOLIO-3529](https://issues.folio.org/browse/FOLIO-3529)
+* Upgraded to eclipse-temurin:17-jre-alpine latest (using Alpine 3.16)
+
 ## 2.0.1 2022-05-18
 
 * Remove curl. Use wget for module docker health check [FOLIO-3507](https://issues.folio.org/browse/FOLIO-3507)
