@@ -1,4 +1,12 @@
-## 2.10.0 2022-05-17
+## 2.10.1 java-11 2022-07-01
+
+* Upgrade Docker to 20.10.17
+* Upgrade Yarn to 1.22.19
+* Upgrade Nodejs to 14.19.3
+* Upgrade Google Chrome to 103.0.5060.53
+* Upgrade api-lint FOLIO-3528
+
+## 2.10.0 java-11 2022-05-17
 
 * Upgrade "java-11" image from 20.04 Focal to 22.04 Jammy [FOLIO-3478](https://issues.folio.org/browse/FOLIO-3478)
 * Remove firefox [FOLIO-3478](https://issues.folio.org/browse/FOLIO-3478)
