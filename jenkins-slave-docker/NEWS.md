@@ -1,3 +1,11 @@
+## 3.0.1 java-17 2022-07-01
+
+* Upgrade Docker to 20.10.17
+* Upgrade Yarn to 1.22.19
+* Upgrade Nodejs to 16.15.1
+* Upgrade Google Chrome to 103.0.5060.53
+* Upgrade api-lint FOLIO-3528
+
 ## 2.10.1 java-11 2022-07-01
 
 * Upgrade Docker to 20.10.17
@@ -12,7 +20,7 @@
 * Remove firefox [FOLIO-3478](https://issues.folio.org/browse/FOLIO-3478)
 * Still Node v14.
 
-## 3.0.0 2022-05-12
+## 3.0.0 java-17 2022-05-12
 
 * Build "java-17" image from Dockerfile.jammy-java-17 [FOLIO-3494](https://issues.folio.org/browse/FOLIO-3494)
 * Use Ubuntu 22.04 LTS (Jammy Jellyfish) [FOLIO-3478](https://issues.folio.org/browse/FOLIO-3478)
