@@ -19,6 +19,9 @@ It picks up `target/mod-inventory-storage-fat.jar` that Maven has built.
 ```
 FROM folioci/alpine-jre-openjdk17:latest
 
+# Install latest patch versions of packages: https://pythonspeed.com/articles/security-updates-in-docker/
+RUN apk upgrade --no-cache
+
 ENV VERTICLE_FILE mod-inventory-storage-fat.jar
 
 # Set the location of the verticles
@@ -29,6 +32,15 @@ COPY target/${VERTICLE_FILE} ${VERTICLE_HOME}/${VERTICLE_FILE}
 
 # Expose this port locally in the container.
 EXPOSE 8081
+```
+
+To `apk add` packages replace `apk upgrade` with this pattern:
+
+```
+RUN apk upgrade \
+ && apk add \
+      ipptools \
+ && rm -rf /var/cache/apk/*
 ```
 
 ### No curl, use wget
