@@ -29,7 +29,7 @@ import tempfile
 import sh
 import yaml
 
-SCRIPT_VERSION = "1.0.2"
+SCRIPT_VERSION = "1.1.0"
 
 LOGLEVELS = {
     "debug": logging.DEBUG,
@@ -73,6 +73,8 @@ def main():
         # to dereference the schema files and not mess the git working dir
         api_temp_dir = os.path.join(temp_dir, "repo")
         shutil.copytree(input_dir, api_temp_dir)
+        # Some repos have non-standard $ref to child JSON schema (using "folio:$ref")
+        replace_folio_ns_schema_refs(api_temp_dir, api_directories, exclude_dirs)
         found_files_flag = False
         for api_type in api_types:
             logger.info("Processing %s API description files ...", api_type)
@@ -215,6 +217,26 @@ def gather_schema_declarations(file_pn, api_type, exclude_dirs, exclude_files):
     if "OAS" in api_type:
         logger.debug("Not yet dereferencing schemas for API type OAS.")
     return sorted(schema_files)
+
+def replace_folio_ns_schema_refs(input_dir, api_directories, exclude_dirs):
+    """
+    Some JSON schema use "folio:$ref" for graphql references to child schema.
+    This cannot be recognised by various tools, so replace with normal "$ref".
+    """
+    schema_files = []
+    for api_dir in api_directories:
+        api_dir_pn = os.path.join(input_dir, api_dir)
+        for root, dirs, files in os.walk(api_dir_pn, topdown=True):
+            dirs[:] = [d for d in dirs if d not in exclude_dirs]
+            for file_fn in fnmatch.filter(files, "*.json"):
+                schema_files.append(os.path.join(root, file_fn))
+    if schema_files:
+        for schema_pn in schema_files:
+            with open(schema_pn, "r") as schema_fh:
+                content = schema_fh.read()
+                content = content.replace("folio:$ref", "$ref")
+            with open(schema_pn, "w") as schema_fh:
+                schema_fh.write(content)
 
 def dereference_schemas(api_type, input_dir, output_dir, schemas):
     """
