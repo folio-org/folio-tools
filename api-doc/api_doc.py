@@ -51,7 +51,7 @@ def main():
         release_version, exclude_dirs, exclude_files) = get_options()
     # The yaml parser gags on the "!include".
     # http://stackoverflow.com/questions/13280978/pyyaml-errors-on-in-a-string
-    yaml.add_constructor(u"!include", construct_raml_include, Loader=yaml.SafeLoader)
+    yaml.add_constructor("!include", construct_raml_include, Loader=yaml.SafeLoader)
     os.makedirs(output_base_dir, exist_ok=True)
     if release_version:
         output_dir = os.path.join(output_base_dir, release_version)
@@ -115,7 +115,7 @@ def main():
             exit_code = 2
     config_pn = os.path.join(output_dir, "config-doc.json")
     config_json_object = json.dumps(config_json, sort_keys=True, indent=2, separators=(",", ": "))
-    with open(config_pn, "w") as output_json_fh:
+    with open(config_pn, mode="w", encoding="utf-8") as output_json_fh:
         output_json_fh.write(config_json_object)
         output_json_fh.write("\n")
     # Replicate default output to top-level to match old S3 configuration.
@@ -155,17 +155,17 @@ def get_api_version(file_an, file_pn, api_type, version_raml_re, version_oas_re)
     msg_1 = "API version %s is not supported for file: %s"
     api_version = None
     version_supported = False
-    with open(file_an, "r") as input_fh:
+    with open(file_an, mode="r", encoding="utf-8") as input_fh:
         for num, line in enumerate(input_fh):
             if "RAML" in api_type:
                 match = re.search(version_raml_re, line)
                 if match:
-                    api_version = "RAML {}.{}".format(match.group(1), match.group(2))
+                    api_version = f"RAML {match.group(1)}.{match.group(2)}"
                     break
             if "OAS" in api_type:
                 match = re.search(version_oas_re, line)
                 if match:
-                    api_version = "OAS {}.{}".format(match.group(1), match.group(2))
+                    api_version = f"OAS {match.group(1)}.{match.group(2)}"
                     break
     if api_version:
         if "RAML" in api_type:
@@ -189,7 +189,7 @@ def gather_schema_declarations(file_pn, api_type, exclude_dirs, exclude_files):
     schema_files = []
     root_dir = os.path.split(file_pn)[0]
     if "RAML" in api_type:
-        with open(file_pn) as input_fh:
+        with open(file_pn, mode="r", encoding="utf-8") as input_fh:
             try:
                 content = yaml.safe_load(input_fh)
             except yaml.YAMLError as err:
@@ -232,10 +232,10 @@ def replace_folio_ns_schema_refs(input_dir, api_directories, exclude_dirs):
                 schema_files.append(os.path.join(root, file_fn))
     if schema_files:
         for schema_pn in schema_files:
-            with open(schema_pn, "r") as schema_fh:
+            with open(schema_pn, mode="r", encoding="utf-8") as schema_fh:
                 content = schema_fh.read()
                 content = content.replace("folio:$ref", "$ref")
-            with open(schema_pn, "w") as schema_fh:
+            with open(schema_pn, mode="w", encoding="utf-8") as schema_fh:
                 schema_fh.write(content)
 
 def dereference_schemas(api_type, input_dir, output_dir, schemas):
