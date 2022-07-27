@@ -1,3 +1,9 @@
+## 2.10.2 java-11 2022-07-27
+
+* Upgrade Nodejs to 14.20.0
+* Upgrade Google Chrome to 103.0.5060.134
+* Upgrade api-doc 1.1.0 FOLIO-3541
+
 ## 3.0.1 java-17 2022-07-01
 
 * Upgrade Docker to 20.10.17
