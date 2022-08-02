@@ -23,7 +23,7 @@ import re
 
 import sh
 
-SCRIPT_VERSION = "1.0.4"
+SCRIPT_VERSION = "1.0.5"
 
 LOGLEVELS = {
     "debug": logging.DEBUG,
@@ -151,7 +151,7 @@ def assess_schema_descriptions(schema_files):
     for schema_fn in sorted(schema_files):
         schema_pn = os.path.relpath(schema_fn)
         logger.debug("Processing file: %s", schema_pn)
-        with open(schema_pn, "r") as schema_fh:
+        with open(schema_pn, mode="r", encoding="utf-8") as schema_fh:
             try:
                 schema_data = json.load(schema_fh)
             except Exception as err:
@@ -171,6 +171,11 @@ def assess_schema_descriptions(schema_files):
                 msg = "%s: Malformed $schema keyword: %s"
                 logger.error(msg, schema_pn, keyword_schema)
         '''
+        try:
+            schema_data.keys()
+        except AttributeError:
+            logger.debug('%s: Has no keys.', schema_pn)
+            continue
         try:
             desc = schema_data['description']
         except KeyError:
