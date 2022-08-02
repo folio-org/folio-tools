@@ -151,7 +151,7 @@ def assess_schema_descriptions(schema_files):
     for schema_fn in sorted(schema_files):
         schema_pn = os.path.relpath(schema_fn)
         logger.debug("Processing file: %s", schema_pn)
-        with open(schema_pn, "r") as schema_fh:
+        with open(schema_pn, mode="r", encoding="utf-8") as schema_fh:
             try:
                 schema_data = json.load(schema_fh)
             except Exception as err:
