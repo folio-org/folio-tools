@@ -23,7 +23,7 @@ import re
 
 import sh
 
-SCRIPT_VERSION = "1.0.4"
+SCRIPT_VERSION = "1.0.5"
 
 LOGLEVELS = {
     "debug": logging.DEBUG,
@@ -171,6 +171,11 @@ def assess_schema_descriptions(schema_files):
                 msg = "%s: Malformed $schema keyword: %s"
                 logger.error(msg, schema_pn, keyword_schema)
         '''
+        try:
+            schema_data.keys()
+        except AttributeError:
+            logger.debug('%s: Has no keys.', schema_pn)
+            continue
         try:
             desc = schema_data['description']
         except KeyError:
