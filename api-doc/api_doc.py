@@ -390,7 +390,7 @@ def get_options():
         exit_code = 2
     # Prepare the sets of excludes for os.walk
     exclude_dirs_list = ["raml-util", "raml-storage", "acq-models",
-        "rtypes", "traits", "bindings", "examples",
+        "rtypes", "traits", "bindings", "examples", "headers", "parameters",
         "node_modules", ".git"]
     exclude_dirs_add = []
     exclude_files = []
