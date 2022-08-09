@@ -29,7 +29,7 @@ import tempfile
 import sh
 import yaml
 
-SCRIPT_VERSION = "1.1.0"
+SCRIPT_VERSION = "1.2.0"
 
 LOGLEVELS = {
     "debug": logging.DEBUG,
@@ -118,15 +118,14 @@ def main():
     with open(config_pn, mode="w", encoding="utf-8") as output_json_fh:
         output_json_fh.write(config_json_object)
         output_json_fh.write("\n")
-    # Replicate default output to top-level to match old S3 configuration.
-    if not release_version:
-        if "RAML" in api_types:
-            src_dir = os.path.join(output_dir, "r")
-        else:
-            src_dir = os.path.join(output_dir, "s")
-        pattern = os.path.join(src_dir, "*.html")
-        for file_pn in glob.glob(pattern):
-            shutil.copy(file_pn, output_dir)
+    # Replicate default output to top-level
+    if "RAML" in api_types:
+        src_dir = os.path.join(output_dir, "r")
+    else:
+        src_dir = os.path.join(output_dir, "s")
+    pattern = os.path.join(src_dir, "*.html")
+    for file_pn in glob.glob(pattern):
+        shutil.copy(file_pn, output_dir)
     logging.shutdown()
     return exit_code
 
@@ -391,7 +390,7 @@ def get_options():
         exit_code = 2
     # Prepare the sets of excludes for os.walk
     exclude_dirs_list = ["raml-util", "raml-storage", "acq-models",
-        "rtypes", "traits", "bindings", "examples",
+        "rtypes", "traits", "bindings", "examples", "headers", "parameters",
         "node_modules", ".git"]
     exclude_dirs_add = []
     exclude_files = []
