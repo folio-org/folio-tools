@@ -29,7 +29,7 @@ import tempfile
 import sh
 import yaml
 
-SCRIPT_VERSION = "1.2.0"
+SCRIPT_VERSION = "1.3.0"
 
 LOGLEVELS = {
     "debug": logging.DEBUG,
@@ -68,6 +68,7 @@ def main():
         "oas": { "files": [] },
         "raml": { "files": [] }
     }
+    config_json["endpoints"] = []
     with tempfile.TemporaryDirectory() as temp_dir:
         # Copy everything to the temp_dir
         # to dereference the schema files and not mess the git working dir
@@ -76,6 +77,7 @@ def main():
         # Some repos have non-standard $ref to child JSON schema (using "folio:$ref")
         replace_folio_ns_schema_refs(api_temp_dir, api_directories, exclude_dirs)
         found_files_flag = False
+        all_endpoints = []
         for api_type in api_types:
             logger.info("Processing %s API description files ...", api_type)
             api_files = find_api_files(api_type, api_temp_dir,
@@ -106,13 +108,16 @@ def main():
                     if len(schemas_parent) > 0:
                         dereference_schemas(
                             api_type, api_temp_dir, os.path.abspath(output_dir), schemas_parent)
-                    generate_doc(api_type, api_temp_dir, output_dir, file_an)
+                    endpoints = generate_doc(api_type, api_temp_dir, output_dir, file_an)
+                    all_endpoints.extend(endpoints)
             else:
                 msg = "No %s files were found in the configured directories: %s"
                 logger.info(msg, api_type, ", ".join(api_directories))
         if not found_files_flag:
             logger.critical("No API files were found in the configured directories.")
             exit_code = 2
+    all_endpoints_sorted = sorted(all_endpoints, key=lambda x : x['path'].lower())
+    config_json["endpoints"].extend(all_endpoints_sorted)
     config_pn = os.path.join(output_dir, "config-doc.json")
     config_json_object = json.dumps(config_json, sort_keys=True, indent=2, separators=(",", ": "))
     with open(config_pn, mode="w", encoding="utf-8") as output_json_fh:
@@ -242,6 +247,7 @@ def dereference_schemas(api_type, input_dir, output_dir, schemas):
     Dereference the parent schema files to resolve the $ref child schema.
     If successful, then replace the original.
     """
+    # pylint: disable=E1101  # for sh.xxx
     #logger.debug("Found %s declared schema files.", len(schemas))
     if "RAML" in api_type:
         subdir = "r"
@@ -268,8 +274,17 @@ def dereference_schemas(api_type, input_dir, output_dir, schemas):
                 logger.debug("Could not copy %s to %s", output_pn, input_pn)
 
 def generate_doc(api_type, api_temp_dir, output_dir, input_pn):
-    """Generate the API documentation from this API description file."""
+    """
+    Generate the API documentation from this API description file.
+    Gather the list of endpoints.
+    """
+    # pylint: disable=E1101  # for sh.xxx
     output_fn = os.path.splitext(os.path.split(input_pn)[1])[0] + ".html"
+    input_dir_pn = os.path.abspath(api_temp_dir)
+    input_fn = os.path.normpath(os.path.relpath(input_pn, start=api_temp_dir))
+    endpoints_pn = os.path.join(api_temp_dir, "tmp-endpoints.json")
+    script_endpoints_pn = os.path.join(sys.path[0], "amf.js")
+    endpoints = []
     if "RAML" in api_type:
         output_1_pn = os.path.join(output_dir, "r", output_fn)
         output_2_pn = os.path.join(output_dir, "p", output_fn)
@@ -290,6 +305,13 @@ def generate_doc(api_type, api_temp_dir, output_dir, input_pn):
                 o=output_2_pn)
         except sh.ErrorReturnCode as err:
             logger.error("%s: %s", cmd_name, err.stderr.decode())
+        # Gather the endpoints
+        try:
+            sh.node(script_endpoints_pn, "-t", "RAML 1.0", "-f", input_fn,
+                _out=endpoints_pn, _cwd=input_dir_pn)
+        except sh.ErrorReturnCode as err:
+            # Ignore. The script outputs an empty array if trouble parsing. Use api-lint beforehand.
+            pass
     if "OAS" in api_type:
         output_1_pn = os.path.join(output_dir, "s", output_fn)
         cmd_name = "redoc-cli"
@@ -302,6 +324,16 @@ def generate_doc(api_type, api_temp_dir, output_dir, input_pn):
                 output=output_1_pn)
         except sh.ErrorReturnCode as err:
             logger.error("%s: %s", cmd_name, err.stderr.decode())
+        # Gather the endpoints
+        try:
+            sh.node(script_endpoints_pn, "-t", "OAS 3.0", "-f", input_fn,
+                _out=endpoints_pn, _cwd=input_dir_pn)
+        except sh.ErrorReturnCode as err:
+            # Ignore. The script outputs an empty array if trouble parsing. Use api-lint beforehand.
+            pass
+    with open(endpoints_pn, mode="r", encoding="utf-8") as json_fh:
+        endpoints = json.load(json_fh)
+    return endpoints
 
 def construct_raml_include(loader, node):
     """Add a special construct for YAML loader"""
