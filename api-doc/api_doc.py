@@ -119,6 +119,7 @@ def main():
     all_endpoints_sorted = sorted(all_endpoints, key=lambda x : x['path'].lower())
     config_json["endpoints"].extend(all_endpoints_sorted)
     config_pn = os.path.join(output_dir, "config-doc.json")
+    logger.info("Writing config-doc.json list of API descriptions and endpoints.")
     config_json_object = json.dumps(config_json, sort_keys=True, indent=2, separators=(",", ": "))
     with open(config_pn, mode="w", encoding="utf-8") as output_json_fh:
         output_json_fh.write(config_json_object)
