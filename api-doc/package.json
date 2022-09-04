@@ -6,5 +6,10 @@
     "raml2html-plain-theme": "folio-org/raml2html-plain-theme#folio-589",
     "redoc-cli": "^0.10.3",
     "yargs": "^17.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.2.0",
+    "eslint-plugin-import": "^2.25.2",
+    "eslint-config-airbnb-base": "latest"
   }
 }
