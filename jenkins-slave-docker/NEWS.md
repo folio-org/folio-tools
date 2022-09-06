@@ -1,7 +1,13 @@
 ## 3.0.3 java-17 2022-09-06
 
 * Upgrade Nodejs to 16.17.0
-* Upgrade OpenJDK 17.0.4
+* Upgrade OpenJDK to 17.0.4
+* Upgrade Google Chrome to 105.0.5195.102
+* Upgrade api-doc to 1.3.0 FOLIO-1316
+
+## 2.10.3 java-11 2022-09-06
+
+* Upgrade OpenJDK to 11.0.16
 * Upgrade Google Chrome to 105.0.5195.102
 * Upgrade api-doc to 1.3.0 FOLIO-1316
 
