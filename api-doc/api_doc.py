@@ -29,7 +29,7 @@ import tempfile
 import sh
 import yaml
 
-SCRIPT_VERSION = "1.3.0"
+SCRIPT_VERSION = "1.3.1"
 
 LOGLEVELS = {
     "debug": logging.DEBUG,
@@ -109,7 +109,8 @@ def main():
                         dereference_schemas(
                             api_type, api_temp_dir, os.path.abspath(output_dir), schemas_parent)
                     endpoints = generate_doc(api_type, api_temp_dir, output_dir, file_an)
-                    all_endpoints.extend(endpoints)
+                    endpoints_fragments = add_href_fragments(api_type, endpoints)
+                    all_endpoints.extend(endpoints_fragments)
             else:
                 msg = "No %s files were found in the configured directories: %s"
                 logger.info(msg, api_type, ", ".join(api_directories))
@@ -273,6 +274,44 @@ def dereference_schemas(api_type, input_dir, output_dir, schemas):
                 shutil.copyfile(output_pn, input_pn)
             except:
                 logger.debug("Could not copy %s to %s", output_pn, input_pn)
+
+def add_href_fragments(api_type, endpoints):
+    """
+    Append href fragment identifier for each endpoint method.
+    To ease construction of documentation index.
+    """
+    endpoints_fragments = []
+    for endpoint in endpoints:
+        new_endpoint = {}
+        methods = ""
+        for method in endpoint["methods"].split(" "):
+            (meth, fragment) = method.split(":")
+            if api_type == "OAS":
+                # Handle OAS for redoc
+                if fragment != "null":
+                    method_fragment = f"{meth}:operation/{fragment}"
+                else:
+                    # Encourage OAS author to use operationId
+                    method_fragment = f"{meth}:null"
+            else:
+                # Handle RAML for raml2html
+                # Expect AMF to always yield null for RAML operationId
+                # Build special href fragment identifier
+                if fragment == "null":
+                    path_href = endpoint["path"].lower()
+                    path_href = path_href.replace("/_/", "", 1)
+                    path_href = path_href.replace("/", "", 1)
+                    path_href = path_href.replace("/", "_").replace("-", "_")
+                    path_href = path_href.replace("{", "_").replace("}", "_")
+                    method_fragment = f"{meth}:{path_href}_{meth}"
+                else:
+                    method_fragment = f"{meth}:null"
+            methods += f"{method_fragment} "
+        new_endpoint["apiDescription"] = endpoint["apiDescription"]
+        new_endpoint["methods"] = methods.rstrip()
+        new_endpoint["path"] = endpoint["path"]
+        endpoints_fragments.append(new_endpoint)
+    return endpoints_fragments
 
 def generate_doc(api_type, api_temp_dir, output_dir, input_pn):
     """
