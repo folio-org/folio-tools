@@ -201,7 +201,7 @@ def get_api_version(file_pn, api_type, version_raml_re, version_oas_re):
     msg_1 = "API version %s is not supported for file: %s"
     api_version = None
     version_supported = False
-    with open(file_pn, "r") as input_fh:
+    with open(file_pn, mode="r", encoding="utf-8") as input_fh:
         for num, line in enumerate(input_fh):
             if "RAML" in api_type:
                 match = re.search(version_raml_re, line)
