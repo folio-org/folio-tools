@@ -1,3 +1,11 @@
+## 3.0.5 java-17 2022-09-11
+
+* Upgrade api-doc to 1.3.2 FOLIO-1316
+
+## 2.10.5 java-11 2022-09-11
+
+* Upgrade api-doc to 1.3.2 FOLIO-1316
+
 ## 3.0.4 java-17 2022-09-10
 
 * Upgrade api-doc to 1.3.1 FOLIO-1316
