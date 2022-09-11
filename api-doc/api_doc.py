@@ -29,7 +29,7 @@ import tempfile
 import sh
 import yaml
 
-SCRIPT_VERSION = "1.3.1"
+SCRIPT_VERSION = "1.3.2"
 
 LOGLEVELS = {
     "debug": logging.DEBUG,
@@ -299,7 +299,7 @@ def add_href_fragments(api_type, endpoints):
                 # Build special href fragment identifier
                 if fragment == "null":
                     path_href = endpoint["path"].lower()
-                    path_href = path_href.replace("/_/", "", 1)
+                    path_href = path_href.replace("/_", "", 1)
                     path_href = path_href.replace("/", "", 1)
                     path_href = path_href.replace("/", "_").replace("-", "_")
                     path_href = path_href.replace("{", "_").replace("}", "_")
