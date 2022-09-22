@@ -20,7 +20,9 @@ It picks up `target/mod-inventory-storage-fat.jar` that Maven has built.
 FROM folioci/alpine-jre-openjdk11:latest
 
 # Install latest patch versions of packages: https://pythonspeed.com/articles/security-updates-in-docker/
+USER root
 RUN apk upgrade --no-cache
+USER folio
 
 ENV VERTICLE_FILE mod-inventory-storage-fat.jar
 
