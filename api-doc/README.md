@@ -27,7 +27,16 @@ For local use:
 ```shell
 cd folio-tools/api-doc
 yarn install
-pip3 install -r requirements.txt
+pip3 install -r requirements.txt  # which installs them globally
+```
+
+The Python requirements can instead be installed using [pipenv](https://pipenv.pypa.io/en/latest/basics/) and the provided Pipfile.
+
+```shell
+cd folio-tools/api-doc
+yarn install
+pipenv install
+pipenv shell
 ```
 
 ## Usage
@@ -50,24 +59,33 @@ Where the main options are:
 
 See help for the full list:
 
-```
-python3 ../folio-tools/api-doc/api_doc.py --help
+```shell
+python3 api_doc.py --help
 ```
 
 Example for RAML:
 
-```
-cd $GH_FOLIO/mod-courses
-python3 ../folio-tools/api-doc/api_doc.py \
+```shell
+python3 api_doc.py \
+  -i $GH_FOLIO/mod-courses \
   -t RAML \
   -d ramls
 ```
 
+Example for OpenAPI:
+
+```shell
+python3 api_doc.py \
+  -i $GH_FOLIO/mod-eusage-reports \
+  -t OAS \
+  -d src/main/resources/openapi
+```
+
 Example for both RAML and OpenAPI (OAS), i.e. when preparing for transition:
 
-```
-cd $GH_FOLIO/mod-foo
-python3 ../folio-tools/api-doc/api_doc.py \
+```shell
+python3 api_doc.py \
+  -i $GH_FOLIO/mod-foo \
   -t RAML OAS \
   -d ramls src/main/resources/oas
 ```

@@ -25,8 +25,16 @@ For local use:
 
 ```shell
 cd folio-tools/api-schema-lint
-pip3 install -r requirements.txt
+pip3 install -r requirements.txt  # which installs them globally
 yarn global add jq
+```
+
+The Python requirements can instead be installed using [pipenv](https://pipenv.pypa.io/en/latest/basics/) and the provided Pipfile.
+
+```shell
+cd folio-tools/api-schema-lint
+pipenv install
+pipenv shell
 ```
 
 ## Usage
@@ -44,22 +52,23 @@ Where the main options are:
 
 See help for the full list:
 
-```
-python3 ../folio-tools/api-schema-lint/api_schema_lint.py --help
+```shell
+python3 api_schema_lint.py --help
 ```
 
 Example for RAML:
 
-```
-cd $GH_FOLIO/mod-courses
-python3 ../folio-tools/api-schema-lint/api_schema_lint.py -d ramls
+```shell
+python3 api_schema_lint.py \
+  -i $GH_FOLIO/mod-courses \
+  -d ramls
 ```
 
 Example for OpenAPI (OAS):
 
-```
-cd $GH_FOLIO/mod-eusage-reports
-python3 ../folio-tools/api-schema-lint/api_schema_lint.py \
+```shell
+python3 api_schema_lint.py \
+  -i $GH_FOLIO/mod-eusage-reports \
   -d src/main/resources/openapi
 ```
 
