@@ -29,7 +29,7 @@ import tempfile
 import sh
 import yaml
 
-SCRIPT_VERSION = "1.3.2"
+SCRIPT_VERSION = "1.3.3"
 
 LOGLEVELS = {
     "debug": logging.DEBUG,
@@ -63,6 +63,7 @@ def main():
     config_json["metadata"] = {}
     config_json["metadata"]["repository"] = repo_name
     config_json["metadata"]["generatedDate"] = generated_date
+    config_json["metadata"]["generator"] = f"{PROG_NAME} {SCRIPT_VERSION}"
     config_json["metadata"]["apiTypes"] = api_types
     config_json["config"] = {
         "oas": { "files": [] },
@@ -280,6 +281,7 @@ def add_href_fragments(api_type, endpoints):
     Append href fragment identifier for each endpoint method.
     To ease construction of documentation index.
     """
+    path_1_re = re.compile(r"^/_")
     endpoints_fragments = []
     for endpoint in endpoints:
         new_endpoint = {}
@@ -298,12 +300,11 @@ def add_href_fragments(api_type, endpoints):
                 # Expect AMF to always yield null for RAML operationId
                 # Build special href fragment identifier
                 if fragment == "null":
-                    path_href = endpoint["path"].lower()
-                    path_href = path_href.replace("/_", "", 1)
+                    path_href = path_1_re.sub("", endpoint["path"])
                     path_href = path_href.replace("/", "", 1)
-                    path_href = path_href.replace("/", "_").replace("-", "_")
+                    path_href = path_href.replace("/", "_").replace("-", "_").replace(".", "_")
                     path_href = path_href.replace("{", "_").replace("}", "_")
-                    method_fragment = f"{meth}:{path_href}_{meth}"
+                    method_fragment = f"{meth}:{path_href.lower()}_{meth}"
                 else:
                     method_fragment = f"{meth}:null"
             methods += f"{method_fragment} "
