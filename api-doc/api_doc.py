@@ -281,6 +281,7 @@ def add_href_fragments(api_type, endpoints):
     Append href fragment identifier for each endpoint method.
     To ease construction of documentation index.
     """
+    path_1_re = re.compile(r"^/_")
     endpoints_fragments = []
     for endpoint in endpoints:
         new_endpoint = {}
@@ -299,12 +300,11 @@ def add_href_fragments(api_type, endpoints):
                 # Expect AMF to always yield null for RAML operationId
                 # Build special href fragment identifier
                 if fragment == "null":
-                    path_href = endpoint["path"].lower()
-                    path_href = path_href.replace("/_", "", 1)
+                    path_href = path_1_re.sub("", endpoint["path"])
                     path_href = path_href.replace("/", "", 1)
-                    path_href = path_href.replace("/", "_").replace("-", "_")
+                    path_href = path_href.replace("/", "_").replace("-", "_").replace(".", "_")
                     path_href = path_href.replace("{", "_").replace("}", "_")
-                    method_fragment = f"{meth}:{path_href}_{meth}"
+                    method_fragment = f"{meth}:{path_href.lower()}_{meth}"
                 else:
                     method_fragment = f"{meth}:null"
             methods += f"{method_fragment} "
