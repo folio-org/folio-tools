@@ -29,7 +29,7 @@ import tempfile
 import sh
 import yaml
 
-SCRIPT_VERSION = "1.3.3"
+SCRIPT_VERSION = "1.4.0"
 
 LOGLEVELS = {
     "debug": logging.DEBUG,
@@ -77,6 +77,7 @@ def main():
         shutil.copytree(input_dir, api_temp_dir)
         # Some repos have non-standard $ref to child JSON schema (using "folio:$ref")
         replace_folio_ns_schema_refs(api_temp_dir, api_directories, exclude_dirs)
+        interfaces_endpoints = get_interfaces_endpoints(repo_name, api_temp_dir)
         found_files_flag = False
         all_endpoints = []
         for api_type in api_types:
@@ -110,8 +111,10 @@ def main():
                         dereference_schemas(
                             api_type, api_temp_dir, os.path.abspath(output_dir), schemas_parent)
                     endpoints = generate_doc(api_type, api_temp_dir, output_dir, file_an)
-                    endpoints_fragments = add_href_fragments(api_type, endpoints)
-                    all_endpoints.extend(endpoints_fragments)
+                    endpoints_extended = add_href_fragments(api_type, endpoints)
+                    if interfaces_endpoints:
+                        endpoints_extended = correlate_interfaces(endpoints_extended, interfaces_endpoints)
+                    all_endpoints.extend(endpoints_extended)
             else:
                 msg = "No %s files were found in the configured directories: %s"
                 logger.info(msg, api_type, ", ".join(api_directories))
@@ -314,6 +317,61 @@ def add_href_fragments(api_type, endpoints):
         endpoints_fragments.append(new_endpoint)
     return endpoints_fragments
 
+def get_interfaces_endpoints(repo_name, api_temp_dir):
+    """
+    Gets the list of endpoints that are declared in the ModuleDescriptor.
+
+    Note that for some some modules we might not find the MD. Warn.
+    """
+    avoid_modules = ["raml"]
+    endpoints_interfaces = []
+    md_fns = [
+      "descriptors/ModuleDescriptor-template.json",
+      "ModuleDescriptor.json",
+      "service/src/main/okapi/ModuleDescriptor-template.json"
+    ]
+    if repo_name not in avoid_modules:
+        for md_fn in md_fns:
+            md_pn = os.path.join(api_temp_dir, md_fn)
+            if os.path.exists(md_pn):
+                break
+            md_pn = None
+        if md_pn:
+            with open(md_pn, mode="r", encoding="utf-8") as md_fh:
+                md_data = json.load(md_fh)
+                try:
+                    provides = md_data["provides"]
+                except KeyError:
+                    logger.debug("No provides[] in ModuleDescriptor.json")
+                else:
+                    # logger.debug("%s", f"{provides=}")
+                    for provide in provides:
+                        interface = provide["id"] + " " + provide["version"]
+                        # logger.debug("%s", f"{interface=}")
+                        for handler in provide["handlers"]:
+                            path = handler["pathPattern"].replace("*", "")
+                            endpoints_interfaces.append({"interface": interface, "path": path})
+        else:
+            logger.warning("The ModuleDescriptor was not found. Tried: %s", " ".join(md_fns))
+    endpoints_interfaces_sorted = sorted(endpoints_interfaces, key=lambda x : x['path'].lower())
+    return endpoints_interfaces_sorted
+
+def correlate_interfaces(endpoints, interfaces_endpoints):
+    """
+    Correlates API description endpoints with the ModuleDescriptor interfaces.
+    """
+    endpoints_interfaces = []
+    for endpoint in endpoints:
+        # logger.debug("%s", f"{endpoint['path']=}")
+        for interfaces_endpoint in interfaces_endpoints:
+            path = endpoint["path"].replace("//", "/")
+            if path.startswith(interfaces_endpoint["path"]):
+                # logger.debug("FOUND: %s", interfaces_endpoint["interface"])
+                endpoint["interface"] = interfaces_endpoint["interface"]
+        # logger.debug("%s", f"{endpoint=}")
+        endpoints_interfaces.append(endpoint)
+    return endpoints_interfaces
+
 def generate_doc(api_type, api_temp_dir, output_dir, input_pn):
     """
     Generate the API documentation from this API description file.
@@ -372,8 +430,9 @@ def generate_doc(api_type, api_temp_dir, output_dir, input_pn):
         except sh.ErrorReturnCode as err:
             # Ignore. The script outputs an empty array if trouble parsing. Use api-lint beforehand.
             pass
-    with open(endpoints_pn, mode="r", encoding="utf-8") as json_fh:
-        endpoints = json.load(json_fh)
+    if os.path.getsize(endpoints_pn) > 0:
+        with open(endpoints_pn, mode="r", encoding="utf-8") as json_fh:
+            endpoints = json.load(json_fh)
     return endpoints
 
 def construct_raml_include(loader, node):
