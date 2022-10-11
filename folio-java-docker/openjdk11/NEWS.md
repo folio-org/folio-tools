@@ -1,3 +1,8 @@
+## 1.3.7 2022-10-11
+
+* Rebuild to update [FOLIO-3552](https://issues.folio.org/browse/FOLIO-3552)
+* OpenJDK Runtime Environment Temurin-11.0.16.1+1
+
 ## 1.3.6 2022-08-08
 
 * Rebuild to update [FOLIO-3544](https://issues.folio.org/browse/FOLIO-3544)
