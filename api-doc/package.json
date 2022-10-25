@@ -1,7 +1,7 @@
 {
   "dependencies": {
     "@apidevtools/json-schema-ref-parser": "^9.0.9",
-    "amf-client-js": "5.0.10",
+    "amf-client-js": "5.2.0",
     "raml2html": "^7.1.0",
     "raml2html-plain-theme": "folio-org/raml2html-plain-theme#folio-589",
     "redoc-cli": "^0.10.3",
