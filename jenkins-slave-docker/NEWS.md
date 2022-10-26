@@ -1,3 +1,17 @@
+## 3.0.6 java-17 2022-10-26
+
+* Upgrade Docker to 20.10.21
+* Upgrade Nodejs to 16.18.0
+* Upgrade api-lint to 1.1.3 FOLIO-3553
+* Upgrade api-doc to 1.4.1 FOLIO-3553
+
+## 2.10.6 java-11 2022-10-26
+
+* Upgrade Docker to 20.10.21
+* Upgrade Nodejs to 14.20.1
+* Upgrade api-lint to 1.1.3 FOLIO-3553
+* Upgrade api-doc to 1.4.1 FOLIO-3553
+
 ## 3.0.5 java-17 2022-09-11
 
 * Upgrade api-doc to 1.3.2 FOLIO-1316
