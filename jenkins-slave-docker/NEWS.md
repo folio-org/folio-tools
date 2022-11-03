@@ -1,3 +1,12 @@
+## 3.0.7 java-17 2022-11-03
+
+* Update OS to latest jammy-updates FOLIO-3618
+
+## 2.10.7 java-11 2022-11-03
+
+* Update OS to latest jammy-updates FOLIO-3618
+* Upgrade Nodejs to 14.21.0
+
 ## 3.0.6 java-17 2022-10-26
 
 * Upgrade Docker to 20.10.21
