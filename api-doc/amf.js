@@ -11,7 +11,7 @@ const { argv } = require('yargs/yargs')(process.argv.slice(2))
   .demandOption(['t', 'f'])
   .help('h')
   .alias('h', 'help')
-  .version('1.0.1');
+  .version('1.0.2');
 
 const amf = require('amf-client-js');
 const fs = require('fs');
@@ -46,7 +46,7 @@ async function main() {
       const methods = [];
       endpoint.operations.forEach((operation) => {
         const op = `${operation.method}:${operation.operationId}`;
-        methods.push(op);
+        methods.push(op.replace(/ /g, '_'));
       });
       if (methods.length) {
         const ep = {
