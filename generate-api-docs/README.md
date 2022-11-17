@@ -35,7 +35,7 @@ So if lint-raml errors were ignored, then the output will be missing some pieces
   - Determine input RAML version.
   - For each parent JSON schema declared in the RAML,
     dereference and expand the $ref child schemas,
-    and replace the orginal parent file.
+    and replace the original parent file.
   - Call the relevant version of 'raml2html'.
   - Generate html to the output_directory.
 - Deploy to AWS S3.
