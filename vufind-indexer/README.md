@@ -2,7 +2,7 @@
 An experimental indexer for indexing instance records in Vufind.
 
 ## Usage
-Requires python3, jmespath and requests. This example uses python's virtual environment module to keep requirements seperate from other python installs.
+Requires python3, jmespath and requests. This example uses python's virtual environment module to keep requirements separate from other python installs.
 
 Show options:
 ```
