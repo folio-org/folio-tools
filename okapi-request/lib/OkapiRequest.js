@@ -142,7 +142,7 @@ class OkapiRequest
      * handleOkapi
      * set options.hostname and optionally options.port. Configure the request
      * handler based on the URL prefix (http or https), but note this will be
-     * overriden by the port handler if a port is present.
+     * overridden by the port handler if a port is present.
      * @arg string a URL, e.g. https://www.example.edu
      */
     const handleOkapi = (i, config) => {

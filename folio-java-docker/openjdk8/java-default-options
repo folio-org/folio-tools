@@ -18,7 +18,7 @@
 #                             https://www.youtube.com/watch?v=w1rZOY5gbvk
 #                             https://vimeo.com/album/4133413/video/181900266
 # Also note that heap is only a small portion of the memory used by a JVM. There are lot
-# of other memory areas (metadata, thread, code cache, ...) which addes to the overall
+# of other memory areas (metadata, thread, code cache, ...) which adds to the overall
 # size. There is no easy solution for this, 50% seems to be are reasonable compromise.
 # However, when your container gets killed because of an OOM, then you should tune
 # the absolute values
@@ -32,12 +32,12 @@ max_memory() {
     return
   fi
 
-  # Check if explicitely disabled
+  # Check if explicitly disabled
   if [ "x$JAVA_MAX_MEM_RATIO" = "x0" ]; then
     return
   fi
 
-  # Check for the 'real memory size' and caluclate mx from a ratio
+  # Check for the 'real memory size' and calculate mx from a ratio
   # given (default is 50%)
   if [ "x$CONTAINER_MAX_MEMORY" != x ]; then
     local max_mem="${CONTAINER_MAX_MEMORY}"
