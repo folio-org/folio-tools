@@ -1,5 +1,5 @@
 # ci-cleanup
-Cleans up FOLIO backend modules running in a kubernetes cluster. Modules must have be labled according the the following scheme:
+Cleans up FOLIO backend modules running in a kubernetes cluster. Modules must have be labeled according the the following scheme:
 | label      | description                                                                                  | example          |
 |------------|----------------------------------------------------------------------------------------------|------------------|
 | app        | full name of backend module with version. Colons and periods should be replaced with hyphens | mod-users-15-6-1 |

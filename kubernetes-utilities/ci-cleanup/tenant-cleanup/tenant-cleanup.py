@@ -78,7 +78,7 @@ def delete_tenant(okapi_url, tenant, token):
                         headers=headers)
     
     if r.status_code == 204:
-        print("sucessfully deleted {}".format(tenant))
+        print("successfully deleted {}".format(tenant))
         deleted = True
     else:
         r.raise_for_status()

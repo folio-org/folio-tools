@@ -12,7 +12,7 @@
 #
 #
 # This script will pick up either a 'fat' jar which can be run with "-jar"
-# or you can sepcify a JAVA_MAIN_CLASS.
+# or you can specify a JAVA_MAIN_CLASS.
 #
 # Source and Documentation can be found
 # at https://github.com/fabric8io-images/run-java-sh
@@ -36,7 +36,7 @@
 # of other memory areas (metadata, thread, code cache, ...) which adds to the overall
 # size. When your container gets killed because of an OOM, then you should tune
 # the absolute values.
-# JAVA_INIT_MEM_RATIO: Ratio use to calculate a default intial heap memory, in percent.
+# JAVA_INIT_MEM_RATIO: Ratio use to calculate a default initial heap memory, in percent.
 #                      By default this value is not set.
 #
 # The following variables are exposed to your Java application:
@@ -324,7 +324,7 @@ calc_max_memory() {
   # Check for the 'real memory size' and calculate Xmx from the ratio
   if [ -n "${JAVA_MAX_MEM_RATIO:-}" ]; then
     if [ "${JAVA_MAX_MEM_RATIO}" -eq 0 ]; then
-      # Explicitely switched off
+      # Explicitly switched off
       return
     fi
     calc_mem_opt "${CONTAINER_MAX_MEMORY}" "${JAVA_MAX_MEM_RATIO}" "mx"

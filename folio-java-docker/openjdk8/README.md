@@ -20,7 +20,7 @@ and Prometheus remote JMX-based agents.  https://github.com/fabric8io/agent-bond
 * The Fabric8 entrypoint script called 'run-java.sh' is also included and is used to 
 start all java-based applications in the Docker container.   
 
-* Intelligent JVM CPU and memory resource allocation based on container resource contraints.
+* Intelligent JVM CPU and memory resource allocation based on container resource constraints.
 
 
 The following container runtime configuration information is copied verbatim 

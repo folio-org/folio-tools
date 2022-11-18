@@ -325,7 +325,7 @@ def main():
             logger1.debug("Found %s declared schemas or types files.", len(schemas))
             if issues_flag:
                 exit_code = 1
-            # Ensure each $ref referenced schema file exists, is useable, and is declared in the RAML
+            # Ensure each $ref referenced schema file exists, is usable, and is declared in the RAML
             for schema in schemas:
                 schema_pn = os.path.normpath(os.path.join(ramls_dir, schemas[schema]))
                 if not os.path.exists(schema_pn):
@@ -505,7 +505,7 @@ def gather_declarations(raml_input_pn, raml_input_fn, raml_version, is_rmb, inpu
                     except KeyError:
                         logger.error("Missing declaration in '%s' for schema $ref '%s' used in 'validation.raml'", raml_input_fn, schema_key)
                         issues = True
-        # Some old traits must not be declared in new RMB, and will cause wierd messages
+        # Some old traits must not be declared in new RMB, and will cause weird messages
         if raml_version != "0.8":
             traits_excluded = ["auth.raml"]
             for trait in traits:
