@@ -56,7 +56,7 @@ def main():
         config = yaml.safe_load(http_response.text)
     else:
         if not os.path.exists(config_local_pn):
-            print("Development mode specified (-d) but config file (-c) not found: {0}".format(config_local_pn))
+            print(f"Development mode specified (-d) but config file (-c) not found: {config_local_pn}")
             sys.exit(1)
         with open(config_local_pn) as input_fh:
             config = yaml.safe_load(input_fh)
@@ -105,7 +105,7 @@ def main():
             else:
                 if isinstance(docset["files"], Iterable):
                     for raml_file in docset['files']:
-                        filename = "{0}/{1}/{2}.raml".format(repo, docset['directory'], raml_file)
+                        filename = f"{repo}/{docset['directory']}/{raml_file}.raml"
                         known_raml_files.append(filename)
 
     # print("known_raml_files ...")
@@ -170,10 +170,10 @@ def main():
                 repos_raml08.add(raml_fn.split("/", 1)[0])
 
     print("\nSummary:")
-    print("{0} repositories master branch were assessed.".format(count_repos))
-    print("{0} are configured as RAML-1.0 version.".format(len(repos_raml1_known)))
+    print(f"{count_repos} repositories master branch were assessed.")
+    print(f"{len(repos_raml1_known)} are configured as RAML-1.0 version.")
     #print(", ".join(sorted(repos_raml1_known)))
-    print("{0} were detected as RAML-1.0 version:".format(len(repos_raml1_detected)))
+    print(f"{len(repos_raml1_detected)} were detected as RAML-1.0 version:")
     #print(", ".join(sorted(repos_raml1_detected)))
     #print("Difference between sets:")
     #print(", ".join(sorted(repos_raml1_known.symmetric_difference(repos_raml1_detected))))
@@ -181,7 +181,7 @@ def main():
     print(", ".join(sorted(repos_raml1_known.difference(repos_raml1_detected))))
     print("Difference between detected and known:")
     print(", ".join(sorted(repos_raml1_detected.difference(repos_raml1_known))))
-    print("{0} are not yet raml1:".format(len(repos_raml08)))
+    print(f"{len(repos_raml08)} are not yet raml1:")
     print(", ".join(sorted(repos_raml08)))
 
 if __name__ == '__main__':

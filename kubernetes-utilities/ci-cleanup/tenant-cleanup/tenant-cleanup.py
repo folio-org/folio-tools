@@ -35,8 +35,8 @@ def main():
             build_number = t.rsplit('_', 1)[1]
             pr_number = t.rsplit('_', 2)[1]
             pr_repo = t.rsplit('_', 2)[0].replace("_", "-")
-            repo = "{}/{}".format(ORGANIZATION, pr_repo)
-            print("Checking pr for tenant: {}".format(t))
+            repo = f"{ORGANIZATION}/{pr_repo}"
+            print(f"Checking pr for tenant: {t}")
             closed = check_pr(repo, pr_number)
             if closed == True:
                 print("CLOSED " + t)
@@ -54,7 +54,7 @@ def main():
         latest_build = max([t['build'] for t in tenants_on_open_prs[pr]])
         for tenant in tenants_on_open_prs[pr]:
             if tenant['build'] != latest_build:
-                print("latest build is {}".format(str(latest_build)))
+                print(f"latest build is {str(latest_build)}")
                 print(tenant['id'] + " is not the latest build, deleting...")
                 delete_tenant(OKAPI, tenant['id'], token)
 
@@ -74,17 +74,15 @@ def delete_tenant(okapi_url, tenant, token):
         "x-okapi-token" : token,
     }
     r = requests.delete(okapi_url + 
-                        '/_/proxy/tenants/{}'.format(tenant),
+                        f'/_/proxy/tenants/{tenant}',
                         headers=headers)
     
     if r.status_code == 204:
-        print("successfully deleted {}".format(tenant))
+        print(f"successfully deleted {tenant}")
         deleted = True
     else:
         r.raise_for_status()
-        print("Failed to delete {} with status {}".format(
-            tenant, str(r.status_code)
-        ))
+        print(f"Failed to delete {tenant} with status {str(r.status_code)}")
     
     return deleted
 
@@ -102,12 +100,12 @@ def delete_bucket(bucket_name):
             key.delete()
         r = bucket.delete()
         deleted = r['ResponseMetadata']['HTTPStatusCode']
-        print("deleted bucket: {}".format(bucket_name))
+        print(f"deleted bucket: {bucket_name}")
     except ClientError as e:
         # notify if bucket doesn't exist but don't exit
         error_code = e.response['Error']['Code']
         if error_code == '404':
-            print("could not find bucket {}".format(bucket_name))
+            print(f"could not find bucket {bucket_name}")
 
     return deleted
 
@@ -115,16 +113,14 @@ def check_pr(repository, pr_number):
     closed = False
     pr_number = str(pr_number)
     r = requests.get(
-            "https://api.github.com/repos/{}/pulls/{}"
-            .format(repository, pr_number)
+            f"https://api.github.com/repos/{repository}/pulls/{pr_number}"
         )
     r.raise_for_status()
     if r.json()['state'] == 'closed':
         closed = True
     else:
         print(
-            "Pull request {} on {} is open, skipping..."
-            .format(pr_number, repository))
+            f"Pull request {pr_number} on {repository} is open, skipping...")
             
     return closed
 

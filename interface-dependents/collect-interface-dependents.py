@@ -63,7 +63,7 @@ def get_dependents(interface, okapi_address, tenant_id):
     return dependents
 
 def get_module_ids(okapi_address, tenant_id):
-    url = '{0}/_/proxy/tenants/{1}/modules'.format(okapi_address, tenant_id)
+    url = f'{okapi_address}/_/proxy/tenants/{tenant_id}/modules'
 
     modules_response = requests.get(url)
 
@@ -75,15 +75,14 @@ def get_module_ids(okapi_address, tenant_id):
         return list()
 
 def get_module_descriptor(id, okapi_address):
-    url = '{0}/_/proxy/modules/{1}'.format(okapi_address, id)
+    url = f'{okapi_address}/_/proxy/modules/{id}'
 
     module_response = requests.get(url)
 
     if(module_response.status_code == 200):
         return module_response.json()
     else:
-        print('Could not get module from {0}, status: {1}'.format(
-         url, module_response.status_code))
+        print(f'Could not get module from {url}, status: {module_response.status_code}')
         return []
 
 def get_module_descriptors(module_id_list, okapi_address, tenant_id):

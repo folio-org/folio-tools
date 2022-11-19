@@ -214,7 +214,7 @@ def main():
         else:
             if isinstance(docset["files"], Iterable):
                 for raml_name in docset["files"]:
-                    raml_fn = "{0}.raml".format(raml_name)
+                    raml_fn = f"{raml_name}.raml"
                     configured_raml_files.append(raml_fn)
         exclude_list = ["raml-util", "rtypes", "traits", "examples", "bindings", "node_modules", ".git"]
         try:

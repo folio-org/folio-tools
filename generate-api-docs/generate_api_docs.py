@@ -95,7 +95,7 @@ def main():
     else:
         input_dir = args.input
         if not os.path.exists(input_dir):
-            msg = "Specified input directory of git clone (-i) not found: {0}".format(input_dir)
+            msg = f"Specified input directory of git clone (-i) not found: {input_dir}"
             logger.critical(msg)
             return 2
 
@@ -284,7 +284,7 @@ def main():
             else:
                 if isinstance(docset["files"], Iterable):
                     for raml_name in docset["files"]:
-                        raml_fn = "{0}.raml".format(raml_name)
+                        raml_fn = f"{raml_name}.raml"
                         configured_raml_files.append(raml_fn)
             found_raml_files = []
             raml_files = []

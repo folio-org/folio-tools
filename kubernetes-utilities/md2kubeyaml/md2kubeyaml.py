@@ -58,7 +58,7 @@ def parse_from_file(md_file):
     except FileNotFoundError as e:
         sys.exit(': '.join([e.strerror, e.filename]) )
     except json.decoder.JSONDecodeError as e:
-        sys.exit("{} is not valid JSON".format(md_file))
+        sys.exit(f"{md_file} is not valid JSON")
     return md
 
 def parse_from_url(url):
