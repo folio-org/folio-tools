@@ -112,7 +112,7 @@ if __name__ == "__main__":
     except Exception as e:
         if(args.debug):
             raise e
-        sys.stderr.write("Error processing logs: %s\n" % e)
+        sys.stderr.write(f"Error processing logs: {e}\n")
         sys.exit(1)
 
 

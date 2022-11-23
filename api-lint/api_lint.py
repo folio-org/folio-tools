@@ -206,12 +206,12 @@ def get_api_version(file_pn, api_type, version_raml_re, version_oas_re):
             if "RAML" in api_type:
                 match = re.search(version_raml_re, line)
                 if match:
-                    api_version = "RAML {}.{}".format(match.group(1), match.group(2))
+                    api_version = f"RAML {match.group(1)}.{match.group(2)}"
                     break
             if "OAS" in api_type:
                 match = re.search(version_oas_re, line)
                 if match:
-                    api_version = "OAS {}.{}".format(match.group(1), match.group(2))
+                    api_version = f"OAS {match.group(1)}.{match.group(2)}"
                     break
     if api_version:
         if "RAML" in api_type:

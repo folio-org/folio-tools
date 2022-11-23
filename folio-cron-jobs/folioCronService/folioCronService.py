@@ -16,7 +16,7 @@ def getCredentials(section="DEFAULT"):
         getCredentials- pull credentials from credential file.
     """
     home=os.path.expanduser('~')
-    credentials="{0}/.folio-cron".format(home)
+    credentials=f"{home}/.folio-cron"
     try:
         config = configparser.ConfigParser()
     except:
@@ -31,7 +31,7 @@ def getAuthToken(tenant,section="DEFAULT"):
     headers = copy.copy(header_default)
     headers["x-okapi-tenant"]= tenant
     creds= getCredentials(section)
-    req = requests.post("{0}/authn/login".format(okapi_url),data=json.dumps(creds),headers=headers)
+    req = requests.post(f"{okapi_url}/authn/login",data=json.dumps(creds),headers=headers)
     if req.status_code >= 400:
         raise Exception("Please check username and password in credential file ('~/.folio-cron').")
     return req.headers['x-okapi-token']
@@ -40,7 +40,7 @@ def getServiceVariables(path,name):
     """ 
         getServiceVariables- return cron config service variables.
     """
-    with open("{0}/{1}.json".format(path,name),'r') as f1:
+    with open(f"{path}/{name}.json",'r') as f1:
         jsonstring=f1.read()
     return json.loads(jsonstring)
 
@@ -49,7 +49,7 @@ def cronOkapiService(configDir,name,**kwargs):
         cronOkapiService - The service witch allows Okapi POST or GET.
    """
     if configDir is None:
-        path="{0}/config".format(os.path.dirname(os.path.abspath(__file__)))
+        path=f"{os.path.dirname(os.path.abspath(__file__))}/config"
     else:
         if os.path.isdir(configDir):
             path=configDir
@@ -61,13 +61,13 @@ def cronOkapiService(configDir,name,**kwargs):
     headers["x-okapi-token"]=getAuthToken(service_vars['tenant'],section=service_vars['user_config_section'])
     if service_vars['method'].lower() == 'post':
         payload=service_vars['data']
-        req = requests.post("{0}{1}".format(okapi_url,service_vars['api-path']), data=json.dumps(payload),headers=headers)
-        print("{0} Status:{1} Method: POST Request: {2}".format(datetime.datetime.now().isoformat(),req.status_code,service_vars['api-path']))
+        req = requests.post(f"{okapi_url}{service_vars['api-path']}", data=json.dumps(payload),headers=headers)
+        print(f"{datetime.datetime.now().isoformat()} Status:{req.status_code} Method: POST Request: {service_vars['api-path']}")
         print(req.text)
     elif service_vars['method'].lower() == 'get':
         payload=service_vars['data']
-        req = requests.get("{0}{1}".format(okapi_url,service_vars['api-path']), params=payload,headers=headers)
-        print("{0} Status:{1} Method: GET Request: {2}".format(datetime.datetime.now().isoformat(),req.status_code,service_vars['api-path']))
+        req = requests.get(f"{okapi_url}{service_vars['api-path']}", params=payload,headers=headers)
+        print(f"{datetime.datetime.now().isoformat()} Status:{req.status_code} Method: GET Request: {service_vars['api-path']}")
         if req.status_code < 400:
             print(req.json())
         else:
@@ -80,7 +80,7 @@ def cronOkapiServiceSetup(configDir,**kwargs):
         cronOkapiServiceSetup - provide the set up of all enabled cronjobs within the config folder.
     """
     if configDir is None:
-        path="{0}/config".format(os.path.dirname(os.path.abspath(__file__)))
+        path=f"{os.path.dirname(os.path.abspath(__file__))}/config"
     else:
         if os.path.isdir(configDir):
             path=configDir
@@ -95,7 +95,7 @@ def cronOkapiServiceSetup(configDir,**kwargs):
     cron_jobs = cron.__str__().split('\n')
     cron.remove_all()
     abspath = os.path.abspath(__file__)
-    abspath = "{0}bin/foliocron".format(abspath.split('lib')[0])
+    abspath = f"{abspath.split('lib')[0]}bin/foliocron"
     for filename in filenames:
         job=os.path.splitext(filename)
         if job[1]=='.json':
@@ -114,7 +114,7 @@ def cronConfig(username,password,**kwargs):
         cronConfig - creates auth file in home directory. Only sets the DEFAULT config section.
     """
     home=os.path.expanduser('~')
-    filename = "{0}/.folio-cron".format(home)  
+    filename = f"{home}/.folio-cron"  
     try:
         config = configparser.ConfigParser()
     except:

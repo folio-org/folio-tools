@@ -117,7 +117,7 @@ def get_enabled_modules(okapi_url, tenant_list):
     enabled_modules = []
     for tenant in tenant_list:
         r = okapi_get(okapi_url,
-                      "/_/proxy/tenants/{}/modules".format(tenant),
+                      f"/_/proxy/tenants/{tenant}/modules",
                       params={"npmSnapshot": "false"})
 
         for module in r.json():
@@ -190,7 +190,7 @@ def make_svcid(name):
     release = ''.join(release_parts)
 
     if snapshot_version:
-        svcid = "{}-{}".format(release, snapshot_version)
+        svcid = f"{release}-{snapshot_version}"
     else:
         svcid = release
 
@@ -202,20 +202,20 @@ def delete_deployment(svcid, okapi_url, token):
         "x-okapi-token" : token
     }
     r = requests.delete(okapi_url +
-            '/_/discovery/modules/{}'.format(svcid),
+            f'/_/discovery/modules/{svcid}',
             headers = headers)
     try:
         r.raise_for_status()
-        print("deleted deployment with srvcId: {}".format(svcid))
+        print(f"deleted deployment with srvcId: {svcid}")
     except requests.exceptions.HTTPError:
-        print("deployment with id: {} not foud, skipping...".format(svcid))
+        print(f"deployment with id: {svcid} not foud, skipping...")
 
     return r.status_code
 
 
 def delete_app(client, app, namespace):
     # delete deployment
-    print("deleting deployments and services for {}". format(app))
+    print(f"deleting deployments and services for {app}")
     print("deleting deployment...")
     v1Apps = client.AppsV1Api()
     deployment_result = v1Apps.delete_namespaced_deployment(
@@ -235,7 +235,7 @@ def delete_app(client, app, namespace):
         service_message = service_result.status
     except client.rest.ApiException as e:
         if e.status == 404:
-            service_message = "{} service {}, skipping...".format(app, e.reason)
+            service_message = f"{app} service {e.reason}, skipping..."
         else:
             sys.exit(e)
     print(service_message)
