@@ -419,6 +419,7 @@ def generate_doc(api_type, api_temp_dir, output_dir, input_pn):
         try:
             cmd("bundle", input_pn,
                 "--options.hideDownloadButton",
+                "--options.schemaExpansionLevel=1",
                 cdn=True,
                 output=output_1_pn)
         except sh.ErrorReturnCode as err:
