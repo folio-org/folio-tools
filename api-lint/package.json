@@ -1,7 +1,7 @@
 {
   "license": "Apache-2.0",
   "dependencies": {
-    "amf-client-js": "5.2.0",
+    "amf-client-js": "5.2.2",
     "yargs": "^17.0.0"
   },
   "devDependencies": {
