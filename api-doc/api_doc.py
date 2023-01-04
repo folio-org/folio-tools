@@ -29,7 +29,7 @@ import tempfile
 import sh
 import yaml
 
-SCRIPT_VERSION = "1.4.1"
+SCRIPT_VERSION = "1.4.2"
 
 LOGLEVELS = {
     "debug": logging.DEBUG,
@@ -419,6 +419,7 @@ def generate_doc(api_type, api_temp_dir, output_dir, input_pn):
         try:
             cmd("bundle", input_pn,
                 "--options.hideDownloadButton",
+                "--options.schemaExpansionLevel=1",
                 cdn=True,
                 output=output_1_pn)
         except sh.ErrorReturnCode as err:
