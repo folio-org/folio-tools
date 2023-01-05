@@ -8,9 +8,6 @@ RUN mkdir -p /usr/verticles
 ENV JAVA_APP_DIR=/usr/verticles \
     JAVA_MAJOR_VERSION=17
 
-# Note: FOLIO-3499 2022-05-12:
-# This still has the workaround from broken zlib FOLIO-3487
-# as the fix is still not in the temurin images.
 RUN apk upgrade \
  && apk add \
       # https://issues.folio.org/browse/FOLIO-3406 libc6-compat for OpenSSL
