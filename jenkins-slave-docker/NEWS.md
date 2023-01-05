@@ -1,3 +1,21 @@
+## 3.0.8 java-17 2023-01-05
+
+* Update OS to latest jammy-updates FOLIO-3626
+* Upgrade Docker to 20.10.22
+* Upgrade Nodejs to 16.19.0
+* Upgrade OpenJDK to 17.0.5
+* Upgrade api-lint to 1.1.4 FOLIO-3677
+* Upgrade api-doc to 1.4.2 FOLIO-3677
+
+## 2.10.8 java-11 2023-01-05
+
+* Update OS to latest jammy-updates FOLIO-3626
+* Upgrade Docker to 20.10.22
+* Upgrade Nodejs to 14.21.1
+* Upgrade OpenJDK to 11.0.17
+* Upgrade api-lint to 1.1.4 FOLIO-3677
+* Upgrade api-doc to 1.4.2 FOLIO-3677
+
 ## 3.0.7 java-17 2022-11-03
 
 * Update OS to latest jammy-updates FOLIO-3618
