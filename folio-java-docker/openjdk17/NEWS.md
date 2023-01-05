@@ -1,3 +1,8 @@
+## 2.0.6 2023-01-06
+
+* Rebuild to update [FOLIO-3635](https://issues.folio.org/browse/FOLIO-3635)
+* Upgraded to eclipse-temurin:17-jre-alpine latest (using Alpine 3.17)
+
 ## 2.0.5 2022-11-08
 
 * Rebuild to update [FOLIO-3611](https://issues.folio.org/browse/FOLIO-3611)
