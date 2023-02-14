@@ -1,2 +1,2 @@
-sh
+sh >= 2.0.2
 PyYAML
