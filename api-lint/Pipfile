@@ -6,7 +6,7 @@ verify_ssl = true
 [dev-packages]
 
 [packages]
-sh = "*"
+sh = ">=2.0.2"
 
 [requires]
 python_version = "3.9"
