@@ -29,7 +29,7 @@ import tempfile
 import sh
 import yaml
 
-SCRIPT_VERSION = "1.4.2"
+SCRIPT_VERSION = "1.5.0"
 
 LOGLEVELS = {
     "debug": logging.DEBUG,
@@ -265,7 +265,7 @@ def dereference_schemas(api_type, input_dir, output_dir, schemas):
         input_pn = os.path.normpath(os.path.join(input_dir, schema_fn))
         output_pn = os.path.join(output_schemas_dir, os.path.basename(input_pn))
         try:
-            sh.node(script_pn, input_pn, output_pn).stdout.decode().strip()
+            sh.node(script_pn, input_pn, output_pn)
         except sh.ErrorReturnCode as err:
             logger.debug("Trouble doing node: %s", err.stderr.decode())
             msg = ("Ignore the error, and do not replace the schema. "
@@ -493,7 +493,7 @@ def get_options():
     else:
         try:
             repo_url = sh.git.config("--get", "remote.origin.url",
-                _cwd=input_dir).stdout.decode().strip()
+                _cwd=input_dir)
         except sh.ErrorReturnCode as err:
             logger.critical("Trouble doing 'git config': %s", err.stderr.decode())
             msg = ("Could not determine remote.origin.url of git clone "
