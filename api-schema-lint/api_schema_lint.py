@@ -193,7 +193,7 @@ def assess_schema_descriptions(schema_files):
         # Use jq to gather all properties into easier-to-use form.
         jq_filter = '[ .. | .properties? | objects ]'
         try:
-            result_jq = sh.jq('--monochrome-output', jq_filter, schema_pn).stdout.decode().strip()
+            result_jq = sh.jq('--monochrome-output', jq_filter, schema_pn)
         except sh.ErrorReturnCode_2 as err:
             logger.error("Trouble doing jq: usage error: %s", err.stderr.decode())
             issues = True
