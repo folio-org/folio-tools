@@ -330,6 +330,7 @@ def get_interfaces_endpoints(repo_name, api_temp_dir):
       "ModuleDescriptor.json",
       "service/src/main/okapi/ModuleDescriptor-template.json"
     ]
+    interface_version_re = re.compile(r"^\$\{.*$")
     if repo_name not in avoid_modules:
         for md_fn in md_fns:
             md_pn = os.path.join(api_temp_dir, md_fn)
@@ -346,7 +347,11 @@ def get_interfaces_endpoints(repo_name, api_temp_dir):
                 else:
                     # logger.debug("%s", f"{provides=}")
                     for provide in provides:
-                        interface = provide["id"] + " " + provide["version"]
+                        interface_version = interface_version_re.sub("", provide["version"])
+                        if interface_version:
+                            interface = provide["id"] + " " + interface_version
+                        else:
+                            interface = provide["id"]
                         # logger.debug("%s", f"{interface=}")
                         for handler in provide["handlers"]:
                             path = handler["pathPattern"].replace("*", "")
