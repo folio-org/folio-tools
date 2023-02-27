@@ -29,7 +29,7 @@ import tempfile
 import sh
 import yaml
 
-SCRIPT_VERSION = "1.5.0"
+SCRIPT_VERSION = "1.5.1"
 
 LOGLEVELS = {
     "debug": logging.DEBUG,
