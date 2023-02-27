@@ -71,7 +71,7 @@ RUN wget -O - https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
     apt-get -q update && apt-get install -y yarn=${YARN_VERSION}
 
 # Install Docker cli
-ARG DOCKER_VERSION=20.10.22
+ARG DOCKER_VERSION=20.10.23
 RUN wget -q --no-cookies \
     https://download.docker.com/linux/static/stable/x86_64/docker-${DOCKER_VERSION}.tgz \
     -O /tmp/docker.tgz && \
