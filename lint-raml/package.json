@@ -1,6 +1,0 @@
-{
-  "license": "Apache-2.0",
-  "dependencies": {
-    "raml-cop": "^5.0.0"
-  }
-}
