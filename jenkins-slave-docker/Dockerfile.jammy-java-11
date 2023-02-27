@@ -71,7 +71,7 @@ RUN wget -O - https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
     apt-get -q update && apt-get install -y yarn=${YARN_VERSION}
 
 # Install Docker cli
-ARG DOCKER_VERSION=20.10.22
+ARG DOCKER_VERSION=20.10.23
 RUN wget -q --no-cookies \
     https://download.docker.com/linux/static/stable/x86_64/docker-${DOCKER_VERSION}.tgz \
     -O /tmp/docker.tgz && \
@@ -98,36 +98,25 @@ RUN cd /usr/local && \
     yarn install && \
     ln -s /usr/local/folio-tools/api-doc/api_doc.py \
     /usr/local/bin/api_doc.py && \
-    chmod +x /usr/local/folio-tools/api-doc/api_doc.py
-
-# Install generate_api_docs from folio-org/folio-tools
-# This is deprecated by api-doc
-RUN cd /usr/local/folio-tools/generate-api-docs && \
-    yarn install && \
-    ln -s /usr/local/folio-tools/generate-api-docs/generate_api_docs.py \
-    /usr/local/bin/generate_api_docs.py && \
-    chmod +x /usr/local/folio-tools/generate-api-docs/generate_api_docs.py
+    chmod +x /usr/local/folio-tools/api-doc/api_doc.py && \
+    pip3 install -r requirements.txt
 
 # Install api-lint from folio-org/folio-tools
 RUN cd /usr/local/folio-tools/api-lint && \
     yarn install && \
     ln -s /usr/local/folio-tools/api-lint/api_lint.py \
     /usr/local/bin/api_lint.py && \
-    chmod +x /usr/local/folio-tools/api-lint/api_lint.py
+    chmod +x /usr/local/folio-tools/api-lint/api_lint.py && \
+    pip3 install -r requirements.txt
 
 # Install api-schema-lint from folio-org/folio-tools
 RUN cd /usr/local/folio-tools/api-schema-lint && \
     ln -s /usr/local/folio-tools/api-schema-lint/api_schema_lint.py \
     /usr/local/bin/api_schema_lint.py && \
-    chmod +x /usr/local/folio-tools/api-schema-lint/api_schema_lint.py
+    chmod +x /usr/local/folio-tools/api-schema-lint/api_schema_lint.py && \
+    pip3 install -r requirements.txt
 
-# Install lint_raml_cop from folio-org/folio-tools
-# This is deprecated by api-lint
-RUN cd /usr/local/folio-tools/lint-raml && \
-    yarn install && \
-    ln -s /usr/local/folio-tools/lint-raml/lint_raml_cop.py \
-    /usr/local/bin/lint_raml_cop.py && \
-    chmod +x /usr/local/folio-tools/lint-raml/lint_raml_cop.py
+RUN pip3 freeze | egrep "PyYAML|requests|sh"
 
 # docker build '--build-arg' and their FOLIO CI defaults
 ARG user=jenkins
