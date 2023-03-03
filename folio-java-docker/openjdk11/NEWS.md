@@ -1,3 +1,8 @@
+## 1.3.10 2023-03-03
+
+* Rebuild to update [FOLIO-3682](https://issues.folio.org/browse/FOLIO-3682)
+* OpenJDK Runtime Environment Temurin-11.0.18+10
+
 ## 1.3.9 2023-01-05
 
 * Rebuild to update [FOLIO-3635](https://issues.folio.org/browse/FOLIO-3635)
