@@ -12,5 +12,10 @@
     "eslint": "^8.2.0",
     "eslint-plugin-import": "^2.25.2",
     "eslint-config-airbnb-base": "latest"
+  },
+  "resolutions": {
+    "**/json-ptr": "^3.0.0",
+    "**/marked": "^2.0.0",
+    "**/underscore": "^1.12.1"
   }
 }
