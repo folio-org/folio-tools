@@ -1,3 +1,13 @@
+## 3.0.10 java-17 2023-05-25
+
+* Update OS to latest jammy-updates 
+* Upgrade Nodejs to 18.16.0
+
+## 2.10.10 java-11 2023-05-25
+
+* Update OS to latest jammy-updates
+* Upgrade Nodejs to 16.20.0
+
 ## 3.0.9 java-17 2023-02-27
 
 * Update OS to latest jammy-updates FOLIO-3680
