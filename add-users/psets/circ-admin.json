@@ -1,6 +1,8 @@
 [
   "Check in: All permissions",
   "Check out: All permissions",
+  "Circulation log: All",
+  "Courses: All permissions",
   "Fast add: Create",
   "Fee/Fine Details: Can create, edit and remove fee/fine actions",
   "Fee/Fine History: Can create, edit and remove fee/fine actions",
@@ -30,7 +32,6 @@
   "Settings (Circ): Can view loan history",
   "Settings (Courses): Can create, edit and delete Course Settings",
   "Settings (Users): Can create, edit and remove all feefines-related entries",
-  "Settings (courses): display list of settings pages",
   "ui-tags.view",
   "ui-tags.all",
   "Users: Can assign and unassign permissions to users",

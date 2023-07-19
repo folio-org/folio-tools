@@ -22,13 +22,15 @@
   "Users: Can view permissions assigned to users",
   "Users: Can view proxies assigned to users",
   "Users: Can view service points assigned to users",
-  "Users: Can view user profile",
   "Users: Create/reset password",
   "Users: User loan edit",
   "Users: User loans claim returned",
   "Users: User loans declare lost",
   "Users: User loans mark claimed returned missing",
   "Users: User loans renew through override",
-  "Users: User loans renew",
-  "Users: User loans view"
+  "Users: User loans view, change due date, renew",
+  "Users: User loans: add patron information",
+  "Users: User loans: add staff information",
+  "Users: View requests",
+  "Settings (Users): View all settings"
 ]

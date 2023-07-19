@@ -1,6 +1,7 @@
 [
   "Check in: All permissions",
   "Check out: Check out circulating items",
+  "Circulation log: View",
   "Fast add: Create",
   "Inventory: View instances, holdings, and items",
   "Notes: Can assign and unassign a note",
@@ -9,7 +10,7 @@
   "Requests: View, create",
   "ui-tags.view",
   "Users: Can pay fee/fine",
-  "Users: Can view fees/fines",
+  "Users: Can view fees/fines and loans",
   "Users: Can view permissions assigned to users",
   "Users: Can view proxies assigned to users",
   "Users: Can view service points assigned to users",
