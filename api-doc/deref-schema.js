@@ -1,6 +1,6 @@
-const RefParser = require('@apidevtools/json-schema-ref-parser');
-const path = require('path');
 const fs = require('fs');
+const path = require('path');
+const RefParser = require('@apidevtools/json-schema-ref-parser');
 
 const inPath = path.resolve(__dirname, process.argv[2]);
 const outPath = path.resolve(__dirname, process.argv[3]);

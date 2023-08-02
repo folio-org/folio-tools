@@ -29,7 +29,7 @@ import tempfile
 import sh
 import yaml
 
-SCRIPT_VERSION = "1.5.2"
+SCRIPT_VERSION = "1.5.3"
 
 LOGLEVELS = {
     "debug": logging.DEBUG,
@@ -418,14 +418,13 @@ def generate_doc(api_type, api_temp_dir, output_dir, input_pn):
             pass
     if "OAS" in api_type:
         output_1_pn = os.path.join(output_dir, "s", output_fn)
-        cmd_name = "redoc-cli"
+        cmd_name = "redocly"
         cmd = sh.Command(os.path.join(sys.path[0], "node_modules", ".bin", cmd_name))
         # Generate using the default redoc template
         try:
-            cmd("bundle", input_pn,
-                "--options.hideDownloadButton",
-                "--options.schemaExpansionLevel=1",
-                cdn=True,
+            cmd("build-docs", input_pn,
+                "--theme.openapi.hideDownloadButton",
+                "--theme.openapi.schemaExpansionLevel=1",
                 output=output_1_pn)
         except sh.ErrorReturnCode as err:
             logger.error("%s: %s", cmd_name, err.stderr.decode())
@@ -521,9 +520,9 @@ def get_options():
             logger.critical(msg, directory)
             exit_code = 2
     # Ensure that commands are available
-    bin_redoc = os.path.join(sys.path[0], "node_modules", ".bin", "redoc-cli")
+    bin_redoc = os.path.join(sys.path[0], "node_modules", ".bin", "redocly")
     if not os.path.exists(bin_redoc):
-        logger.critical("'redoc-cli' is not available.")
+        logger.critical("'redocly' is not available.")
         logger.critical("Do 'yarn install' in folio-tools/api-doc directory.")
         exit_code = 2
     # Prepare the sets of excludes for os.walk
