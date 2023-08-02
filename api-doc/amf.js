@@ -1,3 +1,4 @@
+const fs = require('fs');
 const { argv } = require('yargs/yargs')(process.argv.slice(2))
   .usage('Usage: node $0 [options]')
   .example('node $0 -t "RAML 1.0" -m mod-courses -f $GH_FOLIO/mod-courses/ramls/courses.raml')
@@ -14,7 +15,6 @@ const { argv } = require('yargs/yargs')(process.argv.slice(2))
   .version('1.0.2');
 
 const amf = require('amf-client-js');
-const fs = require('fs');
 
 if (!fs.existsSync(argv.inputFile)) {
   console.error(`Input file does not exist: ${argv.inputFile}`);
