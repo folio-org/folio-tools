@@ -9,11 +9,11 @@ Version 2.0. See the file "[LICENSE](LICENSE)" for more information.
 
 Discover and process API JSON schema files and ensure that each property has a "description".
 
-The Python script is used in FOLIO CI as the build stage "API schema lint". See Jenkinsfile configuration usage notes.
+The Python script is used in FOLIO CI as the GitHub Workflow "api-schema-lint".
 
 The Python script can also be used locally prior to commit.
 
-Refer to additional [notes](https://dev.folio.org/guides/api-lint/).
+Refer to additional [notes](https://dev.folio.org/guides/describe-schema/).
 
 ## Requirements
 
