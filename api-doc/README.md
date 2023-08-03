@@ -9,7 +9,7 @@ Version 2.0. See the file "[LICENSE](LICENSE)" for more information.
 
 Process API description files, either [RAML](https://en.wikipedia.org/wiki/RAML_(software)) or OpenAPI Specification ([OAS](https://en.wikipedia.org/wiki/OpenAPI_Specification)), and generate HTML API documentation.
 
-The Python script is used in FOLIO CI as the build stage "Generate API docs". See Jenkinsfile configuration usage notes.
+The Python script is used in FOLIO CI as the GitHub Workflow "api-doc".
 
 The Python script can also be used locally prior to commit.
 
