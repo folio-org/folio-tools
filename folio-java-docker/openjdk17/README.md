@@ -13,10 +13,10 @@ Agent Bond support has been stripped.
 
 ### Sample module Dockerfile
 
-This is a sample Dockerfile for the module mod-inventory-storage.
-It picks up `target/mod-inventory-storage-fat.jar` that Maven has built.
+This is a sample Dockerfile. Don't forget to add a `.dockerignore` file as shown below.
 
 ```
+# https://github.com/folio-org/folio-tools/tree/master/folio-java-docker/openjdk17
 FROM folioci/alpine-jre-openjdk17:latest
 
 # Install latest patch versions of packages: https://pythonspeed.com/articles/security-updates-in-docker/
@@ -24,13 +24,8 @@ USER root
 RUN apk upgrade --no-cache
 USER folio
 
-ENV VERTICLE_FILE mod-inventory-storage-fat.jar
-
-# Set the location of the verticles
-ENV VERTICLE_HOME /usr/verticles
-
-# Copy your fat jar to the container
-COPY target/${VERTICLE_FILE} ${VERTICLE_HOME}/${VERTICLE_FILE}
+# Copy your fat jar to the container; if multiple *.jar files exist the .dockerignore file excludes others
+COPY target/*.jar ${JAVA_APP_DIR}
 
 # Expose this port locally in the container.
 EXPOSE 8081
@@ -43,6 +38,29 @@ RUN apk upgrade \
  && apk add \
       ipptools \
  && rm -rf /var/cache/apk/*
+```
+
+### Sample .dockerignore file
+
+Use a `.dockerignore` file to speed up the build process by only sending the
+fat jar file to the docker build daemon.
+
+Spring based modules generate a single jar file in the `target` directory and may
+use this `.dockerignore` file:
+
+```
+# Only the fat jar file is needed for the Docker container
+*
+!target/*.jar
+```
+
+Raml module builder (RMB) based modules generate two jar files in the `target`
+directory and may use this `.dockerignore` file:
+
+```
+# Only the fat jar file is needed for the Docker container
+*
+!target/*-fat.jar
 ```
 
 ### No curl, use wget
