@@ -1,3 +1,15 @@
+## 3.0.11 java-17 2023-10-18
+
+* Update OS to latest jammy-updates 
+* Upgrade Docker to 23.0.6
+* Upgrade Nodejs to 18.17.1
+
+## 2.10.11 java-11 2023-10-18
+
+* Update OS to latest jammy-updates
+* Upgrade Docker to 23.0.6
+* Upgrade Nodejs to 16.20.2
+
 ## 3.0.10 java-17 2023-05-25
 
 * Update OS to latest jammy-updates 
