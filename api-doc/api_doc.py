@@ -328,7 +328,8 @@ def get_interfaces_endpoints(repo_name, api_temp_dir):
     md_fns = [
       "descriptors/ModuleDescriptor-template.json",
       "ModuleDescriptor.json",
-      "service/src/main/okapi/ModuleDescriptor-template.json"
+      "service/src/main/okapi/ModuleDescriptor-template.json",
+      "src/main/resources/descriptors/ModuleDescriptor.json"
     ]
     interface_version_re = re.compile(r"^\$\{.*$")
     if repo_name not in avoid_modules:
