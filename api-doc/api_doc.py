@@ -29,7 +29,7 @@ import tempfile
 import sh
 import yaml
 
-SCRIPT_VERSION = "1.5.4"
+SCRIPT_VERSION = "1.5.5"
 
 LOGLEVELS = {
     "debug": logging.DEBUG,
@@ -63,7 +63,8 @@ def main():
     config_json["metadata"] = {}
     config_json["metadata"]["repository"] = repo_name
     config_json["metadata"]["generatedDate"] = generated_date
-    config_json["metadata"]["generator"] = f"{PROG_NAME} {SCRIPT_VERSION}"
+    version_mm = re.sub(r"\.\d+$", "", SCRIPT_VERSION)
+    config_json["metadata"]["generator"] = f"{PROG_NAME} {version_mm}"
     config_json["metadata"]["apiTypes"] = api_types
     config_json["config"] = {
         "oas": { "files": [] },
