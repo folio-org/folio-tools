@@ -1,3 +1,9 @@
+## 3.0.12 java-17 2024-02-13
+
+* Update OS to latest jammy-updates
+* Upgrade maven to 3.8.8
+* Upgrade Nodejs to 18.19.0
+
 ## 3.0.11 java-17 2023-10-18
 
 * Update OS to latest jammy-updates 
