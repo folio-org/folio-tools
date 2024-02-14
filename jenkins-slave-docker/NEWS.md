@@ -1,3 +1,9 @@
+## 3.0.13 java-17 2024-02-14
+
+* Update OS to latest jammy-updates
+* Downgrade maven to 3.6.3
+* Upgrade Docker to 24.0.9
+
 ## 3.0.12 java-17 2024-02-13
 
 * Update OS to latest jammy-updates
