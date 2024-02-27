@@ -60,6 +60,8 @@
   "Requests: View, create",
   "Requests: View, edit, cancel",
   "Requests: View",
+  "Serials: Edit serials",
+  "Serials: Create predicted pieces",
   "Settings (Orders): Can view Order Templates",
   "Settings (Orders): Can view, edit Order Templates",
   "Settings (Orders): Can view, edit, create new Order Templates",
