@@ -9,4 +9,4 @@ verify_ssl = true
 sh = ">=2.0.2"
 
 [requires]
-python_version = "3.9"
+python_version = "3.12"
