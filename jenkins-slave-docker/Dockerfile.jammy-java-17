@@ -52,7 +52,7 @@ RUN wget -q --no-cookies -O - \
 RUN apt-get -q update && \
     DEBIAN_FRONTEND="noninteractive" apt-get -q install -y \
     -o Dpkg::Options::="--force-confnew"  --no-install-recommends \
-    openjdk-17-jdk build-essential debhelper lintian fakeroot devscripts jq maven python3 \
+    openjdk-17-jdk build-essential debhelper lintian fakeroot devscripts jq python3 \
     python3-pip python3-setuptools python3-wheel python3-yaml python3-requests python3-sh nodejs \
     postgresql-client-${POSTGRES_VERSION} xvfb libgtk2.0-0 libxtst6 libxss1 libgconf-2-4 libnss3 \
     libnspr4 libasound2 firefox google-chrome-stable libaio1 zip python-is-python3 libyaz5 && \
@@ -80,6 +80,14 @@ RUN wget -q --no-cookies \
     cd /tmp && tar zxvf docker.tgz && \
     mv /tmp/docker/* /usr/local/bin/ && \
     rm -rf /tmp/docker*
+
+ARG MAVEN_VERSION=3.8.8
+RUN wget https://dlcdn.apache.org/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz && \
+    tar xzf apache-maven-${MAVEN_VERSION}-bin.tar.gz -C /opt/ && \
+    cd /opt/ && \
+    mv apache-maven-${MAVEN_VERSION} maven && \
+    echo "M2_HOME=/opt/maven" > /etc/profile.d/maven.sh && \
+    echo "PATH=\${M2_HOME}/bin:\${PATH}" >> /etc/profile.d/maven.sh
 
 # Install AWS cli tools
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
