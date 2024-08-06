@@ -1,3 +1,8 @@
+## 3.0.14 java-17 2024-08-06
+
+* Update OS to latest jammy-updates
+* Update Maven to 3.8.8
+
 ## 3.0.13 java-17 2024-02-14
 
 * Update OS to latest jammy-updates
