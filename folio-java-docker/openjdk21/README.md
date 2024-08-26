@@ -1,7 +1,7 @@
-This directory has the configuration to build the alpine-jre-openjdk17
-Docker container for FOLIO modules that run under Java SE 17.
+This directory has the configuration to build the alpine-jre-openjdk21
+Docker container for FOLIO modules that run under Java SE 21.
 
-The image is deployed to [docker.io/folioci/alpine-jre-openjdk17](https://hub.docker.com/r/folioci/alpine-jre-openjdk17).
+The image is deployed to [docker.io/folioci/alpine-jre-openjdk21](https://hub.docker.com/r/folioci/alpine-jre-openjdk21).
 
 It is based on
 https://github.com/fabric8io-images/java/tree/master/images/alpine/openjdk11/jre
@@ -18,8 +18,8 @@ Agent Bond support has been stripped.
 This is a sample Dockerfile. Don't forget to add a `.dockerignore` file as shown below.
 
 ```
-# https://github.com/folio-org/folio-tools/tree/master/folio-java-docker/openjdk17
-FROM folioci/alpine-jre-openjdk17:latest
+# https://github.com/folio-org/folio-tools/tree/master/folio-java-docker/openjdk21
+FROM folioci/alpine-jre-openjdk21:latest
 
 # Install latest patch versions of packages: https://pythonspeed.com/articles/security-updates-in-docker/
 USER root
@@ -38,7 +38,7 @@ To `apk add` packages replace `apk upgrade` with this pattern:
 ```
 RUN apk upgrade \
  && apk add \
-      ipptools \
+      libc6-compat \
  && rm -rf /var/cache/apk/*
 ```
 
@@ -65,21 +65,15 @@ directory and may use this `.dockerignore` file:
 !target/*-fat.jar
 ```
 
-### No curl, use wget
+### libc6-compat for OpenSSL
 
-While curl is in folioci/alpine-jre-openjdk11 it has been removed from
-folioci/alpine-jre-openjdk17 for the reasons explained in
-https://issues.folio.org/browse/FOLIO-3407
+OpenJDK 21 ships with fast implementations of TLSv1.3 and TLSv1.2. This eliminates the
+use of OpenSSL for most cases.
 
-In Jenkinsfile change
+If there is still a need for OpenSSL, you need to add the libc6-compat library,
+see `apk upgrade` example above.
 
-```
-healthChkCmd = 'curl -sS --fail -o /dev/null  http://localhost:8081/admin/health || exit 1'
-```
-to
-```
-healthChkCmd = 'wget --no-verbose --tries=1 --spider http://localhost:8081/admin/health || exit 1'
-```
+Note that alpine-jre-openjdk17 ships with libc6-compat but alpine-jre-openjdk21 doesn't.
 
 ### Note about shell
 
