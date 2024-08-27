@@ -21,7 +21,7 @@ RUN chmod 755 ${JAVA_APP_DIR}/run-java.sh
 # Create user/group 'folio'
 RUN addgroup folio && \
     adduser -H -h $JAVA_APP_DIR -G folio -D folio && \
-    chown -R folio.folio $JAVA_APP_DIR
+    chown -R folio:folio $JAVA_APP_DIR
 
 # Run as this user
 USER folio
