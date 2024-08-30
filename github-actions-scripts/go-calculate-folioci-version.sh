@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-cur_ver=$(git describe --tags --match "xv[0-9]*" --abbrev=0 $(git rev-list --tags --max-count=1) | sed 's/^v\([0-9]\)/\1/')
+cur_ver=$(git describe --tags --match "v[0-9]*" --abbrev=0 $(git rev-list --tags --max-count=1) | sed 's/^v\([0-9]\)/\1/')
 if [ "${cur_ver}" == "" ]; then
   cur_ver="0.0.0"
 fi
