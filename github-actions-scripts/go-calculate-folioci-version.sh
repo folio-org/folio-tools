@@ -7,7 +7,7 @@ fi
 maj_ver=$(echo $cur_ver | awk -F '.' '{ print $1 }')
 min_ver=$(echo $cur_ver | awk -F '.' '{ print $2 }')
 patch_ver=$(echo $cur_ver | awk -F '.' '{ print $3 }')
-new_min_ver=$((${min_ver}+1))
-new_cur_ver=${maj_ver}.${new_min_ver}.${patch_ver}
+new_min_ver=$((min_ver+1))
+new_cur_ver=${maj_ver}.${new_min_ver}.0
 version="${new_cur_ver}-SNAPSHOT.${JOB_ID}"
 echo "${version}"
