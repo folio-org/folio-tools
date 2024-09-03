@@ -81,7 +81,9 @@ def get_options():
     if args.module_descriptor:
         module_descriptor_pn = Path(args.module_descriptor)
         if not module_descriptor_pn.exists():
-            LOGGER.error("Specified ModuleDescriptor not found: %s", module_descriptor_pn)
+            LOGGER.error(
+                "Specified ModuleDescriptor not found: %s", module_descriptor_pn
+            )
     output_pn = Path(args.output_file)
     if not options_okay:
         sys.exit(2)
@@ -122,8 +124,7 @@ def summarise_module_descriptor(module_descriptor_pn):
         msg = "ModuleDescriptor is missing 'id' property."
         LOGGER.critical("%s", msg)
         sys.exit(2)
-    else:
-        summary += f"id: {md_content['id']}"
+    summary += f"name: {md_content['name']}"
     return summary
 
 
