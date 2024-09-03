@@ -123,7 +123,7 @@ def summarise_module_descriptor(module_descriptor_pn):
         LOGGER.critical("%s", msg)
         sys.exit(2)
     else:
-        summary += f"id: {md_content["id"]}"
+        summary += f"id: {md_content['id']}"
     return summary
 
 
