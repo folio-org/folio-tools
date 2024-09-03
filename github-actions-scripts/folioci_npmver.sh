@@ -31,6 +31,6 @@ new_cur_ver=${maj_ver}.${min_ver}.${patch_ver}
 # 9999 is here due to a change in CI workflows (STRIPES-904) which reset job IDs;
 # without them, newer builts may have smaller version numbers
 
-new_snap_ver=${new_cur_ver}00009999${JOB_ID}
+new_snap_ver=${new_cur_ver}09000000${JOB_ID}
 echo "$new_snap_ver"
 
