@@ -27,8 +27,10 @@ fi
 
 new_cur_ver=${maj_ver}.${min_ver}.${patch_ver}
 
-# add 000+Jenkins JOB_ID to current patch version
+# add 00009999+CI JOB_ID to current patch version
+# 9999 is here due to a change in CI workflows (STRIPES-904) which reset job IDs;
+# without them, newer builts may have smaller version numbers
 
-new_snap_ver=${new_cur_ver}00000${JOB_ID}
+new_snap_ver=${new_cur_ver}00009999${JOB_ID}
 echo "$new_snap_ver"
 
