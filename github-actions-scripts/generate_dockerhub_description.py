@@ -77,9 +77,11 @@ def get_options():
         loglevel = LOGLEVELS.get(args.loglevel.lower(), logging.NOTSET)
         LOGGER.setLevel(loglevel)
     LOGGER.info("Using script version: %s", SCRIPT_VERSION)
-    module_descriptor_pn = Path(args.module_descriptor)
-    if not module_descriptor_pn.exists():
-        LOGGER.info("Specified ModuleDescriptor not found: %s", module_descriptor_pn)
+    module_descriptor_pn = ""
+    if args.module_descriptor:
+        module_descriptor_pn = Path(args.module_descriptor)
+        if not module_descriptor_pn.exists():
+            LOGGER.error("Specified ModuleDescriptor not found: %s", module_descriptor_pn)
     output_pn = Path(args.output_file)
     if not options_okay:
         sys.exit(2)
@@ -145,7 +147,7 @@ def main():
     if description:
         content += f"{description}\n\n"
     content += f"Code Repository: [{repo_url}]({repo_url})\n\n"
-    if module_descriptor_pn.exists():
+    if module_descriptor_pn:
         content += summarise_module_descriptor(module_descriptor_pn)
     LOGGER.info("Writing output file: %s", output_pn)
     with open(output_pn, mode="w", encoding="utf-8") as output_fh:
