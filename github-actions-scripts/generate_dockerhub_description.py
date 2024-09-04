@@ -8,7 +8,6 @@ import argparse
 import json
 import logging
 from pathlib import Path
-import re
 import sys
 
 SCRIPT_VERSION = "1.0.0"
@@ -116,7 +115,7 @@ def summarise_module_descriptor(module_descriptor_pn):
     """
     Extracts specific content from LaunchDescriptor portion of ModuleDescriptor.
     """
-    summary = "## Metadata\n\n"
+    summary = ""
     md_content = load_module_descriptor(module_descriptor_pn)
     try:
         md_content["id"]
@@ -124,7 +123,29 @@ def summarise_module_descriptor(module_descriptor_pn):
         msg = "ModuleDescriptor is missing 'id' property."
         LOGGER.critical("%s", msg)
         sys.exit(2)
-    summary += f"name: {md_content['name']}"
+    try:
+        md_content["launchDescriptor"]
+    except KeyError:
+        msg = "ModuleDescriptor is missing its 'launchDescriptor' section."
+        LOGGER.info("%s", msg)
+        return summary
+    try:
+        host_config = md_content["launchDescriptor"]["dockerArgs"]["HostConfig"]
+    except KeyError:
+        msg = "launchDescriptor is missing its 'dockerArgs HostConfig' section."
+        LOGGER.info("%s", msg)
+        return summary
+    summary += "## Metadata\n\n"
+    port = list(host_config["PortBindings"].keys())[0][:4]
+    summary += f"* Module port: {port}\n"
+    summary += f"* Container memory (bytes): {host_config['Memory']}\n"
+    try:
+        env_content = md_content["launchDescriptor"]["env"]
+    except KeyError:
+        msg = "launchDescriptor is missing its 'env' section."
+        LOGGER.debug("%s", msg)
+        return summary
+    # FIXME: Get relevant items from env_content
     return summary
 
 
