@@ -2,6 +2,8 @@
 
 """
 Generate the description for Docker Hub.
+
+NOTE: Please use 'black' to re-format code.
 """
 
 import argparse
@@ -10,7 +12,7 @@ import logging
 from pathlib import Path
 import sys
 
-SCRIPT_VERSION = "1.0.0"
+SCRIPT_VERSION = "1.0.1"
 
 # pylint: disable=R0912
 # pylint: disable=R0915
@@ -132,20 +134,97 @@ def summarise_module_descriptor(module_descriptor_pn):
     try:
         host_config = md_content["launchDescriptor"]["dockerArgs"]["HostConfig"]
     except KeyError:
-        msg = "launchDescriptor is missing its 'dockerArgs HostConfig' section."
+        msg = "LaunchDescriptor is missing its 'dockerArgs HostConfig' section."
         LOGGER.info("%s", msg)
         return summary
     summary += "## Metadata\n\n"
-    port = list(host_config["PortBindings"].keys())[0][:4]
-    summary += f"* Module port: {port}\n"
+    ports_list = list(host_config["PortBindings"].keys())
+    ports = []
+    for port in ports_list:
+        ports.append(port)
+    if ports:
+        summary += f"* Module port: {', '.join(ports)}\n"
     summary += f"* Container memory (bytes): {host_config['Memory']}\n"
     try:
         env_content = md_content["launchDescriptor"]["env"]
     except KeyError:
-        msg = "launchDescriptor is missing its 'env' section."
-        LOGGER.debug("%s", msg)
+        msg = "LaunchDescriptor is missing its 'env' section."
+        LOGGER.info("%s", msg)
         return summary
-    # FIXME: Get relevant items from env_content
+    java_options = ""
+    has_folio_db = False
+    folio_db_env_common = [
+        "DB_DATABASE",
+        "DB_HOST",
+        "DB_PORT",
+        "DB_USERNAME",
+        "DB_PASSWORD",
+        "DB_CHARSET",
+    ]
+    has_folio_db_common = False
+    other_env = []
+    other_env_folio_db = []
+    for item in env_content:
+        if "JAVA_OPTIONS" in item["name"]:
+            java_options = "* JAVA_OPTIONS:\n"
+            try:
+                item["description"]
+            except KeyError:
+                pass
+            else:
+                java_options += f"{'':<4}* Description: {item['description']}\n"
+            java_options += f"{'':<4}* `{item['value']}`"
+            continue
+        if "DB_DATABASE" in item["name"]:
+            has_folio_db = True
+        if item["name"].startswith("DB_"):
+            if item["name"] in folio_db_env_common:
+                has_folio_db_common = True
+            else:
+                other_env_folio_db.append(item)
+        else:
+            other_env.append(item)
+    summary += "\n## Default environment variables\n\n"
+    if java_options:
+        summary += f"{java_options}\n"
+    if has_folio_db:
+        summary += "* FOLIO database connection: true\n"
+    if has_folio_db_common:
+        summary += "* FOLIO database common environment:\n"
+        summary += f"{'':<4}* {', '.join(folio_db_env_common)}\n"
+    if other_env_folio_db:
+        summary += "* FOLIO database other environment:\n"
+        for item in sorted(other_env_folio_db, key=lambda x: x["name"]):
+            summary += f"{'':<4}* {item['name']}\n"
+            try:
+                item["description"]
+            except KeyError:
+                pass
+            else:
+                summary += f"{'':<8}* Description: {item['description']}\n"
+            try:
+                item["value"]
+            except KeyError:
+                pass
+            else:
+                if item["value"]:
+                    summary += f"{'':<8}* Default value: `{item['value']}`\n"
+    if other_env:
+        for item in sorted(other_env, key=lambda x: x["name"]):
+            summary += f"* {item['name']}\n"
+            try:
+                item["description"]
+            except KeyError:
+                pass
+            else:
+                summary += f"{'':<4}* Description: {item['description']}\n"
+            try:
+                item["value"]
+            except KeyError:
+                pass
+            else:
+                if item["value"]:
+                    summary += f"{'':<4}* Default value: `{item['value']}`\n"
     return summary
 
 
