@@ -27,10 +27,13 @@ fi
 
 new_cur_ver=${maj_ver}.${min_ver}.${patch_ver}
 
-# add 00009999+CI JOB_ID to current patch version
-# 9999 is here due to a change in CI workflows (STRIPES-904) which reset job IDs;
-# without them, newer builts may have smaller version numbers
+# add 09000000+CI JOB_ID to current patch version
+# the extra numbers is here due to a change in CI workflows (STRIPES-904) which reset job IDs; without them, newer builts may have smaller version numbers.
+# we also provide $new_ci as an input for the new CI script with more nines to use to ensure we always have a higher build number upon switchover
 
-new_snap_ver=${new_cur_ver}09000000${JOB_ID}
+  new_snap_ver=${new_cur_ver}09000000${JOB_ID}
+if [ -z "$new_ci" ]; then
+  new_snap_ver=${new_cur_ver}0999999000000${JOB_ID}
+fi
+
 echo "$new_snap_ver"
-
