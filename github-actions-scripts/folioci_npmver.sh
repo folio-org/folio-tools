@@ -33,7 +33,7 @@ new_cur_ver=${maj_ver}.${min_ver}.${patch_ver}
 
 new_snap_ver=${new_cur_ver}09000000${JOB_ID}
 if [ -n "$new_ci" ]; then
-  new_snap_ver=${new_cur_ver}09999000000${JOB_ID}
+  new_snap_ver=${new_cur_ver}09900000000${JOB_ID}
 fi
 
 echo "$new_snap_ver"
