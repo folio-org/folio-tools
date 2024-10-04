@@ -19,6 +19,8 @@
   "Licenses: Delete licenses",
   "Local KB admin: Create jobs",
   "Local KB admin: Delete jobs",
+  "Local KB admin: View proxy server configuration",
+  "Local KB admin: View remote KB configuration",
   "Notes: Can assign and unassign a note",
   "Notes: Can create a note",
   "Notes: Can delete a note",
@@ -37,5 +39,7 @@
   "Organizations: Interface usernames and passwords: view, edit, create, delete",
   "Organizations: View, edit, create",
   "Organizations: View, edit, delete",
+  "Settings (Agreements): Can view app settings",
+  "Settings (Licenses): Can view app settings",
   "Users: Can view user profile"
 ]
