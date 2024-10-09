@@ -1,3 +1,7 @@
+## 3.0.15 java-21 2024-10-09
+
+* Java 21-based build image
+
 ## 3.0.14 java-17 2024-08-06
 
 * Update OS to latest jammy-updates
