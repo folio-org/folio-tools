@@ -1,10 +1,8 @@
-const { exec } = require("child_process");
+const { exec } = require('child_process');
 const yargs = require('yargs/yargs')
 const { hideBin } = require('yargs/helpers')
-const axios = require("axios");
+const axios = require('axios');
 const fs = require('fs');
-const { parse } = require('node-html-parser');
-const { exit } = require("process");
 
 /**
  * Create tickets for all jira projects associated with packages in
@@ -26,7 +24,6 @@ class JSpam {
     });
   }
 
-
   /**
    * retrieve a password from the MacOS security service
    */
@@ -42,16 +39,15 @@ class JSpam {
     });
   }
 
-
   getSecurityServiceCredentials()
   {
     const credentials = {  };
-    return this.getAttr('jira-password', 'acct')
+    return this.getAttr('jira-apitoken', 'acct')
     .then(username => {
       credentials.username = username.trim();
       return credentials.username;
     })
-    .then(username => this.getPassword('jira-password', username))
+    .then(username => this.getPassword('jira-apitoken', username))
     .then(password => {
       credentials.password = password.trim();
       return credentials;
@@ -62,6 +58,8 @@ class JSpam {
   /**
    * getCredentials
    * get creds from CLI, or security service
+   *
+   * @returns Promise resolving to a base-64 encoded string
    */
   getCredentials(argv)
   {
@@ -74,7 +72,10 @@ class JSpam {
       }
       else {
         return this.getSecurityServiceCredentials()
-        .then(credentials => res(credentials))
+          .then(credentials => {
+            res(Buffer.from(`${credentials.username}:${credentials.password}`).toString('base64'));
+          }
+        )
         .catch(e => {
           rej('could not find credentials', e);
         });
@@ -88,70 +89,43 @@ class JSpam {
    * transpose it to an object keyed by the project's github name.
    * @param {*} matrixUrl
    */
-  async getMatrix(matrixUrl)
+  async getMatrix({ file, url })
   {
     const modules = {};
-    const matrix = (await axios.get(matrixUrl)).data;
-    // const matrix = fs.readFileSync('Team vs module responsibility matrix - Releases - FOLIO Wiki.html', { encoding: 'UTF-8' });
-
-    const userFromTd = (td) => {
-      let name = td.querySelector ? td.querySelector('a')?.getAttribute('data-username')?.trim() : null;
-      if (name) {
-        name = name.replace(/\s+/g, ' ');
-      }
-      return name;
+    let matrix = null;
+    if (url) {
+      matrix = (await axios.get(url)).data;
+    }
+    else if (file) {
+      matrix = fs.readFileSync(file, { encoding: 'UTF-8' });
     }
 
-    const ths = Array.from(parse(matrix).querySelectorAll('.confluenceTable tbody tr:nth-child(1) td'));
+    const teams = matrix.split("\n");
+    const ths = teams.shift().split("\t").map((i) => i.replaceAll('"', ''));
 
-    const teams = parse(matrix).querySelectorAll('.confluenceTable tbody tr');
     let pteam = { team: '', po: '', tl: '', github: '', jira: '' };
-    teams.forEach((tr, i) => {
-      const tds = Array.from(tr.querySelectorAll('td'));
-      // in a table like this:
-      //   | th-1 | th-2 | th-3 |
-      //   |------|------|------|
-      //   |      | r1c2 | r1c3 |
-      //   |      |      |------|
-      //   |      |      | r2c3 |
-      // r2c3 will come through as r2c1 so we need to pad it on the left
-      // so it can be parsed as c3.
-
-      // table is expected to be 12 cells wide, but it's constantly changing.
-      // typically only the leading cells span multiple rows, which means we
-      // can reliable just pad from the front.
-      //
-      // there have been so many different incarnations of this code as the
-      // table goes through subtle changes. it used to be possible to rely
-      // on cell style attributes and weird hard-coded widths, but not all
-      // cells have those attributes, etc. etc. it's always something.
-      const cellCount = 12;
-      const diff = cellCount - tds.length;
-      for (let j = 0; j < diff; j++) {
-        tds.unshift({ text: '' });
-      }
-
-      /*
-      const tdStyle = tds[0].rawAttributes.style;
-      for (let j = 0; j < ths.length; j++) {
-        if (ths[j].rawAttributes.style === tdStyle) {
-          console.log(`broke / ${j}`)
-          break;
-        }
-
-        tds.unshift({ text: '' });
-      }
-      */
+    teams.forEach((line, count) => {
+      const tds = line.split("\t").map((i) => i.replaceAll('"', ''));
 
       const team = { team: '', po: '', tl: '', github: '', jira: '' };
-      // I don't really know what kind of data structure `tds` is.
-      // iterating with (td, j) works just fine, but trying to access tds[j] fails.
-      tds.forEach((td, j) => {
-        if (j == 0) team.team = (td.text.trim() || pteam.team.trim()).split(/\n/)[0].trim();
-        if (j == 1) team.po = userFromTd(td) || pteam.po;
-        if (j == 2) team.tl = userFromTd(td) || pteam.tl;
-        if (j == 4) team.github = td.text?.trim();
-        if (j == 5) team.jira = td.text?.trim();
+      tds.forEach((str, j) => {
+        let td = str;
+        let userId = null;
+        if (td.startsWith('=HYPERLINK')) {
+          // grab user-id, if available, then sanitize to a simple string
+          if (new RegExp(/.*\/wiki\/people\/[a-z0-9]+\?.*/).test(td)) {
+            userId = td.replace(/.*\/wiki\/people\/([a-z0-9]+)\?.*/, '$1');
+          }
+          td = td.replace(/=HYPERLINK\((.*)\)/, '$1').split(';')[1];
+        }
+
+        if (j == 0) team.jira = td?.trim();
+        if (j == 1) team.team = (td.trim() || pteam.team.trim()).split(/\n/)[0].trim();
+        if (j == 2) team.po = td.trim() || pteam.po;
+        if (j == 2) team.poid = userId;
+        if (j == 3) team.tl = td.trim() || pteam.tl;
+        if (j == 3) team.tlid = userId;
+        if (j == 5) team.github = td?.trim();
       });
 
       if (team.github) {
@@ -178,57 +152,71 @@ class JSpam {
   teamForName(name)
   {
     const teams = {
-      "@cult": 10304,
-      "Bama": 12226,
-      "Bienenvolk": 10308,
-      "Concorde": 10571,
-      "Core: Platform": 10432,
-        "Core Platform": 10432,
-      "EBSCO - FSE": 10307,
-      "ERM": 12221,
-      "ERM Subgroup Dev Team": 10308,
-        "ERM Delivery": 10308,
-        "Bienenvolk": 10308,
-      "Falcon": 11327,
-      "Firebird": 10883,
-        "Firebird team": 10883,
-      "Folijet": 10390,
-        "Folijet Team": 10390,
-      "Folijet Support": 12101,
-      "FOLIO DevOps": 10882,
-      "Frontside": 10305,
-      "Gulfstream": 10884,
-      "K-Int": 12269,
-      "Kitfox": 12001,
-      "Lehigh": 10388,
-        "NSIP(Lehigh)": 10388,
-      "Leipzig": 10389,
-      "Prokopovych": 10302,
-        "Core functional team": 10302,
-        "Prokopovych (Core: Functional)": 10302,
-        "Prokopovych (Core functional) team": 10302,
-        "Core: Functional": 10302,
-        "Prokopovych Team": 10302,
-        "Prokopovych team": 10302,
-      "Qulto": 10306,
-      "Reporting": 11022,
-      "Scanbit": 10903,
-      "Scout": 11405,
-      "Sif": 12228,
-      "Spitfire": 10420,
-        "Spitfire Team": 10420,
-      "Spring Force": 11814,
-      "Stacks": 10303,
-      "Stripes Force": 10421,
-      "Thor": 10609,
-      "Thunderjet": 10418,
-        "Thunderjet Team": 10418,
-      "UNAM": 10309,
-      "Vega": 10419,
-        "Vega Team": 10419,
-      "Volaris": 11807,
-      "仁者无敌 \"Benevolence\"": 10909,
-      "None": 11025,
+      "@cult": 10138,
+      "Aggies": 10139,
+      "Bama": 10140,
+      "Bienenvolk": 10141,
+      "Citation": 10142,
+      "Concorde": 10143,
+      "Core: Platform": 10144,
+        "Core Platform": 10144,
+      "Corsair": 10145,
+      "Data Import Task Force": 10146,
+      "Dreamliner": 10150,
+      "EBSCO - FSE": 10147,
+      "ERM": 10148,
+      "Eureka": 10149,
+      "Falcon": 10151,
+      "Firebird": 10152,
+        "Firebird team": 10152,
+      "Folijet": 10153,
+        "Folijet Team": 10153,
+      "Folijet Support": 10154,
+      "FOLIO DevOps": 10155,
+      "Frontside": 10156,
+      "Gulfstream": 10157,
+      "Gutenberg": 10158,
+      "K-Int": 10159,
+      "Kinetics": 10160,
+      "Kitfox": 10161,
+      "Lehigh": 10162,
+        "NSIP(Lehigh)": 10162,
+      "Leipzig": 10163,
+      "Mjolnir": 10164,
+      "MOL": 10165,
+      "Mriya": 10166,
+      "NLA": 10167,
+      "Odin": 10169,
+      "Prokopovych": 10171,
+        "Core functional team": 10171,
+        "Prokopovych (Core: Functional)": 10171,
+        "Prokopovych (Core functional) team": 10171,
+        "Core: Functional": 10171,
+        "Prokopovych Team": 10171,
+        "Prokopovych team": 10171,
+      "PTF": 10172,
+      "Qulto": 10173,
+      "Reporting": 10174,
+      "Reservoir Dogs": 10175,
+      "Scanbit": 10176,
+      "Scout": 10177,
+      "Sif": 10178,
+      "Siphon": 10179,
+      "Spitfire": 10180,
+        "Spitfire Team": 10180,
+      "Spring Force": 10181,
+      "Stacks": 10182,
+      "Stripes Force": 10183,
+      "Thor": 10184,
+      "Thunderjet": 10185,
+        "Thunderjet Team": 10185,
+      "UNAM": 10186,
+      "Vega": 10187,
+        "Vega Team": 10187,
+      "Volaris": 10188,
+      "仁者无敌 \"Benevolence\"": 10189,
+
+      "None": 10168,
     };
 
     let team = null;
@@ -238,7 +226,7 @@ class JSpam {
     // it just won't be assignable to a team.
     return new Promise((resolve, reject) => {
       if (teams[name]) {
-        axios.get(`${this.jira}/rest/api/2/customFieldOption/${teams[name]}`)
+        axios.get(`${this.jira}/rest/api/3/customFieldOption/${teams[name]}`)
           .then(res => {
             const team = res.data;
             team.id = `${teams[name]}`;
@@ -254,19 +242,33 @@ class JSpam {
     });
   }
 
-  createTicket({summary, description, project, epic, labels, team, cc})
+  createTicket({summary, description, project, parent, labels, team, cc})
   {
     const body = {
       "fields": {
         "project": { id: project.id },
         summary,
-        description,
         issuetype: { id: this.taskType.id },
+        description: {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": description,
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "doc",
+          "version": 1
+        }
       }
     };
 
-    if (epic) {
-      body.fields.customfield_10002 = epic;
+    if (parent) {
+      body.fields.parent = { key: parent };
     }
 
     if (labels) {
@@ -274,16 +276,34 @@ class JSpam {
     }
 
     if (team) {
-      body.fields.customfield_10501 = team;
+      body.fields.customfield_10057 = team;
     }
 
     if (cc && cc.length) {
-      const attn = cc.map(i => `[~${i}]`).join(', ');
-      body.fields.description += `\n\nAttn: ${attn}`;
+      const attn = cc.map(i => `[~accountid:${i}]`).join(', ');
+      cc.forEach((i) => {
+        body.fields.description.content[0].content.push(
+          {
+            "text": "\nCC: ",
+            "type": "text"
+          }
+        );
+        body.fields.description.content[0].content.push(
+          {
+            "type": "mention",
+            "attrs": {
+              "id": i.id,
+              "text": i.name,
+            }
+          }
+        );
+      });
     }
 
-    return axios.post(`${this.jira}/rest/api/2/issue`, body, {
-      auth: this.credentials,
+    return axios.post(`${this.jira}/rest/api/3/issue`, body, {
+      headers: {
+        Authorization: `Basic ${this.credentials}`,
+      }
     });
   }
 
@@ -300,8 +320,10 @@ class JSpam {
       "type": this.relatesLink,
     };
 
-    return axios.post(`${this.jira}/rest/api/2/issueLink`, body, {
-      auth: this.credentials,
+    return axios.post(`${this.jira}/rest/api/3/issueLink`, body, {
+      headers: {
+        Authorization: `Basic ${this.credentials}`,
+      }
     });
   }
 
@@ -336,8 +358,8 @@ class JSpam {
       })
 
       .option('e', {
-        alias: 'epic',
-        describe: 'jira epic to link to',
+        alias: 'parent',
+        describe: 'jira parent to link to',
         type: 'string',
       })
 
@@ -395,7 +417,7 @@ class JSpam {
 
   async main()
   {
-    this.jira = 'https://issues.folio.org';
+    this.jira = 'https://folio-org.atlassian.net';
 
     // const contents = JSON.parse(fs.readFileSync(filename, { encoding: 'UTF-8'}));
     //
@@ -409,18 +431,22 @@ class JSpam {
 
       this.credentials = await this.getCredentials(this.argv);
 
-      this.types = await axios.get(`${this.jira}/rest/api/2/issuetype`);
+      this.types = await axios.get(`${this.jira}/rest/api/3/issuetype`);
       this.taskType = this.types.data.find(type => type.name === 'Task');
 
-      this.linkTypes = await axios.get(`${this.jira}/rest/api/2/issueLinkType`);
+      this.linkTypes = await axios.get(`${this.jira}/rest/api/3/issueLinkType`);
       this.relatesLink = this.linkTypes.data.issueLinkTypes.find(link => link.name === 'Relates');
 
-      this.matrix = await this.getMatrix('https://wiki.folio.org/display/REL/Team+vs+module+responsibility+matrix');
+      // the live data now comes in via an iframe with a fancy export-to-csv function
+      // that, regrettably, does not have a stable URL :( instead, the export is saved
+      // here as matrix.csv and loaded locally
+      // this.matrix = await this.getMatrix('https://folio-org.atlassian.net/wiki/spaces/REL/pages/5210256/FOLIO+Module+JIRA+project-Team-PO-Dev+Lead+responsibility+matrix');
+      this.matrix = await this.getMatrix({ file: './matrix.csv'});
 
       // get ticket from Jira
       let link;
       if (this.argv.link) {
-        link = await axios.get(`${this.jira}/rest/api/2/issue/${this.argv.link}`);
+        link = await axios.get(`${this.jira}/rest/api/3/issue/${this.argv.link}`);
       }
 
       // map dependencies:
@@ -443,7 +469,7 @@ class JSpam {
         .filter(Boolean);
 
       // get projects from JIRA
-      axios.get(`${this.jira}/rest/api/2/project`)
+      axios.get(`${this.jira}/rest/api/3/project`)
       .then(projects => {
         // map Jira's array of projects into a hash keyed by name, e.g. ui-some-app
         // generally, name corresponds to GitHub repository name, and thus can be used
@@ -471,19 +497,19 @@ class JSpam {
               // only assign the team if we received --team
               const t = this.argv.team ? team : null;
               const cc = [];
-              if (this.argv.ccpo && this.matrix[d].po) {
-                cc.push(this.matrix[d].po)
+              if (this.argv.ccpo && this.matrix[d].poid) {
+                cc.push({ id: this.matrix[d].poid, name: this.matrix[d].po } )
               }
 
-              if (this.argv.cctl && this.matrix[d].tl) {
-                cc.push(this.matrix[d].tl)
+              if (this.argv.cctl && this.matrix[d].tlid) {
+                cc.push({ id: this.matrix[d].tlid, name: this.matrix[d].tl } )
               }
 
               return this.createTicket({
                 summary: this.argv.summary,
                 description: this.argv.description,
                 project: pmap[d],
-                epic: this.argv.epic,
+                parent: this.argv.epic,
                 labels: this.argv.label,
                 team: t,
                 cc: cc,
