@@ -14,6 +14,15 @@ $PROCEDURE$
       RAISE 'Invalid character in newtenant: %', newtenant;
     END IF;
 
+    -- exclusive write lock on all tables
+    RAISE INFO 'Waiting for write locks ...';
+    FOR record IN
+      SELECT schemaname, tablename FROM pg_tables WHERE schemaname ~ regexp
+    LOOP
+      EXECUTE format('LOCK TABLE %I.%I IN EXCLUSIVE MODE', record.schemaname, record.tablename);
+    END LOOP;
+    RAISE INFO 'Holding all write locks.';
+
     -- rename roles
     FOR record IN
       SELECT rolname AS oldschema FROM pg_roles WHERE rolname ~ regexp
