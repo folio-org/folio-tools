@@ -2,7 +2,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@apidevtools/json-schema-ref-parser": "^11.1.0",
-    "amf-client-js": "5.5.3",
+    "amf-client-js": "5.6.4",
     "raml2html": "^7.1.0",
     "raml2html-plain-theme": "folio-org/raml2html-plain-theme#folio-589",
     "@redocly/cli": "^1.0.0",
