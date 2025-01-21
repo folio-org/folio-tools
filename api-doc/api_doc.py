@@ -29,7 +29,7 @@ import tempfile
 import sh
 import yaml
 
-SCRIPT_VERSION = "1.5.7"
+SCRIPT_VERSION = "1.6.0"
 
 LOGLEVELS = {
     "debug": logging.DEBUG,
@@ -111,7 +111,7 @@ def main():
                     if len(schemas_parent) > 0:
                         dereference_schemas(
                             api_type, api_temp_dir, os.path.abspath(output_dir), schemas_parent)
-                    endpoints = generate_doc(api_type, api_temp_dir, output_dir, file_an)
+                    endpoints = generate_doc(api_type, api_temp_dir, input_dir, output_dir, file_an)
                     endpoints_extended = add_href_fragments(api_type, endpoints)
                     if interfaces_endpoints:
                         endpoints_extended = correlate_interfaces(endpoints_extended, interfaces_endpoints)
@@ -380,7 +380,7 @@ def correlate_interfaces(endpoints, interfaces_endpoints):
         endpoints_interfaces.append(endpoint)
     return endpoints_interfaces
 
-def generate_doc(api_type, api_temp_dir, output_dir, input_pn):
+def generate_doc(api_type, api_temp_dir, input_dir, output_dir, input_pn):
     """
     Generate the API documentation from this API description file.
     Gather the list of endpoints.
@@ -413,12 +413,14 @@ def generate_doc(api_type, api_temp_dir, output_dir, input_pn):
         except sh.ErrorReturnCode as err:
             logger.error("%s: %s", cmd_name, err.stderr.decode())
         # Gather the endpoints
+        # Note: Using original descriptions,
+        # not those in api_temp_dir which were transformed by replace_folio_ns_schema_refs()
         try:
             sh.node(script_endpoints_pn, "-t", "RAML 1.0", "-f", input_fn,
-                _out=endpoints_pn, _cwd=input_dir_pn)
+                _out=endpoints_pn, _cwd=input_dir)
         except sh.ErrorReturnCode as err:
             # Ignore. The script outputs an empty array if trouble parsing. Use api-lint beforehand.
-            pass
+            logger.warning("Could not gather endpoints.")
     if "OAS" in api_type:
         output_1_pn = os.path.join(output_dir, "s", output_fn)
         cmd_name = "redocly"
@@ -432,12 +434,14 @@ def generate_doc(api_type, api_temp_dir, output_dir, input_pn):
         except sh.ErrorReturnCode as err:
             logger.error("%s: %s", cmd_name, err.stderr.decode())
         # Gather the endpoints
+        # Note: Using original descriptions,
+        # not those in api_temp_dir which were transformed by replace_folio_ns_schema_refs()
         try:
             sh.node(script_endpoints_pn, "-t", "OAS 3.0", "-f", input_fn,
-                _out=endpoints_pn, _cwd=input_dir_pn)
+                _out=endpoints_pn, _cwd=input_dir)
         except sh.ErrorReturnCode as err:
             # Ignore. The script outputs an empty array if trouble parsing. Use api-lint beforehand.
-            pass
+            logger.warning("Could not gather endpoints.")
     if os.path.getsize(endpoints_pn) > 0:
         with open(endpoints_pn, mode="r", encoding="utf-8") as json_fh:
             endpoints = json.load(json_fh)
