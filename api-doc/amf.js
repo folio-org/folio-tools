@@ -12,7 +12,7 @@ const { argv } = require('yargs/yargs')(process.argv.slice(2))
   .demandOption(['t', 'f'])
   .help('h')
   .alias('h', 'help')
-  .version('1.0.2');
+  .version('1.1.0');
 
 const amf = require('amf-client-js');
 
@@ -44,13 +44,25 @@ async function main() {
     const api = doc.encodes;
     api.endPoints.forEach((endpoint) => {
       const methods = [];
+      let serversCount = null;
+      let server0Url = '';
+      if (endpoint.operations[0]) {
+        serversCount = endpoint.operations[0].servers.length;
+      }
+      if (serversCount) {
+        server0Url = `${endpoint.operations[0].servers[0].url}`;
+        if (server0Url.startsWith('http')) {
+          server0Url = '';
+        }
+      }
       endpoint.operations.forEach((operation) => {
         const op = `${operation.method}:${operation.operationId}`;
         methods.push(op.replace(/ /g, '_'));
       });
+      const epPath = `${server0Url}${endpoint.path}`;
       if (methods.length) {
         const ep = {
-          path: `${endpoint.path}`,
+          path: `${epPath.replace(/\/\//, '/')}`,
           methods: `${methods.sort().join(' ')}`,
           apiDescription: `${argv.inputFile}`,
         };
