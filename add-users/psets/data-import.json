@@ -5,7 +5,7 @@
   "Settings (Data import): Can view only",
   "Data import: Can upload files, import, and view logs",
   "Data import: Can delete import logs",
-  "Invoice: Assign acquisition units to new invoice",
+  "Invoice: Assign acquisitions units to new record",
   "Invoice: Can view, edit and create new Invoices and Invoice lines",
   "Invoice: Can view, edit and delete Invoices and Invoice lines",
   "Settings (Invoices): Can view and edit settings"
