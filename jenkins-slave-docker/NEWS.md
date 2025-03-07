@@ -1,3 +1,10 @@
+## 3.1.0 java-17 2025-03-07
+
+* Update OS to latest jammy-updates
+* Upgrade Docker to 27.5.1
+* Upgrade Nodejs to 20.18.3
+* Upgrade Yarn to 1.22.22
+
 ## 3.0.15 java-21 2024-10-09
 
 * Java 21-based build image
