@@ -12,8 +12,8 @@ that start with `@folio/...` or `@okapi/...`. Optionally:
 * assign a team based on the wiki's team-module matrix
 * CC the PO and/or tech lead based on the wiki's team-module matrix
 
-JIRA username and password will be retrieved from the Mac OS keychain entry
-`jira-password`, if available; otherwise, they may be passed on the command
+JIRA username and token will be retrieved from the Mac OS keychain entry
+`jira-apitoken`, if available; otherwise, they may be passed on the command
 line.
 
 ## usage
@@ -22,21 +22,21 @@ line.
 jspam --summary <s> --description <d> --link <JIRA-123> --package <package.json>
 
 Options:
-  -s, --summary      issue summary (title)                   [string] [required]
-  -d, --description  issue description                       [string] [required]
-  -p, --package      path to a package.json file to parse    [string] [required]
-  -l, --link         jira issue[s] to link to                           [string]
-  -e, --epic         jira epic to link to                               [string]
-      --label        jira label[s] to apply                             [string]
-      --team         assign tickets to teams per team-module-responsibility
-                     matrix                                            [boolean]
-      --ccpo         CC the product owner per team-module-responsibility matrix
-                     in the ticket description                         [boolean]
-      --cctl         CC the tech lead per team-module-responsibility matrix in
-                     the ticket description                            [boolean]
-      --username     jira username                                      [string]
-      --password     jira password                                      [string]
-  -h, --help         Show help                                         [boolean]
+  -s, --summary         issue summary (title)                [string] [required]
+  -d, --description     issue description                    [string] [required]
+  -p, --package         path to a package.json file to parse [string] [required]
+  -l, --link            jira issue[s] to link to                        [string]
+  -e, --parent, --epic  jira parent issue (formerly epic)               [string]
+      --label           jira label[s] to apply                          [string]
+      --team            assign tickets to teams per team-module-responsibility
+                        matrix                                         [boolean]
+      --ccpo            CC the product owner per team-module-responsibility
+                        matrix in the ticket description               [boolean]
+      --cctl            CC the tech lead per team-module-responsibility matrix
+                        in the ticket description                      [boolean]
+      --username        jira username                                   [string]
+      --token           jira API token                                  [string]
+  -h, --help            Show help                                      [boolean]
 ```
 
 Labels may be passed separately or as a comma-delimited string:
