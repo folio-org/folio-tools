@@ -1,8 +1,8 @@
-const { exec } = require('child_process');
-const yargs = require('yargs/yargs')
-const { hideBin } = require('yargs/helpers')
-const axios = require('axios');
-const fs = require('fs');
+import { exec } from 'child_process';
+import yargs from 'yargs/yargs';
+import { hideBin } from 'yargs/helpers';
+import axios from 'axios';
+import fs from 'fs';
 
 /**
  * Create tickets for all jira projects associated with packages in
@@ -24,6 +24,7 @@ class JSpam {
     });
   }
 
+
   /**
    * retrieve a password from the MacOS security service
    */
@@ -38,6 +39,7 @@ class JSpam {
       });
     });
   }
+
 
   getSecurityServiceCredentials()
   {
@@ -58,8 +60,6 @@ class JSpam {
   /**
    * getCredentials
    * get creds from CLI, or security service
-   *
-   * @returns Promise resolving to a base-64 encoded string
    */
   getCredentials(argv)
   {
@@ -70,12 +70,15 @@ class JSpam {
           password: argv.password,
         });
       }
+      else if (argv.username && argv.token) {
+        res({
+          username: argv.username,
+          password: argv.token,
+        });
+      }
       else {
         return this.getSecurityServiceCredentials()
-          .then(credentials => {
-            res(Buffer.from(`${credentials.username}:${credentials.password}`).toString('base64'));
-          }
-        )
+        .then(credentials => res(credentials))
         .catch(e => {
           rej('could not find credentials', e);
         });
@@ -85,20 +88,14 @@ class JSpam {
 
   /**
    * getMatrix
-   * retrieve and parse the team-project responsibility matrix from the given URL.
+   * retrieve and parse the team-project responsibility matrix from the given file.
    * transpose it to an object keyed by the project's github name.
-   * @param {*} matrixUrl
+   * @param {string} file
    */
-  async getMatrix({ file, url })
+  async getMatrix(file)
   {
     const modules = {};
-    let matrix = null;
-    if (url) {
-      matrix = (await axios.get(url)).data;
-    }
-    else if (file) {
-      matrix = fs.readFileSync(file, { encoding: 'UTF-8' });
-    }
+    const matrix = fs.readFileSync(file, { encoding: 'UTF-8' });
 
     const teams = matrix.split("\n");
     const ths = teams.shift().split("\t").map((i) => i.replaceAll('"', ''));
@@ -141,6 +138,20 @@ class JSpam {
   }
 
   /**
+   * timeout
+   * Resolve after 200ms to avoid Atlassian rate limiting
+   * https://developer.atlassian.com/cloud/jira/platform/rate-limiting/
+   *
+   * @return Promise
+   */
+  timeout()
+  {
+    return new Promise(res => {
+      setTimeout(() => res(), 200);
+    });
+  }
+
+  /**
    * teamForName
    * provide a map from team-name (in the team-project responsibility matrix)
    * to its ID in Jira.
@@ -156,25 +167,23 @@ class JSpam {
       "Aggies": 10139,
       "Bama": 10140,
       "Bienenvolk": 10141,
+        "Bienenvolk (fka ERM)": 10141,
+        "Bienenvolk (fka ERM Delivery)": 10141,
+        "ERM Subgroup Dev Team": 10141,
+        "ERM Delivery": 10141,
       "Citation": 10142,
-      "Concorde": 10143,
       "Core: Platform": 10144,
         "Core Platform": 10144,
       "Corsair": 10145,
-      "Data Import Task Force": 10146,
-      "Dreamliner": 10150,
       "EBSCO - FSE": 10147,
-      "ERM": 10148,
       "Eureka": 10149,
-      "Falcon": 10151,
+      "Dreamliner": 10150,
       "Firebird": 10152,
         "Firebird team": 10152,
       "Folijet": 10153,
-        "Folijet Team": 10153,
-      "Folijet Support": 10154,
+        "Folijet team": 10153,
       "FOLIO DevOps": 10155,
       "Frontside": 10156,
-      "Gulfstream": 10157,
       "Gutenberg": 10158,
       "K-Int": 10159,
       "Kinetics": 10160,
@@ -187,13 +196,7 @@ class JSpam {
       "Mriya": 10166,
       "NLA": 10167,
       "Odin": 10169,
-      "Prokopovych": 10171,
-        "Core functional team": 10171,
-        "Prokopovych (Core: Functional)": 10171,
-        "Prokopovych (Core functional) team": 10171,
-        "Core: Functional": 10171,
-        "Prokopovych Team": 10171,
-        "Prokopovych team": 10171,
+      "Other dev": 10170,
       "PTF": 10172,
       "Qulto": 10173,
       "Reporting": 10174,
@@ -215,8 +218,10 @@ class JSpam {
         "Vega Team": 10187,
       "Volaris": 10188,
       "仁者无敌 \"Benevolence\"": 10189,
-
-      "None": 10168,
+      "Nighthawk": 10495,
+      "ASA": "",
+      "Klemming": "",
+      "Dojo": ""
     };
 
     let team = null;
@@ -224,25 +229,29 @@ class JSpam {
     // even if we _don't_ have a project for the given name, we still
     // resolve, not reject, because we still want to create the ticket;
     // it just won't be assignable to a team.
-    return new Promise((resolve, reject) => {
-      if (teams[name]) {
-        axios.get(`${this.jira}/rest/api/3/customFieldOption/${teams[name]}`)
-          .then(res => {
-            const team = res.data;
-            team.id = `${teams[name]}`;
+    return this.timeout().then(() => {
+      return new Promise((resolve, reject) => {
+        if (teams[name]) {
+          axios.get(`${this.jira}/rest/api/3/customFieldOption/${teams[name]}`)
+            .then(res => {
+              const team = res.data;
+              team.id = `${teams[name]}`;
 
-            resolve(team);
-          });
-      }
-      else {
-        console.warn(`Could not match team "${name}"`);
-        resolve(null);
-      }
-
+              resolve(team);
+            });
+        }
+        else {
+          console.warn(`Could not match team "${name}"`);
+          resolve(null);
+        }
+      });
     });
+
+
   }
 
-  createTicket({summary, description, project, parent, labels, team, cc})
+
+  createTicket({summary, description, project, parent, labels, team, cc, assignee})
   {
     const body = {
       "fields": {
@@ -271,9 +280,7 @@ class JSpam {
       body.fields.parent = { key: parent };
     }
 
-    if (labels) {
-      body.fields.labels = Array.isArray(labels) ? labels : labels.split(',');
-    }
+    body.fields.labels = Array.isArray(labels) ? labels : labels?.split(',');
 
     if (team) {
       body.fields.customfield_10057 = team;
@@ -300,11 +307,13 @@ class JSpam {
       });
     }
 
+    if (assignee) {
+      body.fields.assignee = assignee;
+    }
+
     return axios.post(`${this.jira}/rest/api/3/issue`, body, {
-      headers: {
-        Authorization: `Basic ${this.credentials}`,
-      }
-    });
+      auth: this.credentials,
+    })
   }
 
 
@@ -321,9 +330,7 @@ class JSpam {
     };
 
     return axios.post(`${this.jira}/rest/api/3/issueLink`, body, {
-      headers: {
-        Authorization: `Basic ${this.credentials}`,
-      }
+      auth: this.credentials,
     });
   }
 
@@ -359,7 +366,7 @@ class JSpam {
 
       .option('e', {
         alias: 'parent',
-        describe: 'jira parent to link to',
+        describe: 'jira parent issue (formerly epic)',
         type: 'string',
       })
 
@@ -388,8 +395,8 @@ class JSpam {
         type: 'string',
       })
 
-      .option('password', {
-        describe: 'jira password',
+      .option('token', {
+        describe: 'jira API token',
         type: 'string',
       })
 
@@ -403,15 +410,20 @@ class JSpam {
   /**
    * eachPromise
    * iterate through an array of items IN SERIES, applying the given async
-   * function to each.
+   * function to each, with a delay between each element.
    * @arg [] arr array of elements
    * @arg function fn function to apply to each element
    * @return promise
    */
   eachPromise(arr, fn)
   {
+    //
     if (!Array.isArray(arr)) return Promise.reject(new Error('Array not found'));
-    return arr.reduce((prev, cur) => (prev.then(() => fn(cur))), Promise.resolve());
+    return arr.reduce((prev, cur) => {
+      return prev
+        .then(this.timeout)
+        .then(() => fn(cur))
+    }, Promise.resolve());
   };
 
 
@@ -421,7 +433,7 @@ class JSpam {
 
     // const contents = JSON.parse(fs.readFileSync(filename, { encoding: 'UTF-8'}));
     //
-    // jspam --username --password
+    // jspam --username --token
     //    --link SOME-JIRA -l OTHER-JIRA
     //    --summary "some title"
     //    --description "some description"
@@ -440,8 +452,7 @@ class JSpam {
       // the live data now comes in via an iframe with a fancy export-to-csv function
       // that, regrettably, does not have a stable URL :( instead, the export is saved
       // here as matrix.csv and loaded locally
-      // this.matrix = await this.getMatrix('https://folio-org.atlassian.net/wiki/spaces/REL/pages/5210256/FOLIO+Module+JIRA+project-Team-PO-Dev+Lead+responsibility+matrix');
-      this.matrix = await this.getMatrix({ file: './matrix.csv'});
+      const matrix = await this.getMatrix('./matrix.csv');
 
       // get ticket from Jira
       let link;
@@ -466,14 +477,15 @@ class JSpam {
             return p.substring(p.indexOf('/') + 1);
           }
         })
-        .filter(Boolean);
+        .filter(Boolean)
+        .sort();
 
       // get projects from JIRA
+      // generally, name corresponds to GitHub repository name, and thus can be used
+      // to map between the matrix and Jira
       axios.get(`${this.jira}/rest/api/3/project`)
       .then(projects => {
-        // map Jira's array of projects into a hash keyed by name, e.g. ui-some-app
-        // generally, name corresponds to GitHub repository name, and thus can be used
-        // to map between the matrix and Jira
+        // map the array of projects into a hash keyed by name, e.g. ui-some-app
         const pmap = {};
         projects.data.forEach(p => { pmap[p.name] = p; });
 
@@ -481,35 +493,36 @@ class JSpam {
         // this happens when the Jira name does not correspond to a repo name
         // but the matrix provides such a mapping, e.g. for all the ERM projects
         // that are in separate repos but share a common Jira project.
-        Object.keys(this.matrix).forEach(k => {
+        Object.keys(matrix).forEach(k => {
           if (!pmap[k]) {
-            const match = Object.values(pmap).find(jira => jira.key === this.matrix[k].jira);
+            const match = Object.values(pmap).find(jira => jira.key === matrix[k].jira);
             if (match) {
+              // console.log(`+ ${k} ${match.key} ${match.name}`)
               pmap[k] = match;
             }
           }
         });
 
         this.eachPromise(deps, d => {
-          if (pmap[d] && this.matrix[d]) {
-            this.teamForName(this.matrix[d].team)
+          if (pmap[d] && matrix[d]) {
+            this.teamForName(matrix[d].team)
             .then(team => {
               // only assign the team if we received --team
               const t = this.argv.team ? team : null;
               const cc = [];
-              if (this.argv.ccpo && this.matrix[d].poid) {
-                cc.push({ id: this.matrix[d].poid, name: this.matrix[d].po } )
+              if (this.argv.ccpo && matrix[d].poid) {
+                cc.push({ id: matrix[d].poid, name: matrix[d].po } )
               }
 
-              if (this.argv.cctl && this.matrix[d].tlid) {
-                cc.push({ id: this.matrix[d].tlid, name: this.matrix[d].tl } )
+              if (this.argv.cctl && matrix[d].tlid) {
+                cc.push({ id: matrix[d].tlid, name: matrix[d].tl } )
               }
 
               return this.createTicket({
                 summary: this.argv.summary,
                 description: this.argv.description,
                 project: pmap[d],
-                parent: this.argv.epic,
+                parent: this.argv.parent,
                 labels: this.argv.label,
                 team: t,
                 cc: cc,
@@ -525,11 +538,11 @@ class JSpam {
               console.log(`created ${ticket.data.key} (${d})`)
             })
             .catch(e => {
-              console.error(e.response ?? e);
+              console.error( e);
             });
           }
           else {
-            console.warn(`could not find a jira project matching ${d}`);
+            console.warn(`could not find a jira project or matrix entry matching >>${d}<<`);
           }
         });
       })
