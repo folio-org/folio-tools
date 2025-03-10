@@ -365,7 +365,7 @@ class JSpam {
       })
 
       .option('e', {
-        alias: 'parent',
+        alias: ['parent', 'epic'],
         describe: 'jira parent issue (formerly epic)',
         type: 'string',
       })
