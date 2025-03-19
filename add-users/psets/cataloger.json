@@ -26,7 +26,7 @@
   "Settings (Inventory): Create, edit, delete statistical code types",
   "Settings (Inventory): Create, edit, delete statistical codes",
   "Settings (Inventory): View list of settings pages",
-  "ui-data-export.settings.enabled",
+  "Settings (Data export): Can view, add, update profiles",
   "Settings (Data import): Can view, create, edit, and remove",
   "quickMARC: View, edit MARC bibliographic record",
   "quickMARC: Derive new MARC bibliographic record"
