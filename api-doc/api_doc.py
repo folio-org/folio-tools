@@ -29,7 +29,7 @@ import tempfile
 import sh
 import yaml
 
-SCRIPT_VERSION = "1.7.0"
+SCRIPT_VERSION = "1.7.1"
 
 LOGLEVELS = {
     "debug": logging.DEBUG,
@@ -46,7 +46,7 @@ logger = logging.getLogger("api-doc")
 def main():
     exit_code = 0 # Continue processing to detect various issues, then return the result.
     version_raml_re = re.compile(r"^#%RAML ([0-9]+)\.([0-9]+)")
-    version_oas_re = re.compile(r"^openapi: ([0-9]+)\.([0-9]+)")
+    version_oas_re = re.compile(r"^openapi: ['\"]?([0-9]+)\.([0-9]+)")
     (repo_name, input_dir, output_base_dir, api_types, api_directories,
         release_version, exclude_dirs, exclude_files) = get_options()
     # The yaml parser gags on the "!include".
