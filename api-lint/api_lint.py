@@ -22,7 +22,7 @@ import re
 
 import sh
 
-SCRIPT_VERSION = "1.2.5"
+SCRIPT_VERSION = "1.2.6"
 
 LOGLEVELS = {
     "debug": logging.DEBUG,
@@ -124,7 +124,7 @@ def main():
         return 2
 
     version_raml_re = re.compile(r"^#%RAML ([0-9]+)\.([0-9]+)")
-    version_oas_re = re.compile(r"^openapi: ([0-9]+)\.([0-9]+)")
+    version_oas_re = re.compile(r"^openapi: ['\"]?([0-9]+)\.([0-9]+)")
     exit_code = 0 # Continue processing to detect various issues, then return the result.
 
     # Find and process the relevant files
