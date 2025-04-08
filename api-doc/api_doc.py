@@ -29,7 +29,7 @@ import tempfile
 import sh
 import yaml
 
-SCRIPT_VERSION = "1.7.1"
+SCRIPT_VERSION = "1.8.0"
 
 LOGLEVELS = {
     "debug": logging.DEBUG,
@@ -87,7 +87,7 @@ def main():
                 api_directories, exclude_dirs, exclude_files)
             if api_files:
                 found_files_flag = True
-                config_json["config"][api_type.lower()]["files"].extend(api_files)
+                api_files_list = []
                 # Prepare output sub-directories
                 subdirs = []
                 if "RAML" in api_type:
@@ -101,10 +101,10 @@ def main():
                     file_an = os.path.join(api_temp_dir, file_pn)
                     (api_version, supported) = get_api_version(file_an, file_pn, api_type,
                         version_raml_re, version_oas_re)
-                    if not api_version:
+                    if not api_version or not supported:
                         continue
-                    if not supported:
-                        continue
+                    else:
+                        api_files_list.append(file_pn)
                     logger.info("Processing %s file: %s", api_version, file_pn)
                     schemas_parent = gather_schema_declarations(
                         file_an, api_type, exclude_dirs, exclude_files)
@@ -116,6 +116,7 @@ def main():
                     if interfaces_endpoints:
                         endpoints_extended = correlate_interfaces(endpoints_extended, interfaces_endpoints)
                     all_endpoints.extend(endpoints_extended)
+                config_json["config"][api_type.lower()]["files"].extend(api_files_list)
             else:
                 msg = "No %s files were found in the configured directories: %s"
                 logger.info(msg, api_type, ", ".join(api_directories))
@@ -191,7 +192,7 @@ def get_api_version(file_an, file_pn, api_type, version_raml_re, version_oas_re)
                 logger.error(msg_1, api_version, file_pn)
     else:
         msg = "Could not determine %s version for file: %s"
-        logger.error(msg, api_type, file_pn)
+        logger.warning(msg, api_type, file_pn)
     return api_version, version_supported
 
 def gather_schema_declarations(file_pn, api_type, exclude_dirs, exclude_files):

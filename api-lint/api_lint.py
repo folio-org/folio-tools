@@ -22,7 +22,7 @@ import re
 
 import sh
 
-SCRIPT_VERSION = "1.2.6"
+SCRIPT_VERSION = "1.3.0"
 
 LOGLEVELS = {
     "debug": logging.DEBUG,
@@ -145,15 +145,15 @@ def main():
                 (api_version, supported) = get_api_version(file_pn, api_type,
                     version_raml_re, version_oas_re)
                 if not api_version:
-                    exit_code = 1
+                    # exit_code = 1
                     continue
                 if supported:
                     logger.info("Processing %s file: %s", api_version, os.path.relpath(file_pn))
                     conforms = do_amf(file_pn, input_dir, api_version, args.warnings)
                     if not conforms:
                         exit_code = 1
-                else:
-                    exit_code = 1
+                # else:
+                    # exit_code = 1
         else:
             msg = "No RAML files were found in the configured directories: %s"
             logger.info(msg, ", ".join(args.directories))
@@ -172,15 +172,15 @@ def main():
                 (api_version, supported) = get_api_version(file_pn, api_type,
                     version_raml_re, version_oas_re)
                 if not api_version:
-                    exit_code = 1
+                    # exit_code = 1
                     continue
                 if supported:
                     logger.info("Processing %s file: %s", api_version, os.path.relpath(file_pn))
                     conforms = do_amf(file_pn, input_dir, api_version, args.warnings)
                     if not conforms:
                         exit_code = 1
-                else:
-                    exit_code = 1
+                # else:
+                    # exit_code = 1
         else:
             msg = "No OAS files were found in the configured directories: %s"
             logger.info(msg, ", ".join(args.directories))
@@ -226,7 +226,7 @@ def get_api_version(file_pn, api_type, version_raml_re, version_oas_re):
                 logger.error(msg_1, api_version, file_pn)
     else:
         msg = "Could not determine %s version for file: %s"
-        logger.error(msg, api_type, file_pn)
+        logger.warning(msg, api_type, file_pn)
     return api_version, version_supported
 
 def do_amf(file_pn, input_dir, api_version, include_warnings):
