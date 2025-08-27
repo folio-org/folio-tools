@@ -3,7 +3,7 @@
 /**
  * SUMMARY
  *
- * derive a semver-compatible value from ./package.jsons version and the build-number
+ * derive a semver-compatible value from ./package.json's version and the build-number
  *
  *
  * USAGE
@@ -73,7 +73,7 @@ const main = ({ buildId, newCi }) => {
     }
     const isNewCi = !!newCi;
 
-    // it's tempting to think a smaller, simply regex would be sufficient
+    // it's tempting to think a smaller, simpler regex would be sufficient
     // here, but since semver org suggests a reg, we'll accept the offer.
     // from https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
     const regex = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
@@ -89,6 +89,9 @@ const main = ({ buildId, newCi }) => {
     // values onto the end, the result needs to be parseable as a number, and
     // thus cannot start with 0. the simple hack here is to convert 0 to 1,
     // meaning input like `1.2.0` provides output like `1.2.109000000123`.
+    // treating 0 and 1 the same might seem problematic, but we don't have to
+    // worry about collisions because the build-numbers we tack on at the end
+    // always increase, leading to unique values.
     const patch = (vpatch === "0") ? "1" : vpatch;
     const snapshot = `${vmajor}.${vminor}.${patch}`;
 
