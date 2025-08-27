@@ -3,7 +3,7 @@
 /**
  * SUMMARY
  *
- * derive a semver-compatible value from ./package.json's version and the build-number
+ * derive a semver-compatible value from ./package.jsons version and the build-number
  *
  *
  * USAGE
@@ -16,9 +16,9 @@
  *
  * DETAILS
  *
- * Given package.json contains a version value like `1.2.0` or `2.3.4` and
- * the environment variable JOB_ID contains a build-number like 456, concoct
- * a version number like `1.2.109000000456` or `2.3.409000000456` and print it.
+ * Given package.json contains a version value like `2.3.4` and the environment
+ * variable JOB_ID contains a build-number like 456, concoct a version number
+ * `2.3.409000000456` and print it.
  *
  * When the environment variable new_ci is truthy, the generated patch value
  * is padded to 14-16 places with a prefix of ${patch}099. Otherwise, the
@@ -38,7 +38,7 @@
  * After a server migration, build-numbers restarted at 1, wreaking havoc with
  * this scheme since new builds were generating semantically lower versions,
  * hence the introduction of `new_ci`. We ... messed up a few times, hence the
- * padding with 09, or 099
+ * padding with 09, or 099.
  *
  * Point of interest, or maybe disinterest: the max JOB_ID and patch values
  * derive from needing to keep the final value below  2^53 -1,
@@ -48,7 +48,15 @@
  * grief with a patch value of 9 and a build-number greater than 999:
  *   yarn version --new-version 11.0.9099000000001021
  *   error Invalid version supplied.
- *
+ * The patch value we concoct is of three parts:
+ * 1. the patch value from package.json, which can vary from 0-900
+ * 2. a fixed-width pad, 099 or 09
+ * 3. a fixed-width pad that absorbs the build number, e.g. ...0001 or ...0012
+ *    or ...0123 etc.
+ * So we have this situation:
+ *   9_007_199_254_740_991 // max value
+ *   P_PP0_99B_BBB_BBB_BBB // P == patch values, B == build numbers
+ * Thus, to stay under the max, the patch value must be <= 900.
  *
  */
 const main = ({ buildId, newCi }) => {
@@ -60,12 +68,14 @@ const main = ({ buildId, newCi }) => {
     }
 
     const buildNumber = Number.parseInt(buildId, 10);
-    if (!buildNumber) {
-      throw new Error(`could not parse buildId: '${buildId}'`)
+    if (!Number.isInteger(buildNumber)) {
+      throw new Error(`JOB_ID is not an integer: '${buildId}'`)
     }
     const isNewCi = !!newCi;
 
-    // from https://semver.org/
+    // it's tempting to think a smaller, simply regex would be sufficient
+    // here, but since semver org suggests a reg, we'll accept the offer.
+    // from https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
     const regex = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
     const [ver, vmajor, vminor, vpatch] = pkg.version.match(regex);
 
@@ -75,6 +85,10 @@ const main = ({ buildId, newCi }) => {
     }
 
     // patch must parse as a number, i.e. can be 0 but not start with 0.
+    // that is, even though we treat it like a string here and tack
+    // values onto the end, the result needs to be parseable as a number, and
+    // thus cannot start with 0. the simple hack here is to convert 0 to 1,
+    // meaning input like `1.2.0` provides output like `1.2.109000000123`.
     const patch = (vpatch === "0") ? "1" : vpatch;
     const snapshot = `${vmajor}.${vminor}.${patch}`;
 
