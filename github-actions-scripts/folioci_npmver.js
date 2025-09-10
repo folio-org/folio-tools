@@ -90,6 +90,7 @@ const main = ({ buildId, newCi }) => {
     if (!Number.isInteger(buildNumber)) {
       throw new Error(`JOB_ID is not an integer: '${buildId}'`)
     }
+
     const isNewCi = !!newCi;
 
     // it's tempting to think a smaller, simpler regex would be sufficient
@@ -99,16 +100,11 @@ const main = ({ buildId, newCi }) => {
     const [ver, vmajor, vminor, vpatch] = pkg.version.match(regex);
 
     const patchNumber = Number.parseInt(vpatch, 10);
-    // new_ci lpad is 1-3 characters
     if (patchNumber && patchNumber > 89) {
       throw new Error(`patch number cannot exceed 89 ('${vpatch}')`)
     }
 
-    // patch-number cannot be 9 because 9_099_BBB_BBB_BBB_BBB > 9_007_199_254_740_991
-    if (patchNumber && patchNumber === 9) {
-      throw new Error(`bwahahaha patch number cannot be 9 ('${vpatch}')`)
-    }
-
+    // warning! crunchy frogs!
     // patch must parse as a number, i.e. can be 0 but not start with 0.
     // that is, even though we treat it like a string here and tack
     // values onto the end, the result needs to be parseable as a number, and
@@ -117,14 +113,31 @@ const main = ({ buildId, newCi }) => {
     // treating 0 and 1 the same might seem problematic, but we don't have to
     // worry about collisions because the build-numbers we tack on at the end
     // always increase, leading to unique values.
-    const patch = (vpatch === "0") ? "1" : vpatch;
+    //
+    // but wait! there's more!
+    //
+    // warning! stainless steel bolts!
+    // patch-number cannot be 9 because 9_099_BBB_BBB_BBB_BBB > 9_007_199_254_740_991
+    // so we, uh, no easy way to say this: it can't be 9, so we make it not 9.
+    //
+    // MY GOD MAN who uses nested ternaries?
+    // ummmm, we do? warning! ram's bladder!
+    const patch = (vpatch === "0") ? "1" : vpatch === "9" ? "10" : vpatch;
+
     const snapshot = `${vmajor}.${vminor}.${patch}`;
 
     // pad to a constant width based on the magnitude of buildNumber.
-    // repeat(n) will throw given n < 0, i.e. if magnitude is too great
     const magnitude = Math.floor(Math.log10(buildNumber));
+    if (isNewCi && magnitude > 11) {
+      throw new Error(`JOB_ID cannot exceed 999_999_999_999 ('${buildNumber}')`)
+    }
+    if (!isNewCi && magnitude > 9) {
+      throw new Error(`JOB_ID cannot exceed 9_999_999_999 ('${buildNumber}')`)
+    }
 
-    const lpad = patchNumber > 9 ? '9' : '09';
+    // wait, > 8? Yes, because when 9 will be converted to 10 above.
+    // I told you: stainless! steel! bolts!
+    const lpad = patchNumber > 8 ? '9' : '09';
     const rpad = isNewCi ? `9${'0'.repeat(11 - magnitude)}` : `${'0'.repeat(9 - magnitude)}`;
 
     return `${snapshot}${lpad}${rpad}${buildNumber}`
