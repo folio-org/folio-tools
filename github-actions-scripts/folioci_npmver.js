@@ -41,8 +41,8 @@
  * * build is the value from process.env.JOB_ID
  *
  * input notes:
- * * package.json's patch-value must be < 90, != 9
- * * JOB_ID must be < 999_999_999_999
+ * * package.json's patch-value must be < 90
+ * * JOB_ID must be < 999_999_999_999 with new_ci, 9_999_999_999 without
  * * when new_ci is falsey, patch values are padded to 14 characters
  * * when new_ci is truthy, patch values are padded to 16 characters
  *
@@ -73,9 +73,7 @@
  *   error Invalid version supplied.
  * So we have this situation:
  *   9_007_199_254_740_991 // max value
- *   P_099_BBB_BBB_BBB_BBB // P == patch values < 9, B == build numbers
- *   P_P99_BBB_BBB_BBB_BBB // PP == patch values > 9, B == build numbers
- * which is why we accept values for P of 1-8 and 10-89, but not 9.
+ *   P_P99_BBB_BBB_BBB_BBB // P == patch values, B == build numbers
  *
  */
 const main = ({ buildId, newCi }) => {
@@ -117,8 +115,8 @@ const main = ({ buildId, newCi }) => {
     // but wait! there's more!
     //
     // warning! stainless steel bolts!
-    // patch-number cannot be 9 because 9_099_BBB_BBB_BBB_BBB > 9_007_199_254_740_991
-    // so we, uh, no easy way to say this: it can't be 9, so we make it not 9.
+    // patch cannot be 9 because 9_099_BBB_BBB_BBB_BBB > 9_007_199_254_740_991
+    // so, uh, no easy way to say this: it can't be 9, so we convert it to 10.
     //
     // MY GOD MAN who uses nested ternaries?
     // ummmm, we do? warning! ram's bladder!
