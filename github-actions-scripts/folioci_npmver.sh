@@ -1,3 +1,3 @@
 #!/bin/sh
 
-./folioci_npmver.js "$@"
+$(dirname "$0")/folioci_npmver.js "$@"
