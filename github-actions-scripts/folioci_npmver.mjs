@@ -76,8 +76,7 @@
  *   P_P99_BBB_BBB_BBB_BBB // P == patch values, B == build numbers
  *
  */
-const { readFileSync } = require('fs');
-
+import { readFileSync } from 'fs';
 const main = ({ buildId, newCi }) => {
   try {
     const pkg = JSON.parse(readFileSync(`${process.env.PWD}/package.json`, 'utf8'));
