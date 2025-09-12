@@ -76,9 +76,11 @@
  *   P_P99_BBB_BBB_BBB_BBB // P == patch values, B == build numbers
  *
  */
+const { readFileSync } = require('fs');
+
 const main = ({ buildId, newCi }) => {
   try {
-    const pkg = require(`${process.env.PWD}/package.json`);
+    const pkg = JSON.parse(readFileSync(`${process.env.PWD}/package.json`, 'utf8'));
     if (!pkg) {
       console.error("package.json file not found");
       process.exit(2);
