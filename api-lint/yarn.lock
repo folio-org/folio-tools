@@ -2,15 +2,15 @@
 # yarn lockfile v1
 
 
-"@aml-org/amf-antlr-parsers@0.8.28":
-  version "0.8.28"
-  resolved "https://registry.yarnpkg.com/@aml-org/amf-antlr-parsers/-/amf-antlr-parsers-0.8.28.tgz#5e996bcfae2900dc5a32f425f935e193dd052a00"
-  integrity sha512-gI6LMlwUdux/SXz5VbPXD0pp3UxhpD4kKc2gzIHIEZBpbmP9KgiDbS0UtuL9uQEw9pduyzAID18lhpGEh16zEg==
+"@aml-org/amf-antlr-parsers@0.8.30":
+  version "0.8.30"
+  resolved "https://registry.yarnpkg.com/@aml-org/amf-antlr-parsers/-/amf-antlr-parsers-0.8.30.tgz#5368caf8b2dd0cc21262ceeaea5a6742a33f35b9"
+  integrity sha512-NTME68eY+kQMasaAc0hogmvVm3XEU0gsLt9djno5Q14695UHreHhQMMwiYcfoSir45t+IjN0Uk2th5tkNKkWSA==
 
 "@eslint-community/eslint-utils@^4.2.0":
-  version "4.7.0"
-  resolved "https://registry.yarnpkg.com/@eslint-community/eslint-utils/-/eslint-utils-4.7.0.tgz#607084630c6c033992a082de6e6fbc1a8b52175a"
-  integrity sha512-dyybb3AcajC7uha6CvhdVRJqaKyn7w2YKqKyAN37NKYgZT36w+iRb0Dymmc5qEJ549c/S31cMMSFd75bteCpCw==
+  version "4.9.0"
+  resolved "https://registry.yarnpkg.com/@eslint-community/eslint-utils/-/eslint-utils-4.9.0.tgz#7308df158e064f0dd8b8fdb58aa14fa2a7f913b3"
+  integrity sha512-ayVFHdtZ+hsq1t2Dy24wCmGXGe4q9Gu3smhLYALJrr473ZH27MsnSL+LKUlimp4BWJqMDMLmPpx/Q9R3OAlL4g==
   dependencies:
     eslint-visitor-keys "^3.4.3"
 
@@ -114,12 +114,12 @@ ajv@6.12.6, ajv@^6.12.4:
     json-schema-traverse "^0.4.1"
     uri-js "^4.2.2"
 
-amf-client-js@5.7.2:
-  version "5.7.2"
-  resolved "https://registry.yarnpkg.com/amf-client-js/-/amf-client-js-5.7.2.tgz#3492ec220c2b6dc19ea103403ad1dac9f40876cd"
-  integrity sha512-DcV+ETxjzeyM18JMMeptjsv9zPr7V+wJprDEoYJ+wBCuSIdYxPbw+lHflN6ME2rVtj/8Cr3btoT4FOnWBLFKbA==
+amf-client-js@5.9.1:
+  version "5.9.1"
+  resolved "https://registry.yarnpkg.com/amf-client-js/-/amf-client-js-5.9.1.tgz#014255dca2acda17ac4b5e4e5732a8fd1f5fae17"
+  integrity sha512-P9Nfc0FpFTwIqlkn+NwZF40afkxzWXmPNisIQ7kmzqp5FDJ4atAPFIENUaOsTqJ7BzxkBaSgHDUSNdkvaWkD7Q==
   dependencies:
-    "@aml-org/amf-antlr-parsers" "0.8.28"
+    "@aml-org/amf-antlr-parsers" "0.8.30"
     ajv "6.12.6"
     avro-js "1.11.3"
 
@@ -354,9 +354,9 @@ debug@^3.2.7:
     ms "^2.1.1"
 
 debug@^4.3.1, debug@^4.3.2:
-  version "4.4.1"
-  resolved "https://registry.yarnpkg.com/debug/-/debug-4.4.1.tgz#e5a8bc6cbc4c6cd3e64308b0693a3d4fa550189b"
-  integrity sha512-KcKCqiftBJcZr++7ykoDIEwSa3XWowTfNPo92BYxjXiyYEVrUQh2aLyhxBCwww+heortUFxEJYcRzosstTEBYQ==
+  version "4.4.3"
+  resolved "https://registry.yarnpkg.com/debug/-/debug-4.4.3.tgz#c6ae432d9bd9662582fce08709b038c58e9e3d6a"
+  integrity sha512-RGwwWnwQvkVfavKVt22FGLw+xYSdzARwm0ru6DhTVA3umU5hZc28V3kO4stgYryrTlLpuvgI9GiijltAjNbcqA==
   dependencies:
     ms "^2.1.3"
 
@@ -750,6 +750,11 @@ functions-have-names@^1.2.3:
   resolved "https://registry.yarnpkg.com/functions-have-names/-/functions-have-names-1.2.3.tgz#0404fe4ee2ba2f607f0e0ec3c80bae994133b834"
   integrity sha512-xckBUXyTIqT97tq2x2AMb+g163b5JFysYk0x4qxNFwbfQkmNZoiRHb6sPzI9/QV33WeuvVYBUIiD4NzNIyqaRQ==
 
+generator-function@^2.0.0:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/generator-function/-/generator-function-2.0.1.tgz#0e75dd410d1243687a0ba2e951b94eedb8f737a2"
+  integrity sha512-SFdFmIJi+ybC0vjlHN0ZGVGHc3lgE0DxPAT0djjVg+kjOnSqclqmj0KQ7ykTOLP6YxoqOvuAODGdcHJn+43q3g==
+
 get-caller-file@^2.0.5:
   version "2.0.5"
   resolved "https://registry.yarnpkg.com/get-caller-file/-/get-caller-file-2.0.5.tgz#4f94412a82db32f36e3b0b9741f8a97feb031f7e"
@@ -771,7 +776,7 @@ get-intrinsic@^1.2.4, get-intrinsic@^1.2.5, get-intrinsic@^1.2.6, get-intrinsic@
     hasown "^2.0.2"
     math-intrinsics "^1.1.0"
 
-get-proto@^1.0.0, get-proto@^1.0.1:
+get-proto@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/get-proto/-/get-proto-1.0.1.tgz#150b3f2743869ef3e851ec0c49d15b1d14d00ee1"
   integrity sha512-sTSfBjoXBp89JvIKIefqw7U2CCebsc74kiY6awiGogKtoSGbgjYE/G/+l9sF3MWFPNc9IcoOC4ODfKHfxFmp0g==
@@ -997,12 +1002,13 @@ is-fullwidth-code-point@^3.0.0:
   integrity sha512-zymm5+u+sCsSWyD9qNaejV3DFvhCKclKdizYaJUuHA83RLjb7nSuGnddCHGv0hk+KY7BMAlsWeK4Ueg6EV6XQg==
 
 is-generator-function@^1.0.10:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/is-generator-function/-/is-generator-function-1.1.0.tgz#bf3eeda931201394f57b5dba2800f91a238309ca"
-  integrity sha512-nPUB5km40q9e8UfN/Zc24eLlzdSf9OfKByBw9CIdw4H1giPMeA0OIJvbchsCu4npfI2QcMVBsGEBHKZ7wLTWmQ==
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/is-generator-function/-/is-generator-function-1.1.2.tgz#ae3b61e3d5ea4e4839b90bad22b02335051a17d5"
+  integrity sha512-upqt1SkGkODW9tsGNG5mtXTXtECizwtS2kA161M+gJPc1xdb/Ax629af6YrTwcOeQHbewrPNlE5Dx7kzvXTizA==
   dependencies:
-    call-bound "^1.0.3"
-    get-proto "^1.0.0"
+    call-bound "^1.0.4"
+    generator-function "^2.0.0"
+    get-proto "^1.0.1"
     has-tostringtag "^1.0.2"
     safe-regex-test "^1.1.0"
 
