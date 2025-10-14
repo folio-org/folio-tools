@@ -3,16 +3,18 @@ const { argv } = require('yargs/yargs')(process.argv.slice(2))
   .usage('Usage: node $0 [options]')
   .example('node $0 -t "RAML 1.0" -m mod-courses -f $GH_FOLIO/mod-courses/ramls/courses.raml')
   .example('node $0 -t "OAS 3.0" -m mod-eusage-reports -f $GH_FOLIO/mod-eusage-reports/src/main/resources/openapi/eusage-reports-1.0.yaml')
+  .example('node $0 -t "OAS 3.1" -m mod-inventory-import -f $GH_FOLIO/mod-inventory-import/src/main/resources/openapi/inventory-import-1.0.yaml')
   .alias('t', 'type')
   .nargs('t', 1)
-  .describe('t', 'The API type: "RAML 1.0" or "OAS 3.0".')
+  .describe('t', 'The API type: "RAML 1.0" or "OAS 3.0" or "OAS 3.1".')
   .alias('f', 'inputFile')
   .nargs('f', 1)
   .describe('f', 'The path of the input file to be processed.')
   .demandOption(['t', 'f'])
   .help('h')
   .alias('h', 'help')
-  .version('1.1.0');
+  .wrap(null)
+  .version('1.2.0');
 
 const amf = require('amf-client-js');
 
@@ -29,8 +31,11 @@ switch (argv.type) {
   case 'OAS 3.0':
     client = amf.OASConfiguration.OAS30().baseUnitClient();
     break;
+  case 'OAS 3.1':
+    client = amf.OASConfiguration.OAS31().baseUnitClient();
+    break;
   default:
-    console.error(`Type '${argv.type}' must be one of 'RAML 1.0' or 'OAS 3.0'.`);
+    console.error(`Type '${argv.type}' must be one of 'RAML 1.0' or 'OAS 3.0' or 'OAS 3.1'.`);
     process.exit(1);
 }
 

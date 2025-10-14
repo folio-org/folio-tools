@@ -29,7 +29,7 @@ import tempfile
 import sh
 import yaml
 
-SCRIPT_VERSION = "1.8.2"
+SCRIPT_VERSION = "1.9.0"
 
 LOGLEVELS = {
     "debug": logging.DEBUG,
@@ -111,7 +111,7 @@ def main():
                     if len(schemas_parent) > 0:
                         dereference_schemas(
                             api_type, api_temp_dir, os.path.abspath(output_dir), schemas_parent)
-                    endpoints = generate_doc(api_type, api_temp_dir, input_dir, output_dir, file_an)
+                    endpoints = generate_doc(api_type, api_version, api_temp_dir, input_dir, output_dir, file_an)
                     endpoints_extended = add_href_fragments(api_type, endpoints)
                     if interfaces_endpoints:
                         endpoints_extended = correlate_interfaces(endpoints_extended, interfaces_endpoints)
@@ -163,7 +163,7 @@ def find_api_files(api_type, input_dir, api_directories, exclude_dirs, exclude_f
 def get_api_version(file_an, file_pn, api_type, version_raml_re, version_oas_re):
     """Get the version from the api description file."""
     supported_raml = ["RAML 1.0"]
-    supported_oas = ["OAS 3.0"]
+    supported_oas = ["OAS 3.0", "OAS 3.1"]
     msg_1 = "API version %s is not supported for file: %s"
     api_version = None
     version_supported = False
@@ -381,7 +381,7 @@ def correlate_interfaces(endpoints, interfaces_endpoints):
         endpoints_interfaces.append(endpoint)
     return endpoints_interfaces
 
-def generate_doc(api_type, api_temp_dir, input_dir, output_dir, input_pn):
+def generate_doc(api_type, api_version, api_temp_dir, input_dir, output_dir, input_pn):
     """
     Generate the API documentation from this API description file.
     Gather the list of endpoints.
@@ -438,7 +438,7 @@ def generate_doc(api_type, api_temp_dir, input_dir, output_dir, input_pn):
         # Note: Using original descriptions,
         # not those in api_temp_dir which were transformed by replace_folio_ns_schema_refs()
         try:
-            sh.node(script_endpoints_pn, "-t", "OAS 3.0", "-f", input_fn,
+            sh.node(script_endpoints_pn, "-t", api_version, "-f", input_fn,
                 _out=endpoints_pn, _cwd=input_dir)
         except sh.ErrorReturnCode as err:
             # Ignore. The script outputs an empty array if trouble parsing. Use api-lint beforehand.
