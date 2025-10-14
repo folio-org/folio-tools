@@ -6,7 +6,7 @@
     "raml2html": "^7.1.0",
     "raml2html-plain-theme": "folio-org/raml2html-plain-theme#folio-589",
     "@redocly/cli": "^1.0.0",
-    "yargs": "^17.0.0"
+    "yargs": "^18.0.0"
   },
   "devDependencies": {
     "eslint": "^8.2.0",
