@@ -22,7 +22,7 @@ import re
 
 import sh
 
-SCRIPT_VERSION = "1.3.2"
+SCRIPT_VERSION = "1.4.0"
 
 LOGLEVELS = {
     "debug": logging.DEBUG,
@@ -197,7 +197,7 @@ def get_api_version(file_pn, api_type, version_raml_re, version_oas_re):
     """Get the version from the api description file."""
     logger = logging.getLogger("api-lint")
     supported_raml = ["RAML 1.0"]
-    supported_oas = ["OAS 3.0"]
+    supported_oas = ["OAS 3.0", "OAS 3.1"]
     msg_1 = "API version %s is not supported for file: %s"
     api_version = None
     version_supported = False
