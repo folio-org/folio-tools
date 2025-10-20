@@ -1,0 +1,36 @@
+# see api-lint README for why these are needed and how to disable injection, if needed
+annotationTypes:
+  fqm-data-type:
+    type: string
+  fqm-essential:
+    type: boolean
+  fqm-filter-value-getter:
+    type: string
+  fqm-ignore:
+    type: boolean
+  fqm-is-id-column:
+    type: boolean
+  fqm-joins-to-raw:
+    type: array
+    items:
+      type: object
+  fqm-joins-to:
+    type: array
+    items:
+      type: object
+  fqm-name:
+    type: string
+  fqm-value-function:
+    type: string
+  fqm-value-getter:
+    type: string
+  fqm-value-source-api:
+    type: object
+  fqm-values:
+    type: array
+    items:
+      type: object
+  fqm-visibility:
+    type: string
+  fqm-visible-by-default:
+    type: boolean
