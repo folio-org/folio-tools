@@ -82,7 +82,7 @@ async function main() {
     console.log(`${res.severityLevel}: ${res.message}`);
   });
   console.log('--------\n');
-  if (injectRamlAnnotationTypes) {
+  if (injectedRamlFile) {
     console.log('---- Note: RAML annotationTypes for FQM were injected for validation. See the README for more information.');
   } else if (argv.type === 'RAML 1.0') {
     console.log('---- Note: Custom annotationTypes exist; FQM annotationTypes were not injected. See the README for more information.');
