@@ -15,7 +15,7 @@ const { argv } = require('yargs/yargs')(process.argv.slice(2))
   .help('h')
   .alias('h', 'help')
   .wrap(null)
-  .version('1.2.0');
+  .version('1.3.0');
 
 const amf = require('amf-client-js');
 const fs = require('fs');
