@@ -20,6 +20,8 @@ annotationTypes:
       type: object
   fqm-name:
     type: string
+  fqm-source:
+    type: object
   fqm-value-function:
     type: string
   fqm-value-getter:
