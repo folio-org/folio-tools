@@ -110,3 +110,12 @@ See usage notes with: `node amf.js --help`
 To use "api-lint" with FOLIO Continuous Integration,
 see instructions at [https://dev.folio.org/guides/api-lint/](https://dev.folio.org/guides/api-lint/)
 
+## Annotation type injection for FQM
+
+Linting RAML files which refer to schemas containing vendor extensions (e.g. `x-fqm-visibility`) may result in validation errors if these vendor extensions are not defined in the RAML model itself.
+
+The FOLIO Query Machine adds [a series of vendor extensions](https://github.com/folio-org/fqm-tools/blob/main/docs/generation/field-schema.md) throughout FOLIO's schemas, including in shared schemas used across many modules, requiring `annotationTypes` to be declared in nearly every RAML file across FOLIO. To reduce this burden, `api-lint` will automatically inject `annotationTypes` for FQM's vendor extensions into RAML files during validation, unless the RAML file already declares its own `annotationTypes` section.
+
+If you wish to disable this, add an empty `annotationTypes: {}` section to your RAML file.
+
+For more information, see [the FQM entity generation documentation](https://github.com/folio-org/fqm-tools/tree/main/docs/generation/) and [FOLIO-4387](https://folio-org.atlassian.net/browse/FOLIO-4387).

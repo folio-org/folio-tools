@@ -1,4 +1,3 @@
-const fs = require('fs');
 const { argv } = require('yargs/yargs')(process.argv.slice(2))
   .usage('Usage: node $0 [options]')
   .example('node $0 -t "RAML 1.0" -f $GH_FOLIO/mod-courses/ramls/courses.raml')
@@ -16,9 +15,11 @@ const { argv } = require('yargs/yargs')(process.argv.slice(2))
   .help('h')
   .alias('h', 'help')
   .wrap(null)
-  .version('1.2.0');
+  .version('1.3.0');
 
 const amf = require('amf-client-js');
+const fs = require('fs');
+const path = require('path');
 
 if (!fs.existsSync(argv.inputFile)) {
   console.error(`Input file does not exist: ${argv.inputFile}`);
@@ -41,8 +42,32 @@ switch (argv.type) {
     process.exit(1);
 }
 
+function injectRamlAnnotationTypes(origFile, type) {
+  if (type !== 'RAML 1.0') {
+    return null;
+  }
+
+  // create new file in original directory, with prefix
+  // we must use original directory instead of a tmp dir to ensure relative includes still work
+  const tmpFilePath = path.join(path.dirname(origFile), `_injected_${path.basename(origFile)}`);
+
+  const origSpec = fs.readFileSync(origFile, 'utf8');
+  if (origSpec.includes('annotationTypes:')) {
+    // already has annotationTypes, do not inject
+    return null;
+  }
+
+  const toInject = fs.readFileSync(path.join(__dirname, 'injected-annotation-types.yaml'), 'utf8');
+
+  fs.writeFileSync(tmpFilePath, `${origSpec}\n\n${toInject}`, 'utf8');
+
+  return tmpFilePath;
+}
+
+const injectedRamlFile = injectRamlAnnotationTypes(argv.inputFile, argv.type);
+
 async function main() {
-  const parsingResult = await client.parseDocument(`file://${argv.inputFile}`);
+  const parsingResult = await client.parseDocument(`file://${injectedRamlFile ?? argv.inputFile}`);
   const validationResult = await client.validate(parsingResult.baseUnit);
   console.log('---- Summary:');
   console.log(`parsingResult.conforms: ${parsingResult.conforms}`);
@@ -57,6 +82,11 @@ async function main() {
     console.log(`${res.severityLevel}: ${res.message}`);
   });
   console.log('--------\n');
+  if (injectedRamlFile) {
+    console.log('---- Note: RAML annotationTypes for FQM were injected for validation. See the README for more information.');
+  } else if (argv.type === 'RAML 1.0') {
+    console.log('---- Note: Custom annotationTypes exist; FQM annotationTypes were not injected. See the README for more information.');
+  }
   console.log('---- parsingResult:');
   console.log(parsingResult.toString());
   console.log('---- validationResult:');
@@ -65,12 +95,16 @@ async function main() {
     process.exitCode = 1;
   }
   if (argv.warnings) {
-    if (parsingResult.conforms && (parsingResult.results.length > 0)) {
+    if (parsingResult.conforms && parsingResult.results.length > 0) {
       process.exitCode = 1;
     }
-    if (validationResult.conforms && (validationResult.results.length > 0)) {
+    if (validationResult.conforms && validationResult.results.length > 0) {
       process.exitCode = 1;
     }
+  }
+
+  if (injectedRamlFile) {
+    fs.unlinkSync(injectedRamlFile);
   }
 }
 
