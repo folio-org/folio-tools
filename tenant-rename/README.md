@@ -6,5 +6,5 @@ How to run in psql:
 
 ```
 \i tenant-rename.sql
-call tenant_rename('oldname', 'newname');
+call tenant_rename('oldtenantname', 'newtenantname');
 ```

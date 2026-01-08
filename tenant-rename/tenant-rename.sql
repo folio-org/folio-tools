@@ -7,7 +7,7 @@ $PROCEDURE$
     sql text;
     config text;
   BEGIN
-    -- reject characters that require masking in regexpmust not start with digit
+    -- reject characters that require masking in regexp or start with digit
     -- tenant starting with digit is invalid schema name in PostgreSQL
     IF oldtenant !~ '^[\w_][\w\d_]*$' THEN
       RAISE 'Invalid character in oldtenant: %', oldtenant;
@@ -25,13 +25,14 @@ $PROCEDURE$
     END LOOP;
     RAISE INFO 'Holding all write locks.';
 
-    -- rename roles
+    -- rename each role and change role password
     FOR record IN
       SELECT rolname AS oldschema FROM pg_roles WHERE rolname ~ regexp
     LOOP
       newschema := regexp_replace(record.oldschema, concat('^', oldtenant), newtenant);
       EXECUTE format('ALTER ROLE %I RENAME TO %I', record.oldschema, newschema);
       EXECUTE format('ALTER ROLE %I SET search_path TO %I', newschema, newschema);
+      EXECUTE format('ALTER ROLE %I PASSWORD %L', newschema, newtenant);
     END LOOP;
 
     -- rename schema name in source code and config (eg. {search_path=diku_mod_foo}) of functions and procedures
@@ -41,8 +42,8 @@ $PROCEDURE$
     LOOP
       newschema := regexp_replace(record.oldschema, concat('^', oldtenant), newtenant);
       -- \m and \M match at begin and end of a word, word = [a-zA-Z0-9_]+
-      sql    := regexp_replace(record.prosrc,    concat('\m', record.oldschema, '\M'), newschema, 0, 'g');
-      config := regexp_replace(record.proconfig, concat('\m', record.oldschema, '\M'), newschema, 0, 'g');
+      sql    := regexp_replace(record.prosrc,    concat('\m', record.oldschema, '\M'), newschema, 'g');
+      config := regexp_replace(record.proconfig, concat('\m', record.oldschema, '\M'), newschema, 'g');
       CONTINUE WHEN sql IS NOT DISTINCT FROM record.prosrc AND
                  config IS NOT DISTINCT FROM record.proconfig;
       UPDATE pg_proc SET prosrc = sql, proconfig = config WHERE oid = record.oid;
@@ -56,8 +57,8 @@ $PROCEDURE$
       newschema := regexp_replace(record.oldschema, concat('^', oldtenant), newtenant);
       EXECUTE format('UPDATE %I.rmb_internal_index SET def = replace(def, %L, %L)',
                      record.oldschema,
-                     concat(' ', record.oldschema, '.',
-                     concat(' ', newschema, '.');
+                     concat(' ', record.oldschema, '.'),
+                     concat(' ', newschema, '.'));
     END LOOP;
 
     -- rename schema name in rmb_job.jsonb->>'tenant'
