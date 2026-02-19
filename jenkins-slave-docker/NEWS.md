@@ -1,3 +1,8 @@
+## 4.3.0 java-21 2026-02-19
+
+* Update Nodejs to 22
+* Upgrade Maven to 3.8.9
+
 ## 4.2.0 java-21 2025-03-07
 
 * Update OS to latest jammy-updates

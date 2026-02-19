@@ -27,12 +27,12 @@ RUN DEBIAN_FRONTEND="noninteractive" apt-get -q install -y \
     echo "dash dash/sh boolean false" | debconf-set-selections && \
     dpkg-reconfigure -f noninteractive dash
 
-ENV LANG en_US.UTF-8
-ENV LANGUAGE en_US:en
-ENV LC_ALL en_US.UTF-8
+ENV LANG=en_US.UTF-8
+ENV LANGUAGE=en_US:en
+ENV LC_ALL=en_US.UTF-8
 
 ## Install Nodejs
-ARG NODEJS_VERSION=20
+ARG NODEJS_VERSION=22
 RUN curl -sL https://deb.nodesource.com/setup_${NODEJS_VERSION}.x | bash -
 
 # Install Postgres repo
@@ -81,7 +81,7 @@ RUN wget -q --no-cookies \
     mv /tmp/docker/* /usr/local/bin/ && \
     rm -rf /tmp/docker*
 
-ARG MAVEN_VERSION=3.8.8
+ARG MAVEN_VERSION=3.8.9
 RUN wget https://dlcdn.apache.org/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz && \
     tar xzf apache-maven-${MAVEN_VERSION}-bin.tar.gz -C /usr/share/ && \
     cd /usr/share/ && \
@@ -142,7 +142,7 @@ ARG docker_user=jenkins
 
 ARG JENKINS_AGENT_HOME=/home/${user}
 
-ENV JENKINS_AGENT_HOME ${JENKINS_AGENT_HOME}
+ENV JENKINS_AGENT_HOME=${JENKINS_AGENT_HOME}
 
 RUN groupadd -g ${gid} ${group} \
     && useradd -d "${JENKINS_AGENT_HOME}" -u "${uid}" -g "${gid}" -m -s /bin/bash "${user}" \
