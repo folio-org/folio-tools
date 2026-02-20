@@ -1,3 +1,13 @@
+## 3.2.0 java-17 2026-02-20
+
+* Update Nodejs to 22
+* Upgrade  Maven to 3.8.9
+* Pin boto, boto3, and botocore. https://folio-org.atlassian.net/browse/FOLIO-4260
+
+## 4.3.1 java-21 2026-02-20
+
+* Pin boto, boto3, and botocore. https://folio-org.atlassian.net/browse/FOLIO-4260
+
 ## 4.3.0 java-21 2026-02-19
 
 * Update Nodejs to 22
