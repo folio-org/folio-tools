@@ -12,7 +12,7 @@ import logging
 from pathlib import Path
 import sys
 
-SCRIPT_VERSION = "1.0.2"
+SCRIPT_VERSION = "1.1.0"
 
 # pylint: disable=R0912
 # pylint: disable=R0915
@@ -113,6 +113,39 @@ def load_module_descriptor(input_pn):
     return content
 
 
+def process_docker_args(host_config):
+    """
+    Processes the dockerArgs HostConfig portion of LaunchDescriptor.
+    """
+    summary = ""
+    memory = ""
+    ports_list = []
+    try:
+        memory = host_config["Memory"]
+    except KeyError:
+        msg = "LaunchDescriptor is missing its 'HostConfig.memory' section."
+        LOGGER.info("%s", msg)
+    try:
+        ports_list = list(host_config["PortBindings"].keys())
+    except KeyError:
+        msg = "LaunchDescriptor is missing its list of PortBindings."
+        LOGGER.info("%s", msg)
+    else:
+        if not ports_list:
+            msg = "LaunchDescriptor is missing its list of PortBindings."
+            LOGGER.info("%s", msg)
+    if memory or ports_list:
+        summary = "\n## Metadata\n\n"
+    if memory:
+        summary += f"* Container memory (bytes): {memory}\n"
+    ports = []
+    for port in ports_list:
+        ports.append(port)
+    if ports:
+        summary += f"* Module ports: {', '.join(ports)}\n"
+    return summary
+
+
 def summarise_module_descriptor(module_descriptor_pn):
     """
     Extracts specific content from LaunchDescriptor portion of ModuleDescriptor.
@@ -136,15 +169,8 @@ def summarise_module_descriptor(module_descriptor_pn):
     except KeyError:
         msg = "LaunchDescriptor is missing its 'dockerArgs HostConfig' section."
         LOGGER.info("%s", msg)
-        return summary
-    summary += "## Metadata\n\n"
-    ports_list = list(host_config["PortBindings"].keys())
-    ports = []
-    for port in ports_list:
-        ports.append(port)
-    if ports:
-        summary += f"* Module port: {', '.join(ports)}\n"
-    summary += f"* Container memory (bytes): {host_config['Memory']}\n"
+    else:
+        summary = process_docker_args(host_config)
     try:
         env_content = md_content["launchDescriptor"]["env"]
     except KeyError:
@@ -251,7 +277,7 @@ def main():
     content = f"# FOLIO - {module_name}\n\n"
     if description:
         content += f"{description}\n\n"
-    content += f"Code Repository: [{repo_url}]({repo_url})\n\n"
+    content += f"Code Repository: [{repo_url}]({repo_url})\n"
     if module_descriptor_pn:
         content += summarise_module_descriptor(module_descriptor_pn)
     LOGGER.info("Writing output file: %s", output_pn)
