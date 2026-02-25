@@ -12,7 +12,7 @@ import logging
 from pathlib import Path
 import sys
 
-SCRIPT_VERSION = "1.0.1"
+SCRIPT_VERSION = "1.0.2"
 
 # pylint: disable=R0912
 # pylint: disable=R0915
@@ -184,7 +184,11 @@ def summarise_module_descriptor(module_descriptor_pn):
                 other_env_folio_db.append(item)
         else:
             other_env.append(item)
-    summary += "\n## Default environment variables\n\n"
+    if env_content:
+        summary += "\n## Default environment variables\n\n"
+    else:
+        msg = "LaunchDescriptor has empty 'env' section."
+        LOGGER.info("%s", msg)
     if java_options:
         summary += f"{java_options}\n"
     if has_folio_db:
