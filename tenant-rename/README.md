@@ -43,5 +43,11 @@ pg_dumpall --roles-only --host= --port= --username= | grep -E -e '^\\' -e '^SET 
 Dump OLDTENANT schemas:
 
 ```
-pg_dump --host= --port= --username= "--schema=${OLDTENANT}_mod_*" dbname > schemas_${OLDTENANT}.sql
+pg_dump --host= --port= --username= "--schema=${OLDTENANT}_mod_*" "$FOLIODB" > schemas_${OLDTENANT}.sql
+```
+
+Use psql to restore them:
+
+```
+cat roles_${OLDTENANT}.sql schemas_${OLDTENANT}.sql | psql --host= --port= --username= "$FOLIODB"
 ```
