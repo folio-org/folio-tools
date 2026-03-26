@@ -1,3 +1,5 @@
+## Rename tenant
+
 Rename a tenant in-place in the database.
 
 This doesn't support consortia.
@@ -11,10 +13,13 @@ curl -w'\n\n' -sS -D - -HX-Okapi-Token:$TOKEN $OKAPI/_/proxy/tenants/$OLDTENANT/
 curl -w'\n\n' -sS -D - -HX-Okapi-Token:$TOKEN $OKAPI/_/proxy/tenants/$OLDTENANT -XDELETE
 ```
 
-Start psql (add connection parameters as needed), load `tenant-rename.sql` and call `tenant_rename`:
+Set the connection parameters using the environment variables `PGDATABASE`, `PGHOST`, `PGPORT`, and `PGUSER`
+or as arguments to the following commands.
+
+Start psql, load `tenant-rename.sql` and call `tenant_rename`:
 
 ```
-psql <<EOF
+psql --host= --port= --username= <<EOF
 \i tenant-rename.sql
 call tenant_rename('$OLDTENANT', '$NEWTENANT');
 EOF
@@ -25,4 +30,18 @@ Enable new tenant `$NEWTENANT` using `$TOKEN` at `$OKAPI` (this requires Okapi >
 ```
 curl -w'\n\n' -sS -D - -HX-Okapi-Token:$TOKEN $OKAPI/_/proxy/tenants -d "{\"id\":\"$NEWTENANT\"}"
 curl -w'\n\n' -sS -D - -HX-Okapi-Token:$TOKEN $OKAPI/_/proxy/tenants/$NEWTENANT/install -d @modules-enable.json
+```
+
+## Dump tenant
+
+Dump OLDTENANT roles:
+
+```
+pg_dumpall --roles-only --host= --port= --username= | grep -E -e '^\\' -e '^SET ' -e "^(CREATE ROLE|ALTER ROLE|GRANT) ${OLDTENANT}_mod_" > roles_${OLDTENANT}.sql
+```
+
+Dump OLDTENANT schemas:
+
+```
+pg_dump --host= --port= --username= "--schema=${OLDTENANT}_mod_*" dbname > schemas_${OLDTENANT}.sql
 ```
