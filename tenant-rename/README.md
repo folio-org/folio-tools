@@ -48,7 +48,7 @@ pg_dump --host= --port= --username= --extension='*' --schema=public "--schema=${
 
 ## Restore tenant
 
-If needed, use psql to create `folio` role and `folio` database if needed, but with better password:
+If needed, use psql to create `folio` role and $FOLIODB=`folio` database if needed, but with better password:
 
 ```
 CREATE ROLE folio WITH PASSWORD 'folio123' LOGIN SUPERUSER;
