@@ -43,10 +43,19 @@ pg_dumpall --roles-only --host= --port= --username= | grep -E -e '^\\' -e '^SET 
 Dump OLDTENANT schemas:
 
 ```
-pg_dump --host= --port= --username= "--schema=${OLDTENANT}_mod_*" "$FOLIODB" > schemas_${OLDTENANT}.sql
+pg_dump --host= --port= --username= --extension='*' --schema=public "--schema=${OLDTENANT}_mod_*" "$FOLIODB" > schemas_${OLDTENANT}.sql
 ```
 
-Use psql to restore them:
+## Restore tenant
+
+If needed, use psql to create `folio` role and `folio` database if needed, but with better password:
+
+```
+CREATE ROLE folio WITH PASSWORD 'folio123' LOGIN SUPERUSER;
+CREATE DATABASE folio WITH OWNER folio;
+```
+
+Use psql to restore the tentant from the .sql files:
 
 ```
 cat roles_${OLDTENANT}.sql schemas_${OLDTENANT}.sql | psql --host= --port= --username= "$FOLIODB"
