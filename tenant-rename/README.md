@@ -34,29 +34,37 @@ curl -w'\n\n' -sS -D - -HX-Okapi-Token:$TOKEN $OKAPI/_/proxy/tenants/$NEWTENANT/
 
 ## Dump tenant
 
-Dump OLDTENANT roles:
+Dump $TENANT schemas from $FOLIODB:
 
 ```
-pg_dumpall --roles-only --host= --port= --username= | grep -E -e '^\\' -e '^SET ' -e "^(CREATE ROLE|ALTER ROLE|GRANT) ${OLDTENANT}_mod_" > roles_${OLDTENANT}.sql
+pg_dump --host= --port= --username= --extension='*' --schema=public "--schema=${TENANT}_mod_*" "$FOLIODB" > schemas_${TENANT}.sql
 ```
 
-Dump OLDTENANT schemas:
+Pick one of the two following role dump methods - either with or without passwords.
+
+Dump $TENANT roles, don't dump passwords, they are not needed if the `tenant-rename.sql` script runs after the restore:
 
 ```
-pg_dump --host= --port= --username= --extension='*' --schema=public "--schema=${OLDTENANT}_mod_*" "$FOLIODB" > schemas_${OLDTENANT}.sql
+pg_dumpall --roles-only --no-role-passwords --host= --port= --username= | grep -E -e '^\\' -e '^SET ' -e "^(CREATE ROLE|ALTER ROLE|GRANT) ${TENANT}_mod_" > roles_${TENANT}.sql
+```
+
+Dump $TENANT roles, dump includes passwords, this requires superuser permissions, otherwise you get "pg\_dumpall: error: query failed: ERROR:  permission denied for table pg\_authid":
+
+```
+pg_dumpall --roles-only --host= --port= --username= | grep -E -e '^\\' -e '^SET ' -e "^(CREATE ROLE|ALTER ROLE|GRANT) ${TENANT}_mod_" > roles_${TENANT}.sql
 ```
 
 ## Restore tenant
 
-If needed, use psql to create `folio` role and $FOLIODB=`folio` database if needed, but with better password:
+If missing, use psql to create `folio` role and $FOLIODB=`folio` database, but with better password:
 
 ```
 CREATE ROLE folio WITH PASSWORD 'folio123' LOGIN SUPERUSER;
 CREATE DATABASE folio WITH OWNER folio;
 ```
 
-Use psql to restore the tentant from the .sql files:
+Use psql to restore the tentant $TENANT from the .sql files into $FOLIODB:
 
 ```
-cat roles_${OLDTENANT}.sql schemas_${OLDTENANT}.sql | psql --host= --port= --username= "$FOLIODB"
+cat roles_${TENANT}.sql schemas_${TENANT}.sql | psql --host= --port= --username= "$FOLIODB"
 ```
