@@ -43,10 +43,17 @@ $PROCEDURE$
       newschema := regexp_replace(record.oldschema, concat('^', oldtenant), newtenant);
       -- \m and \M match at begin and end of a word, word = [a-zA-Z0-9_]+
       sql    := regexp_replace(record.prosrc,    concat('\m', record.oldschema, '\M'), newschema, 'g');
-      config := regexp_replace(record.proconfig, concat('\m', record.oldschema, '\M'), newschema, 'g');
-      CONTINUE WHEN sql IS NOT DISTINCT FROM record.prosrc AND
-                 config IS NOT DISTINCT FROM record.proconfig;
-      UPDATE pg_proc SET prosrc = sql, proconfig = config WHERE oid = record.oid;
+      IF pg_typeof(record.proconfig) = 'text[]'::regtype THEN
+        config := regexp_replace(record.proconfig[1], concat('\m', record.oldschema, '\M'), newschema, 'g');
+        CONTINUE WHEN sql IS NOT DISTINCT FROM record.prosrc AND
+                   config IS NOT DISTINCT FROM record.proconfig[1];
+        UPDATE pg_proc SET prosrc = sql, proconfig[1] = config WHERE oid = record.oid;
+      ELSE
+        config := regexp_replace(record.proconfig, concat('\m', record.oldschema, '\M'), newschema, 'g');
+        CONTINUE WHEN sql IS NOT DISTINCT FROM record.prosrc AND
+                   config IS NOT DISTINCT FROM record.proconfig;
+        UPDATE pg_proc SET prosrc = sql, proconfig = config WHERE oid = record.oid;
+      END IF;
     END LOOP;
 
     -- rename schema name in rmb_internal_index.def
