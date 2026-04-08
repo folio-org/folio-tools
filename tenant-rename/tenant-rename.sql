@@ -45,8 +45,8 @@ $PROCEDURE$
       sql := regexp_replace(record.prosrc, concat('\m', record.oldschema, '\M'), newschema, 'g');
       -- https://github.com/folio-org/mod-data-export/blob/v5.3.0/src/main/resources/db/changelog/changes/slice_instances_all_ids.sql#L8
       -- https://github.com/folio-org/mod-data-export/blob/v5.3.0/src/main/resources/db/changelog/changes/slice_holdings_all_ids.sql#L8
-      sql := replace(sql, concat(' ', record.oldschema, '_mod_inventory_storage.'),
-                          concat(' ', newschema,        '_mod_inventory_storage.') );
+      sql := replace(sql, concat(' ', oldtenant, '_mod_inventory_storage.'),
+                          concat(' ', newtenant, '_mod_inventory_storage.') );
       IF pg_typeof(record.proconfig) = 'text[]'::regtype THEN
         config := regexp_replace(record.proconfig[1], concat('\m', record.oldschema, '\M'), newschema, 'g');
         CONTINUE WHEN sql IS NOT DISTINCT FROM record.prosrc AND
@@ -106,7 +106,7 @@ $PROCEDURE$
       SELECT schemaname AS oldschema FROM pg_tables
       WHERE schemaname = concat(oldtenant, '_mod_fqm_manager') AND tablename = 'entity_type_definition'
     LOOP
-      EXECUTE format($$ UPDATE %I.entity_type_definition SET definition = regexp_replace(definition, %L, %L, 'g') $$,
+      EXECUTE format($$ UPDATE %I.entity_type_definition SET definition = regexp_replace(definition::text, %L, %L, 'g')::json $$,
                      record.oldschema,
                      concat('\m', oldtenant, '_mod_'),
                      concat(newtenant, '_mod_'));
@@ -130,7 +130,7 @@ $PROCEDURE$
                      record.oldschema, newtenant, oldtenant);
     END LOOP;
 
-    -- rename tenant name in mod_search consortium_instance.tenant_id
+    -- rename tenant name in mod_search instance_classification.tenant_id
     FOR record IN
       SELECT schemaname AS oldschema FROM pg_tables
       WHERE schemaname = concat(oldtenant, '_mod_search') AND tablename = 'instance_classification'
