@@ -45,13 +45,18 @@ Pick one of the two following role dump methods - either with or without passwor
 Dump $TENANT roles, don't dump passwords, they are not needed if the `tenant-rename.sql` script runs after the restore:
 
 ```
-pg_dumpall --roles-only --no-role-passwords --host= --port= --username= | grep -E -e '^\\' -e '^SET ' -e "^(CREATE ROLE|ALTER ROLE|GRANT) ${TENANT}_mod_" > roles_${TENANT}.sql
+pg_dumpall --roles-only --no-role-passwords --host= --port= --username= \
+  | sed 's/ NOSUPERUSER / /; s/ NOCREATEDB / /; s/ NOREPLICATION / /; s/ NOBYPASSRLS / /;' \
+  | grep -E -e '^\\' -e '^SET ' -e "^(CREATE ROLE|ALTER ROLE|GRANT) ${TENANT}_mod_" > roles_${TENANT}.sql
+
 ```
 
 Dump $TENANT roles, dump includes passwords, this requires superuser permissions, otherwise you get "pg\_dumpall: error: query failed: ERROR:  permission denied for table pg\_authid":
 
 ```
-pg_dumpall --roles-only --host= --port= --username= | grep -E -e '^\\' -e '^SET ' -e "^(CREATE ROLE|ALTER ROLE|GRANT) ${TENANT}_mod_" > roles_${TENANT}.sql
+pg_dumpall --roles-only --host= --port= --username= \
+  | sed 's/ NOSUPERUSER / /; s/ NOCREATEDB / /; s/ NOREPLICATION / /; s/ NOBYPASSRLS / /;' \
+  | grep -E -e '^\\' -e '^SET ' -e "^(CREATE ROLE|ALTER ROLE|GRANT) ${TENANT}_mod_" > roles_${TENANT}.sql
 ```
 
 ## Restore tenant
