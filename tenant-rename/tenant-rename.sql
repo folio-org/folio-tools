@@ -42,7 +42,11 @@ $PROCEDURE$
     LOOP
       newschema := regexp_replace(record.oldschema, concat('^', oldtenant), newtenant);
       -- \m and \M match at begin and end of a word, word = [a-zA-Z0-9_]+
-      sql    := regexp_replace(record.prosrc,    concat('\m', record.oldschema, '\M'), newschema, 'g');
+      sql := regexp_replace(record.prosrc, concat('\m', record.oldschema, '\M'), newschema, 'g');
+      -- https://github.com/folio-org/mod-data-export/blob/v5.3.0/src/main/resources/db/changelog/changes/slice_instances_all_ids.sql#L8
+      -- https://github.com/folio-org/mod-data-export/blob/v5.3.0/src/main/resources/db/changelog/changes/slice_holdings_all_ids.sql#L8
+      sql := replace(sql, concat(' ', record.oldschema, '_mod_inventory_storage.'),
+                          concat(' ', newschema,        '_mod_inventory_storage.') );
       IF pg_typeof(record.proconfig) = 'text[]'::regtype THEN
         config := regexp_replace(record.proconfig[1], concat('\m', record.oldschema, '\M'), newschema, 'g');
         CONTINUE WHEN sql IS NOT DISTINCT FROM record.prosrc AND
@@ -57,15 +61,18 @@ $PROCEDURE$
     END LOOP;
 
     -- rename schema name in rmb_internal_index.def
+    -- https://github.com/folio-org/mod-circulation-storage/blob/v17.4.0/src/main/resources/templates/db_scripts/index_dateLostItemShouldBeBilled.sql#L10
     FOR record IN
       SELECT schemaname AS oldschema FROM pg_tables
       WHERE schemaname ~ regexp AND tablename = 'rmb_internal_index'
     LOOP
       newschema := regexp_replace(record.oldschema, concat('^', oldtenant), newtenant);
-      EXECUTE format('UPDATE %I.rmb_internal_index SET def = replace(def, %L, %L)',
+      EXECUTE format('UPDATE %I.rmb_internal_index SET def = replace(replace(def, %L, %L), %L, %L)',
                      record.oldschema,
                      concat(' ', record.oldschema, '.'),
-                     concat(' ', newschema, '.'));
+                     concat(' ', newschema, '.'),
+                     concat('(', record.oldschema, '.'),
+                     concat('(', newschema, '.'));
     END LOOP;
 
     -- rename schema name in rmb_job.jsonb->>'tenant'
@@ -77,6 +84,32 @@ $PROCEDURE$
                         SET jsonb = jsonb_set(jsonb, '{tenant}', to_jsonb(%L::text))
                         WHERE jsonb->>'tenant' = %L $$,
                      record.oldschema, newtenant, oldtenant);
+    END LOOP;
+
+    -- rename tenant name in mod_agreements log_entry_additional_info
+    FOR record IN
+      SELECT schemaname AS oldschema FROM pg_tables
+      WHERE schemaname = concat(oldtenant, '_mod_agreements') AND tablename = 'log_entry_additional_info'
+    LOOP
+      EXECUTE format($$ UPDATE %I.log_entry_additional_info
+                        SET additional_info_elt = %L
+                        WHERE additional_info_idx = 'tenantId' AND additional_info_elt = %L $$,
+                     record.oldschema, concat(newtenant, '_mod_agreements'), concat(oldtenant, '_mod_agreements'));
+      EXECUTE format($$ UPDATE %I.log_entry_additional_info
+                        SET additional_info_elt = %L
+                        WHERE additional_info_idx IN ('tenant', '{tenant}') AND additional_info_elt = %L $$,
+                     record.oldschema, newtenant, oldtenant);
+    END LOOP;
+
+    -- rename tenant name in mod_fqm_manager entity_type_definition
+    FOR record IN
+      SELECT schemaname AS oldschema FROM pg_tables
+      WHERE schemaname = concat(oldtenant, '_mod_fqm_manager') AND tablename = 'entity_type_definition'
+    LOOP
+      EXECUTE format($$ UPDATE %I.entity_type_definition SET definition = regexp_replace(definition, %L, %L, 'g') $$,
+                     record.oldschema,
+                     concat('\m', oldtenant, '_mod_'),
+                     concat(newtenant, '_mod_'));
     END LOOP;
 
     -- rename tenant name in mod_pubsub audit_message.tenant_id
