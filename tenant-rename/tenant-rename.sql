@@ -130,6 +130,24 @@ $PROCEDURE$
                      record.oldschema, newtenant, oldtenant);
     END LOOP;
 
+    -- rename tenant name in mod_search holding.tenant_id
+    FOR record IN
+      SELECT schemaname AS oldschema FROM pg_tables
+      WHERE schemaname = concat(oldtenant, '_mod_search') AND tablename = 'holding'
+    LOOP
+      EXECUTE format('UPDATE %I.holding SET tenant_id = %L WHERE tenant_id = %L',
+                     record.oldschema, newtenant, oldtenant);
+    END LOOP;
+
+    -- rename tenant name in mod_search instance.tenant_id
+    FOR record IN
+      SELECT schemaname AS oldschema FROM pg_tables
+      WHERE schemaname = concat(oldtenant, '_mod_search') AND tablename = 'instance'
+    LOOP
+      EXECUTE format('UPDATE %I.instance SET tenant_id = %L WHERE tenant_id = %L',
+                     record.oldschema, newtenant, oldtenant);
+    END LOOP;
+
     -- rename tenant name in mod_search instance_classification.tenant_id
     FOR record IN
       SELECT schemaname AS oldschema FROM pg_tables
