@@ -157,6 +157,15 @@ $PROCEDURE$
                      record.oldschema, newtenant, oldtenant);
     END LOOP;
 
+    -- rename tenant name in mod_search merge_range.tenant_id
+    FOR record IN
+      SELECT schemaname AS oldschema FROM pg_tables
+      WHERE schemaname = concat(oldtenant, '_mod_search') AND tablename = 'merge_range'
+    LOOP
+      EXECUTE format('UPDATE %I.merge_range SET tenant_id = %L WHERE tenant_id = %L',
+                     record.oldschema, newtenant, oldtenant);
+    END LOOP;
+
     -- rename tenant name in mod_source_record_manager journal_records.tenant_id
     FOR record IN
       SELECT schemaname AS oldschema FROM pg_tables
