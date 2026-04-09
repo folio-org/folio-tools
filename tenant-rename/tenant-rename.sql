@@ -86,6 +86,15 @@ $PROCEDURE$
                      record.oldschema, newtenant, oldtenant);
     END LOOP;
 
+    -- delete wrong md5sum in the `databasechangelog` liquibase table
+    -- liquibase will replace it with the new md5sum on next run
+    FOR record IN
+      SELECT schemaname AS oldschema FROM pg_tables
+      WHERE schemaname ~ regexp AND tablename = 'databasechangelog'
+    LOOP
+      EXECUTE format('UPDATE %I.databasechangelog SET md5sum = NULL', record.oldschema);
+    END LOOP;
+
     -- rename tenant name in mod_agreements log_entry_additional_info
     FOR record IN
       SELECT schemaname AS oldschema FROM pg_tables
