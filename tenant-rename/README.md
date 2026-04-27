@@ -19,7 +19,7 @@ or as arguments to the following commands.
 Start psql, load `tenant-rename.sql` and call `tenant_rename`:
 
 ```
-psql --host= --port= --username= <<EOF
+psql --host= --port= --username= "$FOLIODB" <<EOF
 \i tenant-rename.sql
 call tenant_rename('$OLDTENANT', '$NEWTENANT');
 EOF
