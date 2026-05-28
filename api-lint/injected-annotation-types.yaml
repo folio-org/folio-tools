@@ -8,6 +8,8 @@ annotationTypes:
     type: string
   fqm-ignore:
     type: boolean
+  fqm-id-column-name:
+    type: string
   fqm-is-id-column:
     type: boolean
   fqm-joins-to-raw:
