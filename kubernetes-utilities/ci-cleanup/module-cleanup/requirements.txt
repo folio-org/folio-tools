@@ -2,7 +2,7 @@ cachetools==3.1.1
 certifi==2023.7.22
 chardet==3.0.4
 google-auth==1.7.0
-idna==2.8
+idna==3.16
 kubernetes==10.0.1
 natsort==6.0.0
 oauthlib==3.1.0
