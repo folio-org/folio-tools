@@ -1,8 +1,7 @@
-import { exec } from 'child_process';
+import { exec } from 'node:child_process';
+import fs from 'node:fs';
 import yargs from 'yargs/yargs';
 import { hideBin } from 'yargs/helpers';
-import axios from 'axios';
-import fs from 'fs';
 
 /**
  * Create tickets for all jira projects associated with packages in
@@ -12,10 +11,9 @@ class JSpam {
   /**
    * retrieve an attribute from the MacOS security service
    */
-  getAttr(name, field)
-  {
+  async getAttr(name, field) {
     return new Promise((res, rej) => {
-      exec(`security find-generic-password -s "${name}" | grep "${field}" | cut -d\\" -f 4`, (error, stdout, stderr) => {
+      exec(String.raw`security find-generic-password -s "${name}" | grep "${field}" | cut -d\" -f 4`, (error, stdout, stderr) => {
         if (error) {
           rej(error);
         }
@@ -28,8 +26,7 @@ class JSpam {
   /**
    * retrieve a password from the MacOS security service
    */
-  getPassword(name, field)
-  {
+  async getPassword(name, field) {
     return new Promise((res, rej) => {
       exec(`security find-generic-password -s "${name}" -a "${field}" -w`, (error, stdout, stderr) => {
         if (error) {
@@ -41,19 +38,11 @@ class JSpam {
   }
 
 
-  getSecurityServiceCredentials()
-  {
-    const credentials = {  };
-    return this.getAttr('jira-apitoken', 'acct')
-    .then(username => {
-      credentials.username = username.trim();
-      return credentials.username;
-    })
-    .then(username => this.getPassword('jira-apitoken', username))
-    .then(password => {
-      credentials.password = password.trim();
-      return credentials;
-    });
+  async getSecurityServiceCredentials() {
+    const username = (await this.getAttr('jira-apitoken', 'acct')).trim();
+    const password = (await this.getPassword('jira-apitoken', username)).trim();
+
+    return { username, password }
   }
 
 
@@ -61,29 +50,35 @@ class JSpam {
    * getCredentials
    * get creds from CLI, or security service
    */
-  getCredentials(argv)
-  {
-    return new Promise((res, rej) => {
-      if (argv.username && argv.password) {
-        res({
-          username: argv.username,
-          password: argv.password,
-        });
+  async getCredentials(argv) {
+    if (argv.username && argv.password) {
+      return {
+        username: argv.username,
+        password: argv.password,
+      };
+    }
+    else if (argv.username && argv.token) {
+      return {
+        username: argv.username,
+        password: argv.token,
+      };
+    }
+    else {
+      try {
+        const creds = await this.getSecurityServiceCredentials();
+        return creds;
+      } catch (err) {
+        throw new Error('could not find credentials', { cause: err });
       }
-      else if (argv.username && argv.token) {
-        res({
-          username: argv.username,
-          password: argv.token,
-        });
-      }
-      else {
-        return this.getSecurityServiceCredentials()
-        .then(credentials => res(credentials))
-        .catch(e => {
-          rej('could not find credentials', e);
-        });
-      }
-    });
+    }
+  }
+
+  jiraHeaders() {
+    return {
+      'Authorization': `Basic ${Buffer.from(this.credentials.username + ':' + this.credentials.password).toString('base64')}`,
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    };
   }
 
   /**
@@ -92,13 +87,11 @@ class JSpam {
    * transpose it to an object keyed by the project's github name.
    * @param {string} file
    */
-  async getMatrix(file)
-  {
+  async getMatrix(file) {
     const modules = {};
     const matrix = fs.readFileSync(file, { encoding: 'UTF-8' });
 
     const teams = matrix.split("\n");
-    const ths = teams.shift().split("\t").map((i) => i.replaceAll('"', ''));
 
     let pteam = { team: '', po: '', tl: '', github: '', jira: '' };
     teams.forEach((line, count) => {
@@ -144,8 +137,7 @@ class JSpam {
    *
    * @return Promise
    */
-  timeout()
-  {
+  timeout() {
     return new Promise(res => {
       setTimeout(() => res(), 200);
     });
@@ -160,28 +152,27 @@ class JSpam {
    * without admin-level access. I don't get it.
    * @param {*} name
    */
-  teamForName(name)
-  {
+  async teamForName(name) {
     const teams = {
       "@cult": 10138,
       "Aggies": 10139,
       "Bama": 10140,
       "Bienenvolk": 10141,
-        "Bienenvolk (fka ERM)": 10141,
-        "Bienenvolk (fka ERM Delivery)": 10141,
-        "ERM Subgroup Dev Team": 10141,
-        "ERM Delivery": 10141,
+      "Bienenvolk (fka ERM)": 10141,
+      "Bienenvolk (fka ERM Delivery)": 10141,
+      "ERM Subgroup Dev Team": 10141,
+      "ERM Delivery": 10141,
       "Citation": 10142,
       "Core: Platform": 10144,
-        "Core Platform": 10144,
+      "Core Platform": 10144,
       "Corsair": 10145,
       "EBSCO - FSE": 10147,
       "Eureka": 10149,
       "Dreamliner": 10150,
       "Firebird": 10152,
-        "Firebird team": 10152,
+      "Firebird team": 10152,
       "Folijet": 10153,
-        "Folijet team": 10153,
+      "Folijet team": 10153,
       "FOLIO DevOps": 10155,
       "Frontside": 10156,
       "Gutenberg": 10158,
@@ -189,7 +180,7 @@ class JSpam {
       "Kinetics": 10160,
       "Kitfox": 10161,
       "Lehigh": 10162,
-        "NSIP(Lehigh)": 10162,
+      "NSIP(Lehigh)": 10162,
       "Leipzig": 10163,
       "Mjolnir": 10164,
       "MOL": 10165,
@@ -206,16 +197,16 @@ class JSpam {
       "Sif": 10178,
       "Siphon": 10179,
       "Spitfire": 10180,
-        "Spitfire Team": 10180,
+      "Spitfire Team": 10180,
       "Spring Force": 10181,
       "Stacks": 10182,
       "Stripes Force": 10183,
       "Thor": 10184,
       "Thunderjet": 10185,
-        "Thunderjet Team": 10185,
+      "Thunderjet Team": 10185,
       "UNAM": 10186,
       "Vega": 10187,
-        "Vega Team": 10187,
+      "Vega Team": 10187,
       "Volaris": 10188,
       "仁者无敌 \"Benevolence\"": 10189,
       "Nighthawk": 10495,
@@ -224,35 +215,24 @@ class JSpam {
       "Dojo": ""
     };
 
-    let team = null;
-
     // even if we _don't_ have a project for the given name, we still
     // resolve, not reject, because we still want to create the ticket;
     // it just won't be assignable to a team.
-    return this.timeout().then(() => {
-      return new Promise((resolve, reject) => {
-        if (teams[name]) {
-          axios.get(`${this.jira}/rest/api/3/customFieldOption/${teams[name]}`)
-            .then(res => {
-              const team = res.data;
-              team.id = `${teams[name]}`;
+    await this.timeout();
+    if (teams[name]) {
+      const team = await (await fetch(`${this.jira}/rest/api/3/customFieldOption/${teams[name]}`)).json();
+      team.id = `${teams[name]}`;
 
-              resolve(team);
-            });
-        }
-        else {
-          console.warn(`Could not match team "${name}"`);
-          resolve(null);
-        }
-      });
-    });
-
-
+      return team;
+    }
+    else {
+      console.warn(`Could not match team "${name}"`);
+      return null;
+    }
   }
 
 
-  createTicket({summary, description, project, parent, labels, team, cc, assignee})
-  {
+  async createTicket({ summary, description, project, parent, labels, team, cc, assignee }) {
     const body = {
       "fields": {
         "project": { id: project.id },
@@ -286,16 +266,13 @@ class JSpam {
       body.fields.customfield_10057 = team;
     }
 
-    if (cc && cc.length) {
-      const attn = cc.map(i => `[~accountid:${i}]`).join(', ');
+    if (cc?.length) {
       cc.forEach((i) => {
         body.fields.description.content[0].content.push(
           {
             "text": "\nCC: ",
             "type": "text"
-          }
-        );
-        body.fields.description.content[0].content.push(
+          },
           {
             "type": "mention",
             "attrs": {
@@ -311,32 +288,33 @@ class JSpam {
       body.fields.assignee = assignee;
     }
 
-    return axios.post(`${this.jira}/rest/api/3/issue`, body, {
-      auth: this.credentials,
-    })
+    return fetch(`${this.jira}/rest/api/3/issue`, {
+      headers: this.jiraHeaders(),
+      body: JSON.stringify(body),
+      method: 'POST',
+    }).then(res => res.json());
   }
 
 
-  linkTicket(inward, outward)
-  {
+  linkTicket(inward, outward) {
     const body = {
       "outwardIssue": {
-        "key": outward.data.key,
+        "key": outward.key,
       },
       "inwardIssue": {
-        "key": inward.data.key,
+        "key": inward.key,
       },
       "type": this.relatesLink,
     };
-
-    return axios.post(`${this.jira}/rest/api/3/issueLink`, body, {
-      auth: this.credentials,
+    return fetch(`${this.jira}/rest/api/3/issueLink`, {
+      headers: this.jiraHeaders(),
+      body: JSON.stringify(body),
+      method: 'POST',
     });
   }
 
 
-  parseArgv()
-  {
+  parseArgv() {
     return yargs(hideBin(process.argv))
       .usage('Usage: $0 --summary <s> --description <d> --link <JIRA-123> --package <package.json>')
 
@@ -415,8 +393,7 @@ class JSpam {
    * @arg function fn function to apply to each element
    * @return promise
    */
-  eachPromise(arr, fn)
-  {
+  eachPromise(arr, fn) {
     //
     if (!Array.isArray(arr)) return Promise.reject(new Error('Array not found'));
     return arr.reduce((prev, cur) => {
@@ -427,8 +404,7 @@ class JSpam {
   };
 
 
-  async main()
-  {
+  async main() {
     this.jira = 'https://folio-org.atlassian.net';
 
     // const contents = JSON.parse(fs.readFileSync(filename, { encoding: 'UTF-8'}));
@@ -443,11 +419,32 @@ class JSpam {
 
       this.credentials = await this.getCredentials(this.argv);
 
-      this.types = await axios.get(`${this.jira}/rest/api/3/issuetype`);
-      this.taskType = this.types.data.find(type => type.name === 'Task');
+      this.types = await (await fetch(`${this.jira}/rest/api/3/issuetype`)).json();
+      // what the ...? I SWEAR TO GOD I don't understand what is happening
+      // here, but when I make this request with Axios, name has english values.
+      // when I make it with fetch, name is Chinese:
+      // [
+      //   'Query',     '改进',
+      //   '任务',      'Scenario',
+      //   'Prototype', '新增功能',
+      //   '缺陷',      '子任务',
+      //   'Template',  '长篇故事',
+      //   'Umbrella',  'Tech Debt',
+      //   '故事'
+      // ]
+      // [
+      //   'Query',     'Improvement',
+      //   'Task',      'Scenario',
+      //   'Prototype', 'New Feature',
+      //   'Bug',       'Sub-task',
+      //   'Template',  'Epic',
+      //   'Umbrella',  'Tech Debt',
+      //   'Story'
+      // ]
+      this.taskType = this.types.find(type => type.untranslatedName === 'Task');
 
-      this.linkTypes = await axios.get(`${this.jira}/rest/api/3/issueLinkType`);
-      this.relatesLink = this.linkTypes.data.issueLinkTypes.find(link => link.name === 'Relates');
+      this.linkTypes = await (await fetch(`${this.jira}/rest/api/3/issueLinkType`)).json();
+      this.relatesLink = this.linkTypes.issueLinkTypes.find(link => link.name === 'Relates');
 
       // the live data now comes in via an iframe with a fancy export-to-csv function
       // that, regrettably, does not have a stable URL :( instead, the export is saved
@@ -457,14 +454,14 @@ class JSpam {
       // get ticket from Jira
       let link;
       if (this.argv.link) {
-        link = await axios.get(`${this.jira}/rest/api/3/issue/${this.argv.link}`);
+        link = await (await fetch(`${this.jira}/rest/api/3/issue/${this.argv.link}`)).json();
       }
 
       // map dependencies:
       // @folio/stripes-lib => stripes-lib
       // @folio/some-app => ui-some-app
       // @okapi/some-app => some-app
-      const contents = JSON.parse(fs.readFileSync(this.argv.package, { encoding: 'UTF-8'}));
+      const contents = JSON.parse(fs.readFileSync(this.argv.package, { encoding: 'UTF-8' }));
       const deps = Object.keys(contents.dependencies)
         .map(p => {
           if (p.startsWith('@folio/stripes-')) {
@@ -478,76 +475,76 @@ class JSpam {
           }
         })
         .filter(Boolean)
-        .sort();
+        .sort((a, b) => a.localeCompare(b));
 
       // get projects from JIRA
       // generally, name corresponds to GitHub repository name, and thus can be used
       // to map between the matrix and Jira
-      axios.get(`${this.jira}/rest/api/3/project`)
-      .then(projects => {
-        // map the array of projects into a hash keyed by name, e.g. ui-some-app
-        const pmap = {};
-        projects.data.forEach(p => { pmap[p.name] = p; });
+      (await fetch(`${this.jira}/rest/api/3/project`)).json()
+        .then(projects => {
+          // map the array of projects into a hash keyed by name, e.g. ui-some-app
+          const pmap = {};
+          projects.forEach(p => { pmap[p.name] = p; });
 
-        // fill in holes in Jira's map with values from the matrix if possible.
-        // this happens when the Jira name does not correspond to a repo name
-        // but the matrix provides such a mapping, e.g. for all the ERM projects
-        // that are in separate repos but share a common Jira project.
-        Object.keys(matrix).forEach(k => {
-          if (!pmap[k]) {
-            const match = Object.values(pmap).find(jira => jira.key === matrix[k].jira);
-            if (match) {
-              // console.log(`+ ${k} ${match.key} ${match.name}`)
-              pmap[k] = match;
+          // fill in holes in Jira's map with values from the matrix if possible.
+          // this happens when the Jira name does not correspond to a repo name
+          // but the matrix provides such a mapping, e.g. for all the ERM projects
+          // that are in separate repos but share a common Jira project.
+          Object.keys(matrix).forEach(k => {
+            if (!pmap[k]) {
+              const match = Object.values(pmap).find(jira => jira.key === matrix[k].jira);
+              if (match) {
+                // console.log(`+ ${k} ${match.key} ${match.name}`)
+                pmap[k] = match;
+              }
             }
-          }
-        });
+          });
 
-        this.eachPromise(deps, d => {
-          if (pmap[d] && matrix[d]) {
-            this.teamForName(matrix[d].team)
-            .then(team => {
-              // only assign the team if we received --team
-              const t = this.argv.team ? team : null;
-              const cc = [];
-              if (this.argv.ccpo && matrix[d].poid) {
-                cc.push({ id: matrix[d].poid, name: matrix[d].po } )
-              }
+          this.eachPromise(deps, d => {
+            if (pmap[d] && matrix[d]) {
+              this.teamForName(matrix[d].team)
+                .then(team => {
+                  // only assign the team if we received --team
+                  const t = this.argv.team ? team : null;
+                  const cc = [];
+                  if (this.argv.ccpo && matrix[d].poid) {
+                    cc.push({ id: matrix[d].poid, name: matrix[d].po })
+                  }
 
-              if (this.argv.cctl && matrix[d].tlid) {
-                cc.push({ id: matrix[d].tlid, name: matrix[d].tl } )
-              }
+                  if (this.argv.cctl && matrix[d].tlid) {
+                    cc.push({ id: matrix[d].tlid, name: matrix[d].tl })
+                  }
 
-              return this.createTicket({
-                summary: this.argv.summary,
-                description: this.argv.description,
-                project: pmap[d],
-                parent: this.argv.parent,
-                labels: this.argv.label,
-                team: t,
-                cc: cc,
-              })
-            })
-            .then(ticket => {
-              if (link) {
-                this.linkTicket(ticket, link);
-              }
-              return ticket;
-            })
-            .then((ticket) => {
-              console.log(`created ${ticket.data.key} (${d})`)
-            })
-            .catch(e => {
-              console.error( e);
-            });
-          }
-          else {
-            console.warn(`could not find a jira project or matrix entry matching >>${d}<<`);
-          }
-        });
-      })
+                  return this.createTicket({
+                    summary: this.argv.summary,
+                    description: this.argv.description,
+                    project: pmap[d],
+                    parent: this.argv.parent,
+                    labels: this.argv.label,
+                    team: t,
+                    cc: cc,
+                  })
+                })
+                .then(ticket => {
+                  if (link) {
+                    this.linkTicket(ticket, link);
+                  }
+                  return ticket;
+                })
+                .then(async (ticket) => {
+                  console.log(`created ${ticket.key} (${d})`)
+                })
+                .catch(e => {
+                  console.error(e);
+                });
+            }
+            else {
+              console.warn(`could not find a jira project or matrix entry matching >>${d}<<`);
+            }
+          });
+        })
     }
-    catch(e) {
+    catch (e) {
       console.error(e);
     };
   }

@@ -1,6 +1,6 @@
 # api-lint
 
-Copyright (C) 2020-2025 The Open Library Foundation
+Copyright (C) 2020-2026 The Open Library Foundation
 
 This software is distributed under the terms of the Apache License,
 Version 2.0. See the file "[LICENSE](LICENSE)" for more information.
@@ -34,7 +34,7 @@ For local use:
 
 ```shell
 cd folio-tools/api-lint
-yarn install
+yarn install --ignore-scripts
 pip3 install -r requirements.txt  # which installs them globally
 ```
 
@@ -42,7 +42,7 @@ The Python requirements can instead be installed using [pipenv](https://pipenv.p
 
 ```shell
 cd folio-tools/api-lint
-yarn install
+yarn install --ignore-scripts
 pipenv install
 pipenv shell
 ```

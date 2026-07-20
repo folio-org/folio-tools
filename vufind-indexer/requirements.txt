@@ -1,6 +1,6 @@
 certifi==2023.7.22
 chardet==3.0.4
-idna==2.8
+idna==3.16
 jmespath==0.9.4
 requests==2.31.0
 urllib3==2.6.1
