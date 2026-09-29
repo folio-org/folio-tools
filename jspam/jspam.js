@@ -77,7 +77,8 @@ class JSpam {
     return {
       'Authorization': `Basic ${Buffer.from(this.credentials.username + ':' + this.credentials.password).toString('base64')}`,
       'Accept': 'application/json',
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'Accept-Language': 'en-US',
     };
   }
 
@@ -288,11 +289,17 @@ class JSpam {
       body.fields.assignee = assignee;
     }
 
-    return fetch(`${this.jira}/rest/api/3/issue`, {
+    const res = await fetch(`${this.jiraApi}/rest/api/3/issue`, {
       headers: this.jiraHeaders(),
       body: JSON.stringify(body),
       method: 'POST',
-    }).then(res => res.json());
+    });
+    const json = await res.json();
+    if (res.ok) {
+      return json;
+    }
+
+    throw new Error('Ticket creation failed!', { cause: json })
   }
 
 
@@ -306,7 +313,7 @@ class JSpam {
       },
       "type": this.relatesLink,
     };
-    return fetch(`${this.jira}/rest/api/3/issueLink`, {
+    return fetch(`${this.jiraApi}/rest/api/3/issueLink`, {
       headers: this.jiraHeaders(),
       body: JSON.stringify(body),
       method: 'POST',
@@ -405,7 +412,14 @@ class JSpam {
 
 
   async main() {
+    // endpoint for PUBLIC API requests
     this.jira = 'https://folio-org.atlassian.net';
+
+    // endpoint for AUTHENTICATED API requests with scoped tokens
+    // requests made with unscoped tokens must use the public endpoint
+    // https://community.atlassian.com/forums/discussion/comment/2375277?utm_source=community-share#Comment_2375277
+    // The simplest way to find your site's Cloud Id is via: https://${site-name}.atlassian.net/_edge/tenant_info
+    this.jiraApi = 'https://api.atlassian.com/ex/jira/11f731c9-c476-4b99-a086-9ad1c7425130';
 
     // const contents = JSON.parse(fs.readFileSync(filename, { encoding: 'UTF-8'}));
     //
