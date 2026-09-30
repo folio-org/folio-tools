@@ -110,6 +110,36 @@ $PROCEDURE$
                      record.oldschema, newtenant, oldtenant);
     END LOOP;
 
+    -- rename tenant name in mod_agreements app_setting S3ObjectPrefix
+    FOR record IN
+      SELECT schemaname AS oldschema FROM pg_tables
+      WHERE schemaname = concat(oldtenant, '_mod_agreements') AND tablename = 'app_setting'
+    LOOP
+      EXECUTE format($$ UPDATE %I.app_setting
+                        SET st_value = %L
+                        WHERE st_section = 'fileStorage' AND st_key = 'S3ObjectPrefix' AND st_value = %L $$,
+                     record.oldschema, concat(newtenant, '/agreements/'), concat(oldtenant, '/agreements/'));
+      EXECUTE format($$ UPDATE %I.app_setting
+                        SET st_value = %L
+                        WHERE st_section = 'fileStorage' AND st_key = 'S3ObjectPrefix' AND st_value = %L $$,
+                     record.oldschema, concat('/', newtenant, '/agreements/'), concat('/', oldtenant, '/agreements/'));
+    END LOOP;
+
+    -- rename tenant name in mod_agreements file_object fo_s3ref
+    FOR record IN
+      SELECT schemaname AS oldschema FROM pg_tables
+      WHERE schemaname = concat(oldtenant, '_mod_agreements') AND tablename = 'file_object'
+    LOOP
+      BEGIN
+        EXECUTE format($$ UPDATE %I.file_object
+                          SET fo_s3ref = regexp_replace(fo_s3ref, concat('^(/?)', %L, '/'), concat('\1', %L, '/')) $$,
+                       record.oldschema, oldtenant, newtenant);
+      EXCEPTION
+        -- ignore if table or column doesn't exist
+        WHEN OTHERS THEN NULL;
+      END;
+    END LOOP;
+
     -- rename tenant name in mod_fqm_manager entity_type_definition
     FOR record IN
       SELECT schemaname AS oldschema FROM pg_tables
