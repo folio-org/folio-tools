@@ -1,3 +1,8 @@
+## 2.1.0 2026-11-05
+
+* Rebuild to update [FOLIO-4592](https://folio-org.atlassian.net/browse/FOLIO-4592)
+* OpenJDK Runtime Environment Temurin-17.0.21+9
+
 ## 2.0.8 2024-08-27
 
 * Rebuild to update [FOLIO-3730](https://folio-org.atlassian.net/browse/FOLIO-3730)
