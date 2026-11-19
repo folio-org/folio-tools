@@ -7,6 +7,5 @@ A collection of tools and various bits used primarily by FOLIO CI to build and d
  * api-lint - Processing tools to assist RAML and OpenAPI (OAS) API descriptions maintenance.
  * api-schema-lint - Processing tools to assist API schema maintenance.
  * interface-dependents - Collect list of modules dependent upon an interface
- * jenkins-slave-docker - Dockerfiles used for FOLIO builds in Jenkins.
  * packaging - Experimental debian packaging scripts using Docker and git-buildpackage.
  * vufind-indexer - Experimental indexer for ingesting instance records to Solr
