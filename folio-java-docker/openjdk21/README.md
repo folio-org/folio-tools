@@ -3,15 +3,6 @@ Docker container for FOLIO modules that run under Java SE 21.
 
 The image is deployed to [docker.io/folioci/alpine-jre-openjdk21](https://hub.docker.com/r/folioci/alpine-jre-openjdk21).
 
-It is based on
-https://github.com/fabric8io-images/java/tree/master/images/alpine/openjdk11/jre
-that is Copyright Roland Huss, Laurent Broudoux, Isaac Wilson and released under
-Apache License Version 2.0.
-
-Documentation about supported environment variables like `JAVA_OPTIONS`
-is on the above fabric8io-images web page.
-
-Agent Bond support has been stripped.
 
 ### Sample module Dockerfile
 
